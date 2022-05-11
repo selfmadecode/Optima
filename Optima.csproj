@@ -19,10 +19,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\" />
     <Folder Include="Models\Entities\" />
     <Folder Include="Models\DTO\" />
-    <Folder Include="Models\Enums\" />
+    <Folder Include="Models\Constant\" />
     <Folder Include="Services\Interface\" />
     <Folder Include="Services\Implementation\" />
   </ItemGroup>
