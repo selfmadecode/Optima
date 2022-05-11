@@ -25,7 +25,6 @@
     <Folder Include="Models\Enums\" />
     <Folder Include="Services\Interface\" />
     <Folder Include="Services\Implementation\" />
-    <Folder Include="Ultilities\Helpers\" />
   </ItemGroup>
 
 </Project>

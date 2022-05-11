@@ -11,6 +11,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using Optima.Context;
+using Optima.Ultilities.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,7 +19,7 @@ using System.Threading.Tasks;
 
 namespace Optima
 {
-    public class Startup
+    public partial class Startup
     {
         public Startup(IConfiguration configuration)
         {
@@ -51,40 +52,14 @@ namespace Optima
             app.UseAuthentication();
             app.UseAuthorization();
 
-            app.UseSwagger();
-            app.UseSwaggerUI(c =>
-            {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Optima API v1");
-                c.DisplayRequestDuration();
-                c.DefaultModelsExpandDepth(-1);
-            });
-
+            // ADD SWAGGER TO PIPELINE
+            app.UseCustomSwagger();
+            
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
             });
-        }
-
-        public void ConfigureEntityFrameworkDbContext(IServiceCollection services)
-        {
-            string dbConnectionString = Configuration.GetConnectionString("DefaultConnection");
-
-            services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer(
-                    dbConnectionString,
-                    b => b.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)));
-        }
-
-        public void ConfigureSwagger(IServiceCollection services)
-        {
-            services.AddSwaggerGen(c =>
-            {
-                c.DescribeAllParametersInCamelCase();
-                c.SwaggerDoc("v1", new OpenApiInfo { Version = "v1", Title = "Optima API" });
-            });
-        }
-
-
+        }        
     }
     
 }
