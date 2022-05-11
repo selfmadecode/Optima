@@ -4,10 +4,14 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.OpenApi.Models;
+using Optima.Context;
+using Optima.Ultilities.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +19,7 @@ using System.Threading.Tasks;
 
 namespace Optima
 {
-    public class Startup
+    public partial class Startup
     {
         public Startup(IConfiguration configuration)
         {
@@ -27,6 +31,9 @@ namespace Optima
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            ConfigureEntityFrameworkDbContext(services);
+            ConfigureSwagger(services);
+
             services.AddControllers();
         }
 
@@ -45,10 +52,14 @@ namespace Optima
             app.UseAuthentication();
             app.UseAuthorization();
 
+            // ADD SWAGGER TO PIPELINE
+            app.UseCustomSwagger();
+            
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
             });
-        }
+        }        
     }
+    
 }
