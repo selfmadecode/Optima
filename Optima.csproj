@@ -19,7 +19,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Models\Entities\" />
     <Folder Include="Models\DTO\" />
     <Folder Include="Models\Constant\" />
     <Folder Include="Services\Interface\" />
