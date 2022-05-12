@@ -21,6 +21,5 @@ namespace Optima.Controllers
 
             return BadRequest(model);
         }
-    }
-    
+    }   
 }
