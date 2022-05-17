@@ -12,7 +12,7 @@ namespace Optima.Controllers
     [Route("api/[controller]")]
     [ApiController]
     public class BaseController : ControllerBase
-    {
+    {        
         protected IActionResult ReturnResponse(dynamic model)
         {
             if (model.Status == RequestExecution.Successful)
@@ -27,6 +27,14 @@ namespace Optima.Controllers
         {
             get { return Guid.Parse(User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value); }
             //get { return Guid.Parse(CurrentUser.Identities.FirstOrDefault(c => c.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value); }
+        }
+
+        protected DateTime CurrentDateTime
+        {
+            get
+            {
+                return DateTime.UtcNow;
+            }
         }
     }   
 }
