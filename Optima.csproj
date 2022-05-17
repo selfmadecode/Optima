@@ -20,10 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Models\DTO\" />
     <Folder Include="Models\Constant\" />
-    <Folder Include="Services\Interface\" />
-    <Folder Include="Services\Implementation\" />
   </ItemGroup>
 
 </Project>

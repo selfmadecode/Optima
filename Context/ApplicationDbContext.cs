@@ -15,6 +15,9 @@ namespace Optima.Context
             : base(options)
         {
             //DBSET
+        }
+
+        public DbSet<BankAccount> BankAccounts { get; set; } 
         }                
     }
 }
