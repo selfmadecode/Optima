@@ -11,15 +11,15 @@ namespace Optima.Models.Entities
         {
             CreatedOn = DateTime.UtcNow;
         }
-        public int Id { get; set; }
-        public int? DeletedBy { get; set; }
+        public Guid Id { get; set; }
+        public Guid? DeletedBy { get; set; }
         public bool IsDeleted { get; set; }
         public bool IsActive { get; set; }
         public DateTime? DeletedOn { get; set; }
         public DateTime CreatedOn { get; set; }
         public DateTime? ModifiedOn { get; set; }
 
-        public int? CreatedBy { get; set; }
-        public int? ModifiedBy { get; set; }
+        public Guid? CreatedBy { get; set; }
+        public Guid? ModifiedBy { get; set; }
     }
 }

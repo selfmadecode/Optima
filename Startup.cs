@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authentication;
+//using Microsoft.AspNetCore.Authentication.AzureAD.UI;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -10,6 +11,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using Optima.Context;
+using Optima.Services.Implementation;
+using Optima.Services.Interface;
 using Optima.Ultilities.Helpers;
 using System;
 using System.Collections.Generic;
@@ -31,10 +34,10 @@ namespace Optima
         public void ConfigureServices(IServiceCollection services)
         {
             ConfigureEntityFrameworkDbContext(services);
-            AddIdentityProvider(services);
             ConfigureSwagger(services);
 
             services.AddControllers();
+            services.AddScoped<IBankAccountService, BankAccountService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
