@@ -1,8 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 using Optima.Context;
+using Optima.Models.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,6 +31,29 @@ namespace Optima
                 options.UseSqlServer(
                     dbConnectionString,
                     b => b.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)));
+        }
+
+        public void AddIdentityProvider(IServiceCollection services)
+        {
+            services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+            {
+                options.Password.RequiredLength = 6;
+                options.Password.RequireNonAlphanumeric = true;
+                options.SignIn.RequireConfirmedEmail = true;
+                options.Password.RequireDigit = true;
+                options.Password.RequireLowercase = true;
+                options.Password.RequireUppercase = true;
+                options.Lockout.MaxFailedAccessAttempts = 3;
+                options.Password.RequiredUniqueChars = 1;
+
+
+            }).AddEntityFrameworkStores<ApplicationDbContext>();            
+            //.AddDefaultTokenProviders();
+
+            //services.Configure<DataProtectionTokenProviderOptions>(options =>
+            //{
+            //    options.TokenLifespan = TimeSpan.FromHours(24);
+            //});
         }
     }
 }
