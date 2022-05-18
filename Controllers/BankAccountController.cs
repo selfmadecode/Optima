@@ -23,7 +23,7 @@ namespace Optima.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateBankAccount([FromBody] List<CreateBankAccountDTO> model)
+        public async Task<IActionResult> Create([FromBody] List<CreateBankAccountDTO> model)
         {
             try
             {
@@ -43,7 +43,7 @@ namespace Optima.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetBankAccount(Guid id)
+        public async Task<IActionResult> Get(Guid id)
         {
             try
             {
@@ -63,7 +63,7 @@ namespace Optima.Controllers
         }
 
         [HttpPut]
-        public async Task<IActionResult> UpdateBankAccount([FromBody]UpdateBankAccountDTO model, Guid UserId) 
+        public async Task<IActionResult> Update([FromBody]UpdateBankAccountDTO model, Guid UserId) 
         {
             try
             {
@@ -83,7 +83,7 @@ namespace Optima.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteBankAccount(Guid id, Guid UserId) 
+        public async Task<IActionResult> Delete(Guid id, Guid UserId) 
         {
             try
             {
