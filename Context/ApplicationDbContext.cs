@@ -18,13 +18,15 @@ namespace Optima.Context
             //DBSET
         }
 
-        public DbSet<BankAccount> BankAccounts { get; set; }
+        public DbSet<BankAccount> BankAccounts { get; set; } 
+        public DbSet<Notification> Notifications { get; set; } 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
            
             modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
         }
+                     
 
     }
 }

@@ -61,6 +61,8 @@ namespace Optima
         public void ConfigureDIService(IServiceCollection services)
         {
             services.AddScoped<IBankAccountService, BankAccountService>();
+            services.AddScoped<INotificationService, NotificationService>();
+          
         }
     }
 }
