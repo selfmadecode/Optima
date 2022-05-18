@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using log4net;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Optima.Models.Enums;
@@ -15,10 +16,10 @@ namespace Optima.Controllers
     [ApiController]
     public class BaseController : ControllerBase
     {
-        private readonly ILogger<BaseController> _logger;
+        private readonly ILog _logger;
         public BaseController()
         {
-            // intialize log here
+            _logger = LogManager.GetLogger(typeof(BaseController));
         }
         protected IActionResult ReturnResponse(dynamic model)
         {
@@ -46,7 +47,7 @@ namespace Optima.Controllers
 
         protected IActionResult HandleError(Exception ex, string customErrorMessage = null)
         {
-            _logger.LogError(ex, ex.Message);
+            _logger.Error(ex.Message, ex);
 
 
             BaseResponse<string> rsp = new BaseResponse<string>();

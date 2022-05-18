@@ -62,6 +62,7 @@ namespace Optima
         {
             services.AddScoped<IBankAccountService, BankAccountService>();
             services.AddScoped<INotificationService, NotificationService>();
+          
         }
     }
 }

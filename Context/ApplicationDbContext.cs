@@ -5,6 +5,7 @@ using Optima.Models.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace Optima.Context
@@ -19,6 +20,13 @@ namespace Optima.Context
 
         public DbSet<BankAccount> BankAccounts { get; set; } 
         public DbSet<Notification> Notifications { get; set; } 
-                       
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+           
+            modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
+        }
+                     
+
     }
 }
