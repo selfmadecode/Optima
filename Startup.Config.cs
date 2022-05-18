@@ -1,14 +1,18 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.OpenApi.Models;
 using Optima.Context;
+using Optima.Models.Config;
 using Optima.Models.Entities;
 using Optima.Services.Implementation;
 using Optima.Services.Interface;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -16,6 +20,7 @@ namespace Optima
 {
     public partial class Startup
     {
+        
         public void ConfigureSwagger(IServiceCollection services)
         {
             services.AddSwaggerGen(c =>
@@ -60,9 +65,12 @@ namespace Optima
 
         public void ConfigureDIService(IServiceCollection services)
         {
+            services.AddSingleton<IFileProvider>(new PhysicalFileProvider(Path.Combine(HostingEnvironment.ContentRootPath, Configuration.GetValue<string>("FilePath"))));
+
             services.AddScoped<IBankAccountService, BankAccountService>();
             services.AddScoped<INotificationService, NotificationService>();
-          
+            services.AddScoped<IEmailService, EmailService>();
+            services.Configure<SmtpConfigSettings>(Configuration.GetSection("SmtpConfig"));
         }
     }
 }
