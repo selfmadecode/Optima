@@ -35,8 +35,8 @@ namespace Optima
         {
             ConfigureEntityFrameworkDbContext(services);
             ConfigureSwagger(services);
+            AddIdentityProvider(services);
             ConfigureDIService(services);
-
             services.AddControllers();
         }
 
