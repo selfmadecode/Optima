@@ -5,6 +5,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 using Optima.Context;
 using Optima.Models.Entities;
+using Optima.Services.Implementation;
+using Optima.Services.Interface;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -58,7 +60,7 @@ namespace Optima
 
         public void ConfigureDIService(IServiceCollection services)
         {
-            
+            services.AddScoped<IBankAccountService, BankAccountService>();
         }
     }
 }

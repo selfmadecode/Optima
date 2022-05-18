@@ -20,6 +20,12 @@ namespace Optima.Services.Implementation
             _context = context;
         }
 
+        /// <summary>
+        /// CREATE BANK ACCOUNT
+        /// </summary>
+        /// <param name="model">The model.</param>
+        /// <param name="UserId">The UserId.</param>
+        /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
         public async Task<BaseResponse<bool>> CreateBankAccount(List<CreateBankAccountDTO> model, Guid UserId)
         {
             var response = new BaseResponse<bool>();
@@ -60,11 +66,17 @@ namespace Optima.Services.Implementation
 
             response.Data = true;
             response.Status = RequestExecution.Successful;
-            response.ResponseMessage = $"Successfully Created {checkBankInfo.Count} Bank Account(s).";
+            response.ResponseMessage = $"Successfully Created {model.Count} Bank Account(s).";
             return response;
 
         }
 
+        /// <summary>
+        /// DELETE BANK ACCOUNT
+        /// </summary>
+        /// <param name="id">The id.</param>
+        /// <param name="UserId">The UserId.</param>
+        /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
         public async Task<BaseResponse<bool>> DeleteBankAccount(Guid id, Guid UserId)
         {
             var bankAccount = await _context.BankAccounts.FirstOrDefaultAsync(x => x.UserId == UserId && x.Id == id);
@@ -92,6 +104,43 @@ namespace Optima.Services.Implementation
 
         }
 
+        /// <summary>
+        /// GET ALL BANK ACCOUNT
+        /// </summary>
+        /// <param name="UserId">The UserId.</param>
+        /// <returns>Task&lt;BaseResponse&lt;List&lt;BankAccountDTO&gt;&gt;&gt;.</returns>
+        public async Task<BaseResponse<List<BankAccountDTO>>> GetAllBankAccount(Guid UserId)
+        {
+            var bankAccounts = await _context.BankAccounts.Where(x => x.UserId == UserId).ToListAsync();
+
+            if (!bankAccounts.Any())
+            {
+                return new BaseResponse<List<BankAccountDTO>>
+                {
+                    Data = null,
+                    Errors = new List<string> { "Found no Bank Account" },
+                    Status = RequestExecution.Failed,
+                    ResponseMessage = "Found no Bank Account"
+                };
+            }
+
+            var bankAccountDTOs = bankAccounts.Select(x => (BankAccountDTO)x).ToList();
+
+            return new BaseResponse<List<BankAccountDTO>>
+            {
+                Data = bankAccountDTOs,
+                Status = RequestExecution.Successful,
+                ResponseMessage = "Bank account updated successfully"
+            };
+
+        }
+
+        /// <summary>
+        /// GET BANK ACCOUNT
+        /// </summary>
+        /// <param name="id">The id.</param>
+        /// <param name="UserId">The UserId.</param>
+        /// <returns>Task&lt;BaseResponse&lt;BankAccountDTO&gt;&gt;.</returns>
         public async Task<BaseResponse<BankAccountDTO>> GetBankAccount(Guid id, Guid UserId)
         {
             var bankAccount = await _context.BankAccounts.FirstOrDefaultAsync(x=> x.UserId == UserId && x.Id == id);
@@ -116,6 +165,12 @@ namespace Optima.Services.Implementation
             };
         }
 
+        /// <summary>
+        /// UPDATE BANK ACCOUNT
+        /// </summary>
+        /// <param name="model">The model.</param>
+        /// <param name="UserId">The UserId.</param>
+        /// <returns>Task&lt;BaseResponse&lt;BankAccountDTO&gt;&gt;.</returns>
         public async Task<BaseResponse<bool>> UpdateBankAccount(UpdateBankAccountDTO model, Guid UserId)
         {
             var bankAccount = await _context.BankAccounts.FirstOrDefaultAsync(x => x.UserId == UserId && x.Id == model.Id);
