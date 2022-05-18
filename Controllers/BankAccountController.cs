@@ -1,9 +1,11 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using log4net;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Optima.Models.DTO.BankAccountDTO;
 using Optima.Services.Implementation;
 using Optima.Services.Interface;
+using Optima.Utilities.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,12 +19,16 @@ namespace Optima.Controllers
     public class BankAccountController : BaseController
     {
         private readonly IBankAccountService _bankAccountService;
+        private readonly ILog _logger;
+
         public BankAccountController(IBankAccountService bankAccountService)
         {
             _bankAccountService = bankAccountService;
+            _logger = LogManager.GetLogger(typeof(BankAccountController));
         }
 
         [HttpPost]
+        [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
         public async Task<IActionResult> Create([FromBody] List<CreateBankAccountDTO> model)
         {
             try
@@ -36,13 +42,14 @@ namespace Optima.Controllers
             }
             catch (Exception ex)
             {
-               // _logger.Error(ex.Message, ex);
+               _logger.Error(ex.Message, ex);
                 return HandleError(ex);
             }
            
         }
 
         [HttpGet("{id}")]
+        [ProducesResponseType(typeof(BaseResponse<BankAccountDTO>), 200)]
         public async Task<IActionResult> Get(Guid id)
         {
             try
@@ -56,13 +63,36 @@ namespace Optima.Controllers
             }
             catch (Exception ex)
             {
-                //_logger.Error(ex.Message, ex);
+                _logger.Error(ex.Message, ex);
+                return HandleError(ex);
+            }
+
+        }
+
+        [HttpGet]
+        [ProducesResponseType(typeof(BaseResponse<List<BankAccountDTO>>), 200)]
+
+        public async Task<IActionResult> GetAll()
+        {
+            try
+            {
+                var result = await _bankAccountService.GetAllBankAccount(UserId);
+
+                if (result.Errors.Any())
+                    return ReturnResponse(result);
+
+                return ReturnResponse(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex.Message, ex);
                 return HandleError(ex);
             }
 
         }
 
         [HttpPut]
+        [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
         public async Task<IActionResult> Update([FromBody]UpdateBankAccountDTO model, Guid UserId) 
         {
             try
@@ -76,14 +106,15 @@ namespace Optima.Controllers
             }
             catch (Exception ex)
             {
-                //_logger.Error(ex.Message, ex);
+                _logger.Error(ex.Message, ex);
                 return HandleError(ex);
             }
 
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(Guid id, Guid UserId) 
+        [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
+        public async Task<IActionResult> Delete(Guid id) 
         {
             try
             {
@@ -96,7 +127,7 @@ namespace Optima.Controllers
             }
             catch (Exception ex)
             {
-                //_logger.Error(ex.Message, ex);
+                _logger.Error(ex.Message, ex);
                 return HandleError(ex);
             }
 

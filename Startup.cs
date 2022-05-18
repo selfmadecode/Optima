@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Authentication;
-//using Microsoft.AspNetCore.Authentication.AzureAD.UI;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -11,8 +10,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using Optima.Context;
-using Optima.Services.Implementation;
-using Optima.Services.Interface;
 using Optima.Utilities.Helpers;
 using System;
 using System.Collections.Generic;
@@ -37,6 +34,7 @@ namespace Optima
         public void ConfigureServices(IServiceCollection services)
         {
             ConfigureEntityFrameworkDbContext(services);
+            AddIdentityProvider(services);
             ConfigureSwagger(services);
             AddIdentityProvider(services);
             ConfigureDIService(services);
