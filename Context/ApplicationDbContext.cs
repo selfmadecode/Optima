@@ -18,6 +18,7 @@ namespace Optima.Context
         }
 
         public DbSet<BankAccount> BankAccounts { get; set; } 
+        public DbSet<Notification> Notifications { get; set; } 
                        
     }
 }
