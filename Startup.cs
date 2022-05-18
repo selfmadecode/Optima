@@ -35,6 +35,7 @@ namespace Optima
         {
             ConfigureEntityFrameworkDbContext(services);
             ConfigureSwagger(services);
+            ConfigureDIService(services);
 
             services.AddControllers();
             services.AddScoped<IBankAccountService, BankAccountService>();
