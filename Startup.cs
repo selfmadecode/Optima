@@ -34,7 +34,6 @@ namespace Optima
         public void ConfigureServices(IServiceCollection services)
         {
             ConfigureEntityFrameworkDbContext(services);
-            AddIdentityProvider(services);
             ConfigureSwagger(services);
             AddIdentityProvider(services);
             ConfigureDIService(services);
