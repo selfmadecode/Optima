@@ -13,7 +13,7 @@ using Microsoft.OpenApi.Models;
 using Optima.Context;
 using Optima.Services.Implementation;
 using Optima.Services.Interface;
-using Optima.Ultilities.Helpers;
+using Optima.Utilities.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;

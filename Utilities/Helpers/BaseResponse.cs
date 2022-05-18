@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Optima.Ultilities.Helpers
+namespace Optima.Utilities.Helpers
 {
     public class BaseResponse<T>
     {

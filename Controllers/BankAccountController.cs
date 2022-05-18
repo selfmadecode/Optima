@@ -37,6 +37,62 @@ namespace Optima.Controllers
                 throw ex;
             }
            
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetBankAccount(Guid id)
+        {
+            try
+            {
+                var result = await _bankAccountService.GetBankAccount(id, UserId);
+
+                if (result.Errors.Any())
+                    return ReturnResponse(result);
+
+                return ReturnResponse(result);
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+
+        }
+
+        [HttpPut]
+        public async Task<IActionResult> UpdateBankAccount([FromBody]UpdateBankAccountDTO model, Guid UserId) 
+        {
+            try
+            {
+                var result = await _bankAccountService.UpdateBankAccount(model, UserId); 
+
+                if (result.Errors.Any())
+                    return ReturnResponse(result);
+
+                return ReturnResponse(result);
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteBankAccount(Guid id, Guid UserId) 
+        {
+            try
+            {
+                var result = await _bankAccountService.DeleteBankAccount(id, UserId); 
+
+                if (result.Errors.Any())
+                    return ReturnResponse(result);
+
+                return ReturnResponse(result);
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
 
         }
     }
