@@ -7,6 +7,6 @@ namespace Optima.Models.Enums
 {
     public enum RequestExecution
     {
-        Successful, Failed
+        Successful, Failed, Error
     }
 }

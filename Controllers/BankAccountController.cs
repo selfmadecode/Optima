@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Optima.Models.DTO.BankAccountDTO;
 using Optima.Services.Implementation;
@@ -12,6 +13,7 @@ namespace Optima.Controllers
 {
     [Route("api/[controller]/[action]")]
     [ApiController]
+    [Authorize]
     public class BankAccountController : BaseController
     {
         private readonly IBankAccountService _bankAccountService;
@@ -34,7 +36,8 @@ namespace Optima.Controllers
             }
             catch (Exception ex)
             {
-                throw ex;
+               // _logger.Error(ex.Message, ex);
+                return HandleError(ex);
             }
            
         }
@@ -53,7 +56,8 @@ namespace Optima.Controllers
             }
             catch (Exception ex)
             {
-                throw ex;
+                //_logger.Error(ex.Message, ex);
+                return HandleError(ex);
             }
 
         }
@@ -72,7 +76,8 @@ namespace Optima.Controllers
             }
             catch (Exception ex)
             {
-                throw ex;
+                //_logger.Error(ex.Message, ex);
+                return HandleError(ex);
             }
 
         }
@@ -91,7 +96,8 @@ namespace Optima.Controllers
             }
             catch (Exception ex)
             {
-                throw ex;
+                //_logger.Error(ex.Message, ex);
+                return HandleError(ex);
             }
 
         }
