@@ -55,5 +55,10 @@ namespace Optima
             //    options.TokenLifespan = TimeSpan.FromHours(24);
             //});
         }
+
+        public void ConfigureDIService(IServiceCollection services)
+        {
+            
+        }
     }
 }
