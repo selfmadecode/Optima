@@ -1,5 +1,6 @@
 ﻿using AzureRays.Shared.ViewModels;
 using log4net;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Optima.Models.DTO.CountryDTO;
@@ -28,6 +29,7 @@ namespace Optima.Controllers
 
         [HttpPost]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
+        //[Authorize(Policy = "CanAdd")]
         public async Task<IActionResult> Create([FromBody]CreateCountryDTO model)
         {
             try
@@ -108,6 +110,7 @@ namespace Optima.Controllers
         }
 
         [HttpPut]
+        [Authorize]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
         public async Task<IActionResult> Update([FromBody] UpdateCountryDTO model)
         {
@@ -129,6 +132,7 @@ namespace Optima.Controllers
         }
 
         [HttpDelete("{id}")]
+        //[Authorize(Policy ="CanDelete")]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
         public async Task<IActionResult> Delete(Guid id)
         {

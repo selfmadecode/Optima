@@ -9,11 +9,8 @@ namespace Optima.Models.DTO.AuthDTO
     public class RegisterDTO
     {
         [Required]
-        public string FirstName { get; set; }
-
-        [Required]
-        public string LastName { get; set; }
-
+        public string FullName { get; set; }
+                
         [Required]
         [EmailAddress]
         public string EmailAddress { get; set; }
