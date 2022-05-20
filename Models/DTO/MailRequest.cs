@@ -8,9 +8,9 @@ namespace Optima.Models.DTO
 {
     public class MailRequest
     {
-        public List<string> Recipient { get; set; }
-        public List<string> BCC { get; set; }
-        public List<string> CC { get; set; }
+        public List<string> Recipient { get; set; } = new List<string>();
+        public List<string> BCC { get; set; } = new List<string>();
+        public List<string> CC { get; set; } = new List<string>();
         public bool IsHtmlBody { get; set; } = true;
         public string Subject { get; set; }
         public string Body { get; set; }
