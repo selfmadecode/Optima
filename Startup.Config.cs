@@ -152,6 +152,9 @@ namespace Optima
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IAuthenticationService, AuthenticationService>();
             services.AddScoped<IEncrypt, EncryptService>();
+            services.AddScoped<IRateService, RateService>();
+            services.AddScoped<ICountryService, CountryService>();
+
             services.Configure<SmtpConfigSettings>(Configuration.GetSection("SmtpConfig"));
 
             services.Configure<EmailLinkDTO>(options =>
