@@ -26,6 +26,7 @@ namespace Optima.Controllers
 
         [HttpPost]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
+        //[Authorize(Policy ="CanAdd")]
         public async Task<IActionResult> Create([FromBody] CreateRateDTO model)
         {
             try
@@ -111,6 +112,7 @@ namespace Optima.Controllers
 
         [HttpDelete("{id}")]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
+        //[Authorize(Policy ="CanDelete")]
         public async Task<IActionResult> Delete(Guid id)
         {
             try

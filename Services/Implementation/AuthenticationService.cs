@@ -65,25 +65,7 @@ namespace Optima.Services.Implementation
         {
             var key = Encoding.ASCII.GetBytes(_configuration["JWT:Secret"]);
 
-            IdentityOptions identityOptions = new IdentityOptions();
-
-            var userClaims = new List<Claim>()
-            {
-                new Claim(identityOptions.ClaimsIdentity.UserIdClaimType, user.Id.ToString()),
-                new Claim(identityOptions.ClaimsIdentity.UserNameClaimType, user.Email),
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Name, user.UserName.ToString()),
-                new Claim(ClaimTypes.Email, user.Email),
-                new Claim(JwtRegisteredClaimNames.Email, user.Email),
-                new Claim("oid", user.Id.ToString()),
-                //new Claim("LastLoginDate", user.LastLoginDate == null ? "Not set" : user.LastLoginDate.ToString()),
-                
-            };
-
-            foreach (var userRole in userRoles)
-            {
-                userClaims.Add(new Claim(ClaimTypes.Role, userRole));
-            }
+            var userClaims = BuildUserClaims(user, userRoles).Result;            
 
             var signKey = new SymmetricSecurityKey(key);
 
@@ -98,12 +80,38 @@ namespace Optima.Services.Implementation
             return (new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken), jwtSecurityToken.ValidTo);
         }
 
+        public async Task<List<Claim>> BuildUserClaims(ApplicationUser user, IList<string> userRoles)
+        {
+            IdentityOptions identityOptions = new IdentityOptions();
+
+            var userClaims = new List<Claim>()
+            {
+                new Claim(identityOptions.ClaimsIdentity.UserIdClaimType, user.Id.ToString()),
+                new Claim(identityOptions.ClaimsIdentity.UserNameClaimType, user.Email),
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Name, user.UserName.ToString()),
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim(JwtRegisteredClaimNames.Email, user.Email),
+                new Claim("oid", user.Id.ToString())
+            };
+
+            foreach (var userRole in userRoles)
+            {
+                userClaims.Add(new Claim(ClaimTypes.Role, userRole));
+            }
+            _logger.Info($"Built User claims successfully");
+            return userClaims;
+        }
+
         public string BuildRefreshToken()
         {
             var randomNumber = new byte[32];
             using (var randomNumberGenerator = RandomNumberGenerator.Create())
             {
                 randomNumberGenerator.GetBytes(randomNumber);
+
+                _logger.Info($"Generated Refresh Token");
+
                 return Convert.ToBase64String(randomNumber);
             }
         }
@@ -135,9 +143,8 @@ namespace Optima.Services.Implementation
 
             var user = new ApplicationUser
             {
-                FirstName = model.FirstName,
+                FullName = model.FullName,
                 Email = model.EmailAddress,
-                LastName = model.LastName,
                 UserName = model.EmailAddress,
                 CreationTime = DateTime.UtcNow,
                 EmailConfirmed = false,
@@ -161,7 +168,7 @@ namespace Optima.Services.Implementation
             
             var emailConfirmationLink = _emailService.GenerateEmailConfirmationLinkAsync(_encrypt.Encrypt(token), user.Email);
                                 
-            await _emailService.SendAccountVerificationEmail(user.Email, user.FirstName, EmailSubject.EmailConfirmation, emailConfirmationLink);
+            await _emailService.SendAccountVerificationEmail(user.Email, user.FullName, EmailSubject.EmailConfirmation, emailConfirmationLink);
 
             result.Data = model;
             return result;
@@ -305,7 +312,7 @@ namespace Optima.Services.Implementation
 
             var id = Guid.Parse(claimsPrincipal.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier).Value);      
 
-            var user = await _context.Users.FindAsync(id);
+            var user = await GetUserById(id);
 
             if (user == null)
             {
@@ -315,11 +322,7 @@ namespace Optima.Services.Implementation
             }
 
 
-            var OldToken = await _context.RefreshTokens
-                    .Where(f => f.UserId == user.Id
-                            && f.Token == RefreshToken
-                            && f.ExpiresAt >= DateTime.Now)
-                    .FirstOrDefaultAsync();
+            var OldToken = await GetRefreshToken(user.Id, RefreshToken);
 
             if (OldToken == null)
             {
@@ -355,6 +358,15 @@ namespace Optima.Services.Implementation
 
             result.Data = data;
             return result;
+        }
+
+        private async Task<RefreshToken> GetRefreshToken(Guid UserId, string refreshToken)
+        {
+            return await _context.RefreshTokens
+                    .Where(f => f.UserId == UserId
+                            && f.Token == refreshToken
+                            && f.ExpiresAt >= DateTime.Now)
+                    .FirstOrDefaultAsync();
         }
 
         private async Task SaveRefreshToken(RefreshToken model)
@@ -528,10 +540,9 @@ namespace Optima.Services.Implementation
         
         private async Task<ApplicationUser> GetUser(string emailAddress)
             => await _userManager.FindByEmailAsync(emailAddress);
-        private async Task<string> GetUserById(Guid id)
+        private async Task<ApplicationUser> GetUserById(Guid id)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(x => x.Id == id);
-            return user.FirstName;
+            return await _context.Users.FirstOrDefaultAsync(x => x.Id == id);
         }
                 
     }
