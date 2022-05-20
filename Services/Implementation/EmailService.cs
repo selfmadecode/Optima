@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Hosting;
+﻿using log4net;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Options;
 using MimeKit;
 using Optima.Models.Config;
@@ -18,11 +19,17 @@ namespace Optima.Services.Implementation
     {
         private readonly SmtpConfigSettings _smtpConfigSettings;
         private readonly IWebHostEnvironment _env;
+        private readonly EmailLinkDTO _emailLink;
+        private readonly ILog _logger;
 
-        public EmailService(IOptions<SmtpConfigSettings> smtpConfigSettings, IWebHostEnvironment env)
+
+        public EmailService(IOptions<SmtpConfigSettings> smtpConfigSettings, IWebHostEnvironment env, IOptions<EmailLinkDTO> emailLink)
         {
             _smtpConfigSettings = smtpConfigSettings.Value;
             _env = env;
+            _emailLink = emailLink.Value;
+            _logger = LogManager.GetLogger(typeof(EmailService));
+            ;
         }
 
         public async Task<bool> SendMail(List<string> recipient, string[] replacements, string subject, string emailTemplatePath)
@@ -42,7 +49,20 @@ namespace Optima.Services.Implementation
 
             return await SendEmail(msg);
         }
+        public string GeneratePasswordResetLinkAsync(string token, string email)
+        {
+            string baseUri = _emailLink.ResetPasswordUrl;
 
+            var hrefValue = $"{baseUri}/{token}/{email}";
+            var link = $"<a href='{hrefValue}'> Click here to reset password</a>";
+            return link;
+        }
+        public async Task<bool> SendPasswordResetEmail(string emailAddress, string subject, string passwordResetLink)
+        {
+
+            string[] replacements = { passwordResetLink };
+            return await GenerateMail(emailAddress, replacements, subject, EmailTemplateUrl.PasswordResetTemplate);
+        }
         private string GenerateEmailHtmlBody(string[] replacements, string path)
         {
 
@@ -131,10 +151,41 @@ namespace Optima.Services.Implementation
             }
             catch (Exception ex)
             {
-                //_logger.LogError(ex.StackTrace, ex, "An error occured while sending message");
+                _logger.Error(ex.StackTrace, ex);
                 return false;
             }
 
         }
+
+        public string GenerateEmailConfirmationLinkAsync(string token, string email)
+        {
+            string baseUri = _emailLink.BaseUrl;
+
+            var hrefValue = $"{baseUri}/{token}/{email}";
+            var link = $"<h5>Click <a href='{hrefValue}'> here</a> to verify your account</h5>";
+            return link;
+        }
+        public async Task<bool> SendAccountVerificationEmail(string emailAddress, string firstName, string subject, string confirmationLink)
+        {
+
+            string[] replacements = { firstName, confirmationLink };
+            return await GenerateMail(emailAddress, replacements, subject, EmailTemplateUrl.AccountVerificationTemplate);
+        }
+        private async Task<bool> GenerateMail(string emailAddress, string[] replacements, string subject, string templateUrl)
+        {
+            var emailTemplatePath = Path.Combine(_env.ContentRootPath, templateUrl);
+
+            var htmlbody = GenerateEmailHtmlBody(replacements, emailTemplatePath);
+
+            var mail = new MailRequest();
+            mail.Recipient.Add(emailAddress);
+            mail.Subject = subject;
+            mail.IsHtmlBody = true;
+            mail.Body = htmlbody;
+
+            //return await SendEmailAsync(emailAddress, subject, htmlbody);
+            return await SendEmail(mail);
+        }
+
     }
 }

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using log4net;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Optima.Context;
 using Optima.Models.Constant;
@@ -18,11 +19,14 @@ namespace Optima.Services.Implementation
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly ILog _logger;
 
         public NotificationService(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
             _userManager = userManager;
+            _logger = LogManager.GetLogger(typeof(NotificationService));
+
         }
 
         /// <summary>
@@ -53,7 +57,7 @@ namespace Optima.Services.Implementation
             }
             catch (Exception ex)
             {
-                // log
+                _logger.Error(ex.StackTrace, ex);
                 result.Data = false;
                 return result;
             }
@@ -97,7 +101,7 @@ namespace Optima.Services.Implementation
             }
             catch (Exception ex)
             {
-                // log
+                _logger.Error(ex.StackTrace, ex);
                 result.Data = false;
                 return result;
             }
