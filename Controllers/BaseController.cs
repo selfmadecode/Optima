@@ -12,8 +12,8 @@ using System.Threading.Tasks;
 
 namespace Optima.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
+    //[Route("api/[controller]")]
+    //[ApiController]
     public class BaseController : ControllerBase
     {
         private readonly ILog _logger;
