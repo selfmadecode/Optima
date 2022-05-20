@@ -26,14 +26,14 @@ namespace Optima.Map
             };
             var us = new Country
             {
-                Name = "UK",
+                Name = "US",
                 Id = Defaults.US,
                 CreatedOn = DateTime.UtcNow,
                 IsActive = true
             };
             var canada = new Country
             {
-                Name = "UK",
+                Name = "CANADA",
                 Id = Defaults.Canada,
                 CreatedOn = DateTime.UtcNow,
                 IsActive = true
