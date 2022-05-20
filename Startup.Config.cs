@@ -103,13 +103,13 @@ namespace Optima
                 options.Password.RequiredUniqueChars = 1;
 
 
-            }).AddEntityFrameworkStores<ApplicationDbContext>();            
-            //.AddDefaultTokenProviders();
+            }).AddEntityFrameworkStores<ApplicationDbContext>()       
+            .AddDefaultTokenProviders();
 
-            //services.Configure<DataProtectionTokenProviderOptions>(options =>
-            //{
-            //    options.TokenLifespan = TimeSpan.FromHours(24);
-            //});
+            services.Configure<DataProtectionTokenProviderOptions>(options =>
+            {
+                options.TokenLifespan = TimeSpan.FromHours(24);
+            });
         }
 
         public void ConfigureJWTAuthentication(IServiceCollection services)
