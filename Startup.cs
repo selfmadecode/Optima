@@ -37,6 +37,8 @@ namespace Optima
             ConfigureSwagger(services);
             AddIdentityProvider(services);
             ConfigureDIService(services);
+            ConfigureJWTAuthentication(services);
+
             services.AddControllers();
         }
 
