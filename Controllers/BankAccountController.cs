@@ -15,7 +15,7 @@ namespace Optima.Controllers
 {
     [Route("api/[controller]/[action]")]
     [ApiController]
-    [Authorize]
+    //[Authorize]
     public class BankAccountController : BaseController
     {
         private readonly IBankAccountService _bankAccountService;

@@ -21,6 +21,9 @@ namespace Optima.Context
         public DbSet<BankAccount> BankAccounts { get; set; } 
         public DbSet<Notification> Notifications { get; set; } 
         public DbSet<RefreshToken> RefreshTokens { get; set; } 
+        public DbSet<Notification> Notifications { get; set; }
+        public DbSet<Country> Countries { get; set; }
+        public DbSet<Rate> Rates { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
