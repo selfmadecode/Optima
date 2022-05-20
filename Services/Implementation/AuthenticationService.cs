@@ -7,6 +7,7 @@ using Optima.Context;
 using Optima.Models.Constant;
 using Optima.Models.DTO.AuthDTO;
 using Optima.Models.Entities;
+using Optima.Models.Enums;
 using Optima.Services.Interface;
 using Optima.Utilities.Helpers;
 using System;
@@ -142,6 +143,7 @@ namespace Optima.Services.Implementation
                 EmailConfirmed = false,
                 PhoneNumber = model.PhoneNumber,
                 IsAccountLocked = false,
+                UserType = UserTypes.USER
             };
 
             var response = await _userManager.CreateAsync(user, model.Password);
