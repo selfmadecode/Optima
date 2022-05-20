@@ -23,8 +23,7 @@ namespace Optima.Map
         {
             var sysUser = new ApplicationUser
             {                
-                FirstName = "Optima",
-                LastName = "User",
+                FullName = "Optima User",
                 Id = Defaults.SysUserId,
                 LastLoginDate = DateTime.Now,
                 Email = Defaults.SysUserEmail,
@@ -42,8 +41,7 @@ namespace Optima.Map
 
             var superAdmin = new ApplicationUser
             {
-                FirstName = "Optima",
-                LastName = "SuperAdmin",
+                FullName = "Optima SuperAdmin",
                 Id = Defaults.SuperAdminId,
                 LastLoginDate = DateTime.Now,
                 Email = Defaults.SuperAdminEmail,
