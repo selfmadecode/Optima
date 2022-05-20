@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Optima.Models.Constant;
 using Optima.Models.Entities;
 using System;
 using System.Collections.Generic;
@@ -30,7 +31,8 @@ namespace Optima.Map
                 BankName = "JAIZ BANK",
                 AccountName = "Williams Mary",
                 AccountNumber = "8989898887",
-                UserId = Guid.Parse("e7d58c75-18bc-4868-b54d-0a1fdf8fe94d")
+                UserId = Defaults.SysUserId,
+                Id = Guid.Parse("e7d58c75-18bc-4868-b54d-0a1fdf8fe94d"),
             };
 
             var bankAccount2 = new BankAccount
@@ -38,7 +40,8 @@ namespace Optima.Map
                 BankName = "UNITY BANK",
                 AccountName = "Williams Mary",
                 AccountNumber = "7645458887",
-                UserId = Guid.Parse("e7d58c75-18bc-4868-b54d-0a1fdf8fe94d")
+                UserId = Defaults.SysUserId,
+                Id = Guid.Parse("99ae0c45-d682-4542-9ba7-1281e471916b"),
             };
 
             var bankAccounts = new List<BankAccount> { bankAccount1, bankAccount2 };

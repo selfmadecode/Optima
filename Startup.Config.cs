@@ -1,12 +1,15 @@
-﻿using Microsoft.AspNetCore.Hosting;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Optima.Context;
 using Optima.Models.Config;
+using Optima.Models.DTO;
 using Optima.Models.Entities;
 using Optima.Services.Implementation;
 using Optima.Services.Interface;
@@ -14,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace Optima
@@ -25,8 +29,53 @@ namespace Optima
         {
             services.AddSwaggerGen(c =>
             {
+                c.SwaggerDoc("v1",
+                       new OpenApiInfo
+                       {
+                           Title = "OPTIMA API",
+                           Version = "v1",
+                           Description = "Optima Deals Platform",
+                           Contact = new OpenApiContact
+                           {
+                               Name = "OPTIMA",
+                               Email = "Info@optima.com"
+                           },
+                           License = new OpenApiLicense
+                           {
+                               Name = "MIT License",
+                               Url = new Uri("https://en.wikipedia.org/wiki/MIT_Lincense")
+                           }
+                       });
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    Description = "JWT Authorization header using Bearer scheme. \r\n\r\n" +
+                    "Enter 'Bearer' [space] and then your token in the input below.\r\n\r\n" +
+                    "Example: \"Bearer 123456\"",
+                    Name = "Authorization",
+                    In = ParameterLocation.Header,
+                    Type = SecuritySchemeType.ApiKey,
+                    Scheme = "Bearer"
+                });
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement()
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            },
+                            Scheme = "oauth2",
+                            Name = "Bearer",
+                            In = ParameterLocation.Header,
+                        },
+                        new List<string>()
+                    }
+
+                });
+
                 c.DescribeAllParametersInCamelCase();
-                c.SwaggerDoc("v1", new OpenApiInfo { Version = "v1", Title = "Optima API" });
             });
         }
 
@@ -63,6 +112,37 @@ namespace Optima
             //});
         }
 
+        public void ConfigureJWTAuthentication(IServiceCollection services)
+        {
+            var appSettingsSection = Configuration.GetSection("JWT");
+            services.Configure<Jwt>(appSettingsSection);
+
+            var appSettings = appSettingsSection.Get<Jwt>();
+            var secret = Encoding.ASCII.GetBytes(appSettings.Secret);
+
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            }).AddJwtBearer(o =>
+            {
+                o.RequireHttpsMetadata = true;
+                o.SaveToken = true;
+                o.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidIssuer = appSettings.ValidIssuer,
+                    ValidAudience = appSettings.ValidAudience,
+                    ValidateIssuerSigningKey = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ClockSkew = TimeSpan.Zero,
+                    RequireExpirationTime = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(secret)
+                };
+            });
+        }
+
         public void ConfigureDIService(IServiceCollection services)
         {
             services.AddSingleton<IFileProvider>(new PhysicalFileProvider(Path.Combine(HostingEnvironment.ContentRootPath, Configuration.GetValue<string>("FilePath"))));
@@ -70,7 +150,12 @@ namespace Optima
             services.AddScoped<IBankAccountService, BankAccountService>();
             services.AddScoped<INotificationService, NotificationService>();
             services.AddScoped<IEmailService, EmailService>();
+            services.AddScoped<IAuthenticationService, AuthenticationService>();
+            services.AddScoped<IEncrypt, EncryptService>();
             services.Configure<SmtpConfigSettings>(Configuration.GetSection("SmtpConfig"));
+
+            services.Configure<EmailLinkDTO>(options =>
+             Configuration.GetSection(nameof(EmailLinkDTO)).Bind(options));
         }
     }
 }
