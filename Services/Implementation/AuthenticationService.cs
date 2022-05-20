@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using log4net;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -35,8 +36,10 @@ namespace Optima.Services.Implementation
         private readonly IEmailService _emailService;
 
         private readonly IEncrypt _encrypt;
-        
-                
+        private readonly ILog _logger;
+
+
+
         public AuthenticationService(IConfiguration configuration, ApplicationDbContext context,
             UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, RoleManager<ApplicationUserRole> roleManager,
             IEmailService emailService, IEncrypt encrypt)
@@ -48,6 +51,8 @@ namespace Optima.Services.Implementation
             _encrypt = encrypt;
             _signInManager = signInManager;
             _roleManager = roleManager;
+            _logger = LogManager.GetLogger(typeof(AuthenticationService));
+
         }
         /// <summary>
         /// Creates the JWT token asynchronous.
@@ -71,8 +76,6 @@ namespace Optima.Services.Implementation
                 new Claim(JwtRegisteredClaimNames.Email, user.Email),
                 new Claim("oid", user.Id.ToString()),
                 //new Claim("LastLoginDate", user.LastLoginDate == null ? "Not set" : user.LastLoginDate.ToString()),
-                //new Claim("FirstName", user.FirstName?.ToString()),
-                //new Claim("LastName", user.LastName?.ToString()),
                 
             };
 
@@ -183,15 +186,15 @@ namespace Optima.Services.Implementation
 
                 if (!(securityToken is JwtSecurityToken jwtSecurityToken) || !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
                 {
-                    //_logger.LogError($"Token validation failed");
+                    _logger.Info($"Token validation failed");
                     return null;
                 }
 
                 return principal;
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-               // _logger.LogError($"Token validation failed: {e.Message}");
+               _logger.Info($"Token validation failed: {ex.Message}");
                 return null;
             }
         }
@@ -287,7 +290,7 @@ namespace Optima.Services.Implementation
             result.Data = new ResetPasswordDTO();
             return result;
 
-            // password reset email confirmation
+            // Successful password reset email
         }
 
         public async Task<BaseResponse<JwtResponseDTO>> RefreshToken(string AccessToken, string RefreshToken)
@@ -487,6 +490,7 @@ namespace Optima.Services.Implementation
             user.IsAccountLocked = true;
             await _context.SaveChangesAsync();
 
+            // NOTIFY USER OF ACCOUNT LOCKOUT
             result.Data = ResponseMessage.ErrorMessage506;
             return result;
         }
@@ -512,6 +516,8 @@ namespace Optima.Services.Implementation
 
             user.IsAccountLocked = false;
             await _context.SaveChangesAsync();
+
+            // NOTIFY USER OF ACCOUNT UNLOCK
 
             result.Data = ResponseMessage.AccountUnlocked;
             return result;
