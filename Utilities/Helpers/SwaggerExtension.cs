@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Builder;
+using Swashbuckle.AspNetCore.SwaggerUI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,6 +16,7 @@ namespace Optima.Utilities.Helpers
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "Optima API v1");
                 c.DisplayRequestDuration();
                 c.DefaultModelsExpandDepth(-1);
+                c.DocExpansion(DocExpansion.None);
             });
         }
     }

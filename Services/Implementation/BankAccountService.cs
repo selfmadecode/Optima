@@ -45,8 +45,9 @@ namespace Optima.Services.Implementation
             if (checkBankInfo.Any())
             {
                 response.Data = false;
-                response.ResponseMessage = $"You have already created {checkBankInfo.Select(x => string.Join(",", x.AccountNumber, x.BankName))} bank account(s).";
-                response.Errors.Add($"You have already created {checkBankInfo.Select(x => string.Join(",", x.AccountNumber, x.BankName))} bank account(s).");
+                var message = checkBankInfo.Select(x => string.Join(",", $"{x.AccountNumber}, {x.BankName} already Exists")).ToList();
+                response.ResponseMessage = string.Join(", ", message);
+                message.ForEach(x => response.Errors.Add(x));
                 response.Status = RequestExecution.Failed;
                 return response;
             }
@@ -130,7 +131,7 @@ namespace Optima.Services.Implementation
             {
                 Data = bankAccountDTOs,
                 Status = RequestExecution.Successful,
-                ResponseMessage = "Bank account updated successfully"
+                ResponseMessage = $"Found {bankAccounts.Count} Bank Account(s)."
             };
 
         }

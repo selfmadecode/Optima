@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -11,6 +12,8 @@ namespace Optima.Models.Entities
         {
             CreatedOn = DateTime.UtcNow;
         }
+
+        [Key]
         public Guid Id { get; set; }
         public Guid? DeletedBy { get; set; }
         public bool IsDeleted { get; set; }

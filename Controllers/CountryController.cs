@@ -1,11 +1,11 @@
-﻿using log4net;
-using Microsoft.AspNetCore.Authorization;
+﻿using AzureRays.Shared.ViewModels;
+using log4net;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Optima.Models.DTO.BankAccountDTO;
-using Optima.Services.Implementation;
+using Optima.Models.DTO.CountryDTO;
 using Optima.Services.Interface;
 using Optima.Utilities.Helpers;
+using Optima.Utilities.Pagination;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,25 +15,24 @@ namespace Optima.Controllers
 {
     [Route("api/[controller]/[action]")]
     [ApiController]
-    [Authorize]
-    public class BankAccountController : BaseController
+    public class CountryController : BaseController
     {
-        private readonly IBankAccountService _bankAccountService;
+        private readonly ICountryService _countryService;
         private readonly ILog _logger;
 
-        public BankAccountController(IBankAccountService bankAccountService)
+        public CountryController(ICountryService countryService)
         {
-            _bankAccountService = bankAccountService;
-            _logger = LogManager.GetLogger(typeof(BankAccountController));
+            _countryService = countryService;
+            _logger = LogManager.GetLogger(typeof(CountryController));
         }
 
         [HttpPost]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
-        public async Task<IActionResult> Create([FromBody] List<CreateBankAccountDTO> model)
+        public async Task<IActionResult> Create([FromBody]CreateCountryDTO model)
         {
             try
             {
-                var result = await _bankAccountService.CreateBankAccount(model, UserId);
+                var result = await _countryService.CreateCountry(model);
 
                 if (result.Errors.Any())
                     return ReturnResponse(result);
@@ -42,19 +41,19 @@ namespace Optima.Controllers
             }
             catch (Exception ex)
             {
-               _logger.Error(ex.Message, ex);
+                _logger.Error(ex.Message, ex);
                 return HandleError(ex);
             }
-           
+
         }
 
         [HttpGet("{id}")]
-        [ProducesResponseType(typeof(BaseResponse<BankAccountDTO>), 200)]
+        [ProducesResponseType(typeof(BaseResponse<CountryDTO>), 200)]
         public async Task<IActionResult> Get(Guid id)
         {
             try
             {
-                var result = await _bankAccountService.GetBankAccount(id, UserId);
+                var result = await _countryService.GetCountry(id);
 
                 if (result.Errors.Any())
                     return ReturnResponse(result);
@@ -70,13 +69,13 @@ namespace Optima.Controllers
         }
 
         [HttpGet]
-        [ProducesResponseType(typeof(BaseResponse<List<BankAccountDTO>>), 200)]
+        [ProducesResponseType(typeof(BaseResponse<PagedList<CountryDTO>>), 200)]
 
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] BaseSearchViewModel model)
         {
             try
             {
-                var result = await _bankAccountService.GetAllBankAccount(UserId);
+                var result = await _countryService.GetAllCountry(model);
 
                 if (result.Errors.Any())
                     return ReturnResponse(result);
@@ -91,13 +90,30 @@ namespace Optima.Controllers
 
         }
 
-        [HttpPut]
-        [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
-        public async Task<IActionResult> Update([FromBody]UpdateBankAccountDTO model, Guid UserId) 
+        [HttpGet]
+        public async Task<IActionResult> GetAllNp() 
         {
             try
             {
-                var result = await _bankAccountService.UpdateBankAccount(model, UserId); 
+                var result = await _countryService.GetAllCountry();
+
+                return ReturnResponse(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex.Message, ex);
+                return HandleError(ex);
+            }
+
+        }
+
+        [HttpPut]
+        [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
+        public async Task<IActionResult> Update([FromBody] UpdateCountryDTO model)
+        {
+            try
+            {
+                var result = await _countryService.UpdateCountry(model);
 
                 if (result.Errors.Any())
                     return ReturnResponse(result);
@@ -114,11 +130,11 @@ namespace Optima.Controllers
 
         [HttpDelete("{id}")]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
-        public async Task<IActionResult> Delete(Guid id) 
+        public async Task<IActionResult> Delete(Guid id)
         {
             try
             {
-                var result = await _bankAccountService.DeleteBankAccount(id, UserId); 
+                var result = await _countryService.DeleteCountry(id);
 
                 if (result.Errors.Any())
                     return ReturnResponse(result);

@@ -1,10 +1,8 @@
 ﻿using log4net;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Optima.Models.DTO.BankAccountDTO;
+using Optima.Models.DTO.RateDTO;
 using Optima.Services.Implementation;
-using Optima.Services.Interface;
 using Optima.Utilities.Helpers;
 using System;
 using System.Collections.Generic;
@@ -15,25 +13,24 @@ namespace Optima.Controllers
 {
     [Route("api/[controller]/[action]")]
     [ApiController]
-    [Authorize]
-    public class BankAccountController : BaseController
+    public class RateController : BaseController
     {
-        private readonly IBankAccountService _bankAccountService;
+        private readonly IRateService _rateService; 
         private readonly ILog _logger;
 
-        public BankAccountController(IBankAccountService bankAccountService)
+        public RateController(IRateService rateService)
         {
-            _bankAccountService = bankAccountService;
-            _logger = LogManager.GetLogger(typeof(BankAccountController));
+            _rateService = rateService;
+            _logger = LogManager.GetLogger(typeof(RateController));
         }
 
         [HttpPost]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
-        public async Task<IActionResult> Create([FromBody] List<CreateBankAccountDTO> model)
+        public async Task<IActionResult> Create([FromBody] CreateRateDTO model)
         {
             try
             {
-                var result = await _bankAccountService.CreateBankAccount(model, UserId);
+                var result = await _rateService.CreateRate(model);
 
                 if (result.Errors.Any())
                     return ReturnResponse(result);
@@ -42,19 +39,19 @@ namespace Optima.Controllers
             }
             catch (Exception ex)
             {
-               _logger.Error(ex.Message, ex);
+                _logger.Error(ex.Message, ex);
                 return HandleError(ex);
             }
-           
+
         }
 
         [HttpGet("{id}")]
-        [ProducesResponseType(typeof(BaseResponse<BankAccountDTO>), 200)]
+        [ProducesResponseType(typeof(BaseResponse<RateDTO>), 200)]
         public async Task<IActionResult> Get(Guid id)
         {
             try
             {
-                var result = await _bankAccountService.GetBankAccount(id, UserId);
+                var result = await _rateService.GetRate(id);
 
                 if (result.Errors.Any())
                     return ReturnResponse(result);
@@ -70,13 +67,13 @@ namespace Optima.Controllers
         }
 
         [HttpGet]
-        [ProducesResponseType(typeof(BaseResponse<List<BankAccountDTO>>), 200)]
+        [ProducesResponseType(typeof(BaseResponse<List<RateDTO>>), 200)]
 
         public async Task<IActionResult> GetAll()
         {
             try
             {
-                var result = await _bankAccountService.GetAllBankAccount(UserId);
+                var result = await _rateService.GetAllRates();
 
                 if (result.Errors.Any())
                     return ReturnResponse(result);
@@ -93,11 +90,11 @@ namespace Optima.Controllers
 
         [HttpPut]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
-        public async Task<IActionResult> Update([FromBody]UpdateBankAccountDTO model, Guid UserId) 
+        public async Task<IActionResult> Update([FromBody] UpdateRateDTO model)
         {
             try
             {
-                var result = await _bankAccountService.UpdateBankAccount(model, UserId); 
+                var result = await _rateService.UpdateRate(model);
 
                 if (result.Errors.Any())
                     return ReturnResponse(result);
@@ -114,11 +111,11 @@ namespace Optima.Controllers
 
         [HttpDelete("{id}")]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
-        public async Task<IActionResult> Delete(Guid id) 
+        public async Task<IActionResult> Delete(Guid id)
         {
             try
             {
-                var result = await _bankAccountService.DeleteBankAccount(id, UserId); 
+                var result = await _rateService.DeleteRate(id);
 
                 if (result.Errors.Any())
                     return ReturnResponse(result);
@@ -132,5 +129,6 @@ namespace Optima.Controllers
             }
 
         }
+
     }
 }
