@@ -23,6 +23,7 @@ namespace Optima.Context
         public DbSet<RefreshToken> RefreshTokens { get; set; } 
         public DbSet<Country> Countries { get; set; }
         public DbSet<Rate> Rates { get; set; }
+        public DbSet<TermsAndCondition> TermsAndConditions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

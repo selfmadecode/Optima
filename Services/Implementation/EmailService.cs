@@ -187,5 +187,22 @@ namespace Optima.Services.Implementation
             return await SendEmail(mail);
         }
 
+        public async Task<bool> SendAccountConfirmationEmail(string email, string name)
+        {
+            string[] replacements = { name };
+            return await GenerateMail(email, replacements, "ACCOUNT CONFIRMATION", EmailTemplateUrl.AccountConfirmationTemplate);
+        }
+
+        public async Task SendAccountBlockedEmail(string email, string name)
+        {
+            string[] replacements = { name };
+            await GenerateMail(email, replacements, "ACCOUNT BLOCKED", EmailTemplateUrl.AccountBlockedTemplate);
+        }
+
+        public async Task SendAccountUnBlockedEmail(string email, string name)
+        {
+            string[] replacements = { name };
+            await GenerateMail(email, replacements, "ACCOUNT UNBLOCKED", EmailTemplateUrl.AccountUnBlockedTemplate);
+        }
     }
 }

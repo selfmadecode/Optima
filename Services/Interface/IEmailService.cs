@@ -12,5 +12,8 @@ namespace Optima.Services.Interface
         Task<bool> SendMail(List<string> destination, string[] replacements, string subject, string emailTemplatePath);
         string GeneratePasswordResetLinkAsync(string token, string email);
         Task<bool> SendPasswordResetEmail(string emailAddress, string subject, string passwordResetLink);
+        Task<bool> SendAccountConfirmationEmail(string email, string name);
+        Task SendAccountBlockedEmail(string email, string name);
+        Task SendAccountUnBlockedEmail(string email, string name);
     }
 }
