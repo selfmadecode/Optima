@@ -38,6 +38,37 @@ namespace Optima.Controllers
             }
         }
 
+        [HttpGet]
+        [ProducesResponseType(typeof(BaseResponse<int>), 200)]
+        public async Task<IActionResult> UserCount()
+        {
+            try
+            {
+                return ReturnResponse(await _notificationService.GetUserUnreadNotificationCount(UserId));
+            }
+            catch (Exception ex)
+            {
+
+                return HandleError(ex);
+            }
+        }
+
+        [HttpGet]
+        [Authorize(Roles ="Admin")]
+        [ProducesResponseType(typeof(BaseResponse<int>), 200)]
+        public async Task<IActionResult> AdminCount()
+        {
+            try
+            {
+                return ReturnResponse(await _notificationService.GetAdminUnreadNotificationCount());
+            }
+            catch (Exception ex)
+            {
+
+                return HandleError(ex);
+            }
+        }
+
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(BaseResponse<Guid>), 200)]
         public async Task<IActionResult> Read(Guid id)

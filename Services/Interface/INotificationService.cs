@@ -17,5 +17,7 @@ namespace Optima.Services.Interface
         Task<BaseResponse<List<GetNotificationDTO>>> GetAdminNotification();
 
         Task<BaseResponse<Guid>> ReadNotification(Guid NotificationId);
+        Task<BaseResponse<int>> GetUserUnreadNotificationCount(Guid UserId);
+        Task<BaseResponse<int>> GetAdminUnreadNotificationCount();
     }
 }
