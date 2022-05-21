@@ -10,6 +10,7 @@ namespace Optima.Models.Entities
     public class ApplicationUser: IdentityUser<Guid>
     {        
         public bool IsAccountLocked { get; set; }
+        public bool HasAcceptedTerms { get; set; }
         public string FullName { get; set; }
         public DateTime CreationTime { get; set; }
         public DateTime LastLoginDate { get; set; }
