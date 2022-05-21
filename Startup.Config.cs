@@ -154,6 +154,7 @@ namespace Optima
             services.AddScoped<IEncrypt, EncryptService>();
             services.AddScoped<IRateService, RateService>();
             services.AddScoped<ICountryService, CountryService>();
+            services.AddScoped<ITermsService, TermsService>();
 
             services.Configure<SmtpConfigSettings>(Configuration.GetSection("SmtpConfig"));
 
