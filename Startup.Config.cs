@@ -155,6 +155,7 @@ namespace Optima
             services.AddScoped<IRateService, RateService>();
             services.AddScoped<ICountryService, CountryService>();
             services.AddScoped<ITermsService, TermsService>();
+            services.AddScoped<ITransactionService, TransactionService>();
 
             services.Configure<SmtpConfigSettings>(Configuration.GetSection("SmtpConfig"));
 
