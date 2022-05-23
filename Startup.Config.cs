@@ -175,7 +175,7 @@ namespace Optima
             services.AddScoped<ICountryService, CountryService>();
             services.AddScoped<ITermsService, TermsService>();
 
-            services.Configure<SmtpConfigSettings>(Configuration.GetSection("SmtpConfig"));
+            services.Configure<SmtpConfigSettings>(Configuration.GetSection("SmtpConfig2"));
 
             services.Configure<EmailLinkDTO>(options =>
              Configuration.GetSection(nameof(EmailLinkDTO)).Bind(options));
