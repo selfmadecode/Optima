@@ -127,12 +127,8 @@ namespace Optima.Services.Implementation
                     }
 
 
-                    //var result = _encrypt.Encrypt("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");
-                    //API KEY FROM SEND GRID
-                    //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
                     //DECRYPT SENDGRID APIKEY
                     var result = _encrypt.Decrypt(_smtpConfigSettings.Password); 
-
 
                     mailMessage.Subject = mailRequest.Subject;
                     mailMessage.Priority = MailPriority.High;
