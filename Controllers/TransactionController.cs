@@ -35,5 +35,8 @@ namespace Optima.Controllers
                 return HandleError(ex);
             }
         }
+
+        //
+        // retrieve a user transaction, filter by credit, debit, pending, declined, approved
     }
 }
