@@ -19,6 +19,7 @@ namespace Optima.Map
         {
             var tnc = new TermsAndCondition
             {
+                Id = Guid.Parse("4a61fb4d-f1d1-460d-b377-6cd8696b585c"),
                 TermsAndConditions = "You accept the terms of use",
                 CreatedOn = DateTime.UtcNow,
             };
