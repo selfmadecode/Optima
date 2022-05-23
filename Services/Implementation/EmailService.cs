@@ -140,7 +140,7 @@ namespace Optima.Services.Implementation
                     smtpClient.UseDefaultCredentials = true;
                     smtpClient.Credentials = credential;
 
-                    //_logger.LogInformation("Sending email notification....");
+                    _logger.Info("Sending email notification....");
 
                     await smtpClient.SendMailAsync(mailMessage);
 
