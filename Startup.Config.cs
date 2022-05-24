@@ -10,6 +10,7 @@ using Microsoft.OpenApi.Models;
 using Optima.Context;
 using Optima.Models.Config;
 using Optima.Models.DTO;
+using Optima.Models.DTO.NotificationDTO;
 using Optima.Models.Entities;
 using Optima.Services.Implementation;
 using Optima.Services.Interface;
@@ -174,8 +175,11 @@ namespace Optima
             services.AddScoped<IRateService, RateService>();
             services.AddScoped<ICountryService, CountryService>();
             services.AddScoped<ITermsService, TermsService>();
+            services.AddScoped<IPushNotificationService, PushNotificationService>();
 
-            services.Configure<SmtpConfigSettings>(Configuration.GetSection("SmtpConfig2"));
+            services.Configure<SmtpConfigSettings>(Configuration.GetSection("SmtpConfig"));
+
+            services.Configure<FcmNotification>(Configuration.GetSection("FcmNotification"));
 
             services.Configure<EmailLinkDTO>(options =>
              Configuration.GetSection(nameof(EmailLinkDTO)).Bind(options));

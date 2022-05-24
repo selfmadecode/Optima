@@ -128,7 +128,7 @@ namespace Optima.Services.Implementation
 
 
                     //DECRYPT SENDGRID APIKEY
-                    var result = _encrypt.Decrypt(_smtpConfigSettings.Password); 
+                    var password = _encrypt.Decrypt(_smtpConfigSettings.Password); 
 
                     mailMessage.Subject = mailRequest.Subject;
                     mailMessage.Priority = MailPriority.High;
@@ -140,7 +140,7 @@ namespace Optima.Services.Implementation
 
                     var smtpClient = new SmtpClient();
 
-                    var credential = new NetworkCredential(_smtpConfigSettings.UserName, result);
+                    var credential = new NetworkCredential(_smtpConfigSettings.UserName, password);
                     smtpClient.Host = _smtpConfigSettings.Host;
                     smtpClient.Port = _smtpConfigSettings.Port;
                     smtpClient.UseDefaultCredentials = true;

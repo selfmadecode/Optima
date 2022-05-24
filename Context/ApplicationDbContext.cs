@@ -24,6 +24,7 @@ namespace Optima.Context
         public DbSet<Country> Countries { get; set; }
         public DbSet<Rate> Rates { get; set; }
         public DbSet<TermsAndCondition> TermsAndConditions { get; set; }
+        public DbSet<UserDevice> UserDevices { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
