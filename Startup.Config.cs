@@ -10,6 +10,7 @@ using Microsoft.OpenApi.Models;
 using Optima.Context;
 using Optima.Models.Config;
 using Optima.Models.DTO;
+using Optima.Models.DTO.NotificationDTO;
 using Optima.Models.Entities;
 using Optima.Services.Implementation;
 using Optima.Services.Interface;
@@ -140,12 +141,31 @@ namespace Optima
                     RequireExpirationTime = true,
                     IssuerSigningKey = new SymmetricSecurityKey(secret)
                 };
+
+                o.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        var accessToken = context.Request.Query["access_token"];
+
+                        // If the request is for our hub...
+                        var path = context.HttpContext.Request.Path;
+                        if (!string.IsNullOrEmpty(accessToken) &&
+                            (path.StartsWithSegments("/api")))
+                        {
+                            // Read the token out of the query string
+                            context.Token = accessToken;
+                        }
+                        return Task.CompletedTask;
+                    }
+                };
             });
         }
 
         public void ConfigureDIService(IServiceCollection services)
         {
             services.AddSingleton<IFileProvider>(new PhysicalFileProvider(Path.Combine(HostingEnvironment.ContentRootPath, Configuration.GetValue<string>("FilePath"))));
+            services.AddSignalR();
 
             services.AddScoped<IBankAccountService, BankAccountService>();
             services.AddScoped<INotificationService, NotificationService>();
@@ -155,8 +175,11 @@ namespace Optima
             services.AddScoped<IRateService, RateService>();
             services.AddScoped<ICountryService, CountryService>();
             services.AddScoped<ITermsService, TermsService>();
+            services.AddScoped<IPushNotificationService, PushNotificationService>();
 
             services.Configure<SmtpConfigSettings>(Configuration.GetSection("SmtpConfig"));
+
+            services.Configure<FcmNotification>(Configuration.GetSection("FcmNotification"));
 
             services.Configure<EmailLinkDTO>(options =>
              Configuration.GetSection(nameof(EmailLinkDTO)).Bind(options));
