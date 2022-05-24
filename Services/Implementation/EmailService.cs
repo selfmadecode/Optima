@@ -21,15 +21,17 @@ namespace Optima.Services.Implementation
         private readonly IWebHostEnvironment _env;
         private readonly EmailLinkDTO _emailLink;
         private readonly ILog _logger;
+        private readonly IEncrypt _encrypt;
 
-
-        public EmailService(IOptions<SmtpConfigSettings> smtpConfigSettings, IWebHostEnvironment env, IOptions<EmailLinkDTO> emailLink)
+        public EmailService(IOptions<SmtpConfigSettings> smtpConfigSettings, IWebHostEnvironment env, IOptions<EmailLinkDTO> emailLink, IEncrypt encrypt)
         {
             _smtpConfigSettings = smtpConfigSettings.Value;
             _env = env;
             _emailLink = emailLink.Value;
             _logger = LogManager.GetLogger(typeof(EmailService));
-            ;
+            _encrypt = encrypt;
+
+            
         }
 
         public async Task<bool> SendMail(List<string> recipient, string[] replacements, string subject, string emailTemplatePath)
@@ -124,6 +126,10 @@ namespace Optima.Services.Implementation
                         }
                     }
 
+
+                    //DECRYPT SENDGRID APIKEY
+                    var password = _encrypt.Decrypt(_smtpConfigSettings.Password); 
+
                     mailMessage.Subject = mailRequest.Subject;
                     mailMessage.Priority = MailPriority.High;
                     mailMessage.Body = mailRequest.Body;
@@ -134,13 +140,13 @@ namespace Optima.Services.Implementation
 
                     var smtpClient = new SmtpClient();
 
-                    var credential = new NetworkCredential(_smtpConfigSettings.UserName, _smtpConfigSettings.Password);
+                    var credential = new NetworkCredential(_smtpConfigSettings.UserName, password);
                     smtpClient.Host = _smtpConfigSettings.Host;
                     smtpClient.Port = _smtpConfigSettings.Port;
                     smtpClient.UseDefaultCredentials = true;
                     smtpClient.Credentials = credential;
 
-                    //_logger.LogInformation("Sending email notification....");
+                    _logger.Info("Sending email notification....");
 
                     await smtpClient.SendMailAsync(mailMessage);
 

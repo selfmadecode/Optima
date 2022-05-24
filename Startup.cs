@@ -10,6 +10,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using Optima.Context;
+using Optima.Services.Implementation;
 using Optima.Utilities.Helpers;
 using System;
 using System.Collections.Generic;
@@ -63,6 +64,7 @@ namespace Optima
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapHub<SignalRService>("/api/Notification");
             });
         }        
     }
