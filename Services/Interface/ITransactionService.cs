@@ -10,5 +10,6 @@ namespace Optima.Services.Interface
     public interface ITransactionService
     {
         Task<BaseResponse<BalanceInquiryDTO>> GetUserAccountBalance(Guid userId);
+        Task<BaseResponse<bool>> Withdraw(WithdrawDTO model, Guid userId);
     }
 }

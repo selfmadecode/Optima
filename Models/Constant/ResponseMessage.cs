@@ -14,6 +14,8 @@ namespace Optima.Models.Constant
         public const string PasswordResetCodeSent = "PASSWORD RESET CODE SENT!";
         public const string PasswordChanged = "PASSWORD CHANGED SUCCESSFULLY!";
         public const string AccountUnlocked = "ACCOUNT UNLOCKED!";
+        public const string DebitRequestSuccess = "DEBIT REQUEST SUBMITED";
+
 
         public const string ErrorMessage000 = "USER NOT FOUND!";
 
@@ -29,6 +31,7 @@ namespace Optima.Models.Constant
         public const string ErrorMessage509 = "USER HAS NOT ACCEPTED TERMS AND CONDITION";
 
         public const string ErrorMessage600 = "USER ACCOUNT NOT FOUND";
+        public const string ErrorMessage601 = "USER ACCOUNT BALANCE NOT FOUND";
 
         public const string SuccessMessage000 = "SUCCESSFUL";
 
