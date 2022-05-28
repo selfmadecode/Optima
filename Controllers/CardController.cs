@@ -27,28 +27,60 @@ namespace Optima.Controllers
         [ProducesResponseType(typeof(BaseResponse<CreatedCardDTO>), 200)] // return the created model
         public async Task<IActionResult> Create([FromForm]CreateCardDTO model)
         {
-            return ReturnResponse(await _cardService.CreateCard(model, UserId));
+            try
+            {
+                return ReturnResponse(await _cardService.CreateCard(model, UserId));
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex); ;
+            }
         }
 
         [HttpPost]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)] // return the created model
         public async Task<IActionResult> Visa([FromBody] ConfigureVisaCardDTO model)
         {
-            return ReturnResponse(await _cardService.ConfigureVisaCard(model, UserId));
+            try
+            {
+                return ReturnResponse(await _cardService.ConfigureVisaCard(model, UserId));
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex);
+            }
         }
+          
+        
 
         [HttpPost]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)] // return the created model
         public async Task<IActionResult> ReceiptType([FromBody] ConfigureReceiptTypeCardDTO model)
         {
-            return ReturnResponse(await _cardService.ConfigureReceiptTypeCard(model, UserId));
+            try
+            {
+                return ReturnResponse(await _cardService.ConfigureReceiptTypeCard(model, UserId));
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex);
+            }
+           
         }
 
         [HttpPost]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)] // return the created model
         public async Task<IActionResult> Normal([FromBody] ConfigureNormalCardDTO model)
         {
-            return ReturnResponse(await _cardService.ConfigureNormalCard(model, UserId));
+            try
+            {
+                return ReturnResponse(await _cardService.ConfigureNormalCard(model, UserId));
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex);
+            }
+           
         }
     }
 }

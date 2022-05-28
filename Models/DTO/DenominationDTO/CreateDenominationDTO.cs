@@ -5,10 +5,8 @@ using System.Threading.Tasks;
 
 namespace Optima.Models.DTO.RateDTO
 {
-    public class UpdateRateDTO
+    public class CreateDenominationDTO
     {
-        public Guid Id { get; set; }
         public decimal Amount { get; set; }
     }
 }
- 

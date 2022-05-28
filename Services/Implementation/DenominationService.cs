@@ -26,10 +26,9 @@ namespace Optima.Services.Implementation
         /// </summary>
         /// <param name="model">The model.</param>
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
-        public async Task<BaseResponse<bool>> CreateDenomination(CreateRateDTO model)
+        public async Task<BaseResponse<bool>> CreateDenomination(CreateDenominationDTO model, Guid UserId)
         {
             var checkRate = await CheckDenomination(null, model.Amount);
-            var checkRate = await _context.Denominations.FirstOrDefaultAsync(x => x.Amount == model.Amount);
 
             if (checkRate is true)
             {
@@ -44,7 +43,8 @@ namespace Optima.Services.Implementation
 
             var newRate = new Denomination
             {
-                Amount = model.Amount
+                Amount = model.Amount,
+                CreatedBy = UserId,
             };
 
             _context.Add(newRate);
@@ -53,7 +53,7 @@ namespace Optima.Services.Implementation
             return new BaseResponse<bool>
             {
                 Data = true,
-                ResponseMessage = $"Successfully Created the rate",
+                ResponseMessage = $"Successfully Created the Denomination",
                 Status = RequestExecution.Successful
             };
         }
@@ -73,8 +73,8 @@ namespace Optima.Services.Implementation
                 return new BaseResponse<bool>
                 {
                     Data = false,
-                    ResponseMessage = "Rate doesn't exists.",
-                    Errors = new List<string> { "Rate doesn't exists." },
+                    ResponseMessage = "Denomination doesn't exists.",
+                    Errors = new List<string> { "Denomination doesn't exists." },
                     Status = RequestExecution.Failed
                 };
             }
@@ -85,7 +85,7 @@ namespace Optima.Services.Implementation
             return new BaseResponse<bool>
             {
                 Data = false,
-                ResponseMessage = "Successfully deleted the rate.",
+                ResponseMessage = "Successfully deleted the Denomination.",
                 Status = RequestExecution.Successful
             };
         }
@@ -94,17 +94,17 @@ namespace Optima.Services.Implementation
         /// GET ALL RATES NON-PAGINATED
         /// </summary>
         /// <returns>Task&lt;BaseResponse&lt;List&lt;RateDTO&gt;&gt;&gt;.</returns>
-        public async Task<BaseResponse<List<RateDTO>>> GetAllDenominations()
+        public async Task<BaseResponse<List<DenominationDTO>>> GetAllDenominations()
         {
-            var rates = await _context.Rates.ToListAsync();
+            var rates = await _context.Denominations.OrderBy(x => x.Amount).ToListAsync();
 
-            var ratesDTO = rates.Select(x => (RateDTO)x).ToList();
+            var ratesDTO = rates.Select(x => (DenominationDTO)x).ToList();
 
-            return new BaseResponse<List<RateDTO>>
+            return new BaseResponse<List<DenominationDTO>>
             {
                 Data = ratesDTO,
                 Status = RequestExecution.Successful,
-                ResponseMessage = $"Found {rates.Count} rates"
+                ResponseMessage = $"Found {rates.Count} Denomination(s)."
             };
         }
 
@@ -113,24 +113,24 @@ namespace Optima.Services.Implementation
         /// </summary>
         /// <param name="id">The id.</param>
         /// <returns>Task&lt;BaseResponse&lt;RateDTO&gt;&gt;.</returns>
-        public async Task<BaseResponse<RateDTO>> GetDenomination(Guid id)
+        public async Task<BaseResponse<DenominationDTO>> GetDenomination(Guid id)
         {
             var checkRate = await _context.Denominations.FirstOrDefaultAsync(x => x.Id == id);
 
             if (checkRate is null)
             {
-                return new BaseResponse<RateDTO>
+                return new BaseResponse<DenominationDTO>
                 {
                     Data = null,
-                    ResponseMessage = "Rate doesn't exists.",
-                    Errors = new List<string> { "Rate doesn't exists." },
+                    ResponseMessage = "Denomination doesn't exists.",
+                    Errors = new List<string> { "Denomination doesn't exists." },
                     Status = RequestExecution.Failed
                 };
             }
 
-            RateDTO rateDTO = checkRate;
+            DenominationDTO rateDTO = checkRate;
 
-            return new BaseResponse<RateDTO> { Data = rateDTO, ResponseMessage = "Success", Status = RequestExecution.Successful };
+            return new BaseResponse<DenominationDTO> { Data = rateDTO, ResponseMessage = "Success", Status = RequestExecution.Successful };
 
         }
 
@@ -139,7 +139,7 @@ namespace Optima.Services.Implementation
         /// </summary>
         /// <param name="model">The id.</param>
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
-        public async Task<BaseResponse<bool>> UpdateDenomination(UpdateRateDTO model)
+        public async Task<BaseResponse<bool>> UpdateDenomination(UpdateDenominationDTO model, Guid UserId)
         {
             var checkRate = await _context.Denominations.FirstOrDefaultAsync(x => x.Id == model.Id);
 
@@ -148,8 +148,8 @@ namespace Optima.Services.Implementation
                 return new BaseResponse<bool>
                 {
                     Data = false,
-                    ResponseMessage = "Rate doesn't exists.",
-                    Errors = new List<string> { "Rate doesn't exists." },
+                    ResponseMessage = "Denomination doesn't exists.",
+                    Errors = new List<string> { "Denomination doesn't exists." },
                     Status = RequestExecution.Failed
                 };
             }
@@ -159,7 +159,8 @@ namespace Optima.Services.Implementation
             {
                 var denomination = new Denomination
                 {
-                    Amount = model.Amount
+                    Amount = model.Amount,
+                    CreatedBy = UserId
                 };
 
                 _context.Add(denomination);
@@ -169,8 +170,8 @@ namespace Optima.Services.Implementation
 
             return new BaseResponse<bool>
             {
-                Data = false,
-                ResponseMessage = "Successfully updated the rate",
+                Data = true,
+                ResponseMessage = "Successfully updated the Denomination",
                 Status = RequestExecution.Successful
             };
         }

@@ -27,6 +27,5 @@
   <ItemGroup>
     <Folder Include="error-logs\" />
     <Folder Include="logs\" />
-    <Folder Include="Models\DTO\RateDTO\" />
   </ItemGroup>
 </Project>

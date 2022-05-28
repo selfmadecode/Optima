@@ -1,12 +1,9 @@
-﻿using AzureRays.Shared.ViewModels;
-using log4net;
-using Microsoft.AspNetCore.Authorization;
+﻿using log4net;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Optima.Models.DTO.CountryDTO;
-using Optima.Services.Interface;
+using Optima.Models.DTO.RateDTO;
+using Optima.Services.Implementation;
 using Optima.Utilities.Helpers;
-using Optima.Utilities.Pagination;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,25 +13,25 @@ namespace Optima.Controllers
 {
     [Route("api/[controller]/[action]")]
     [ApiController]
-    public class CountryController : BaseController
+    public class DenominationController : BaseController
     {
-        private readonly ICountryService _countryService;
+        private readonly IDenominationService _rateService; 
         private readonly ILog _logger;
 
-        public CountryController(ICountryService countryService)
+        public DenominationController(IDenominationService rateService)
         {
-            _countryService = countryService;
-            _logger = LogManager.GetLogger(typeof(CountryController));
+            _rateService = rateService;
+            _logger = LogManager.GetLogger(typeof(DenominationController));
         }
 
         [HttpPost]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
-        //[Authorize(Policy = "CanAdd")]
-        public async Task<IActionResult> Create([FromBody]CreateCountryDTO model)
+        //[Authorize(Policy ="CanAdd")]
+        public async Task<IActionResult> Create([FromBody] CreateDenominationDTO model)
         {
             try
             {
-                var result = await _countryService.CreateCountry(model, UserId);
+                var result = await _rateService.CreateDenomination(model, UserId);
 
                 return ReturnResponse(result);
             }
@@ -47,12 +44,12 @@ namespace Optima.Controllers
         }
 
         [HttpGet("{id}")]
-        [ProducesResponseType(typeof(BaseResponse<CountryDTO>), 200)]
+        [ProducesResponseType(typeof(BaseResponse<DenominationDTO>), 200)]
         public async Task<IActionResult> Get(Guid id)
         {
             try
             {
-                var result = await _countryService.GetCountry(id);
+                var result = await _rateService.GetDenomination(id);
 
                 return ReturnResponse(result);
             }
@@ -65,30 +62,13 @@ namespace Optima.Controllers
         }
 
         [HttpGet]
-        [ProducesResponseType(typeof(BaseResponse<PagedList<CountryDTO>>), 200)]
+        [ProducesResponseType(typeof(BaseResponse<List<DenominationDTO>>), 200)]
 
-        public async Task<IActionResult> GetAll([FromQuery] BaseSearchViewModel model)
+        public async Task<IActionResult> GetAll()
         {
             try
             {
-                var result = await _countryService.GetAllCountry(model);
-
-                return ReturnResponse(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(ex.Message, ex);
-                return HandleError(ex);
-            }
-
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> GetAllNp() 
-        {
-            try
-            {
-                var result = await _countryService.GetAllCountry();
+                var result = await _rateService.GetAllDenominations();
 
                 return ReturnResponse(result);
             }
@@ -101,13 +81,12 @@ namespace Optima.Controllers
         }
 
         [HttpPut]
-        [Authorize]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
-        public async Task<IActionResult> Update([FromBody] UpdateCountryDTO model)
+        public async Task<IActionResult> Update([FromBody] UpdateDenominationDTO model)
         {
             try
             {
-                var result = await _countryService.UpdateCountry(model, UserId);
+                var result = await _rateService.UpdateDenomination(model, UserId);
 
                 return ReturnResponse(result);
             }
@@ -120,13 +99,13 @@ namespace Optima.Controllers
         }
 
         [HttpDelete("{id}")]
-        //[Authorize(Policy ="CanDelete")]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
+        //[Authorize(Policy ="CanDelete")]
         public async Task<IActionResult> Delete(Guid id)
         {
             try
             {
-                var result = await _countryService.DeleteCountry(id);
+                var result = await _rateService.DeleteDenomination(id);
 
                 return ReturnResponse(result);
             }
@@ -137,5 +116,6 @@ namespace Optima.Controllers
             }
 
         }
+
     }
 }

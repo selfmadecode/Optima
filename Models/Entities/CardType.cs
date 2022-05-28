@@ -10,10 +10,10 @@ namespace Optima.Models.Entities
     {
         public CardType()
         {
-            CardSubType = new List<CardSubType>();
+            Denomination = new List<CardTypeDenomination>();
         }
 
-    {
+    
         public CardCategory CardCategory { get; set; }
 
         public Country Country { get; set; }

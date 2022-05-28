@@ -30,7 +30,7 @@ namespace Optima.Services.Implementation
         /// </summary>
         /// <param name="model">The model.</param>
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
-        public async Task<BaseResponse<bool>> CreateCountry(CreateCountryDTO model)
+        public async Task<BaseResponse<bool>> CreateCountry(CreateCountryDTO model, Guid UserId)
         {
             var response = new BaseResponse<bool>();
 
@@ -49,7 +49,7 @@ namespace Optima.Services.Implementation
             var newCountry = new Country
             {
                 Name = model.CountryName,
-
+                CreatedBy = UserId
             };
 
              _context.Countries.Add(newCountry);
@@ -157,7 +157,7 @@ namespace Optima.Services.Implementation
         /// </summary>
         /// <param name="model">The model.</param>
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
-        public async Task<BaseResponse<bool>> UpdateCountry(UpdateCountryDTO model) 
+        public async Task<BaseResponse<bool>> UpdateCountry(UpdateCountryDTO model, Guid UserId) 
         {
             var response = new BaseResponse<bool>();
 
@@ -178,7 +178,8 @@ namespace Optima.Services.Implementation
             {
                 var newCountry = new Country
                 {
-                    Name = model.Name
+                    Name = model.Name,
+                    CreatedBy = UserId,
                 };
 
                 _context.Add(newCountry);
@@ -186,6 +187,8 @@ namespace Optima.Services.Implementation
             else
             {
                 country.Name = model.Name;
+                country.ModifiedBy = UserId;
+                country.ModifiedOn = DateTime.UtcNow;
                 _context.Countries.Update(country);
             }
            

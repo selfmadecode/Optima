@@ -11,9 +11,9 @@ namespace Optima.Services.Interface
 {
     public interface ICountryService
     {
-        Task<BaseResponse<bool>> CreateCountry(CreateCountryDTO model);
+        Task<BaseResponse<bool>> CreateCountry(CreateCountryDTO model, Guid UserId);
         Task<BaseResponse<CountryDTO>> GetCountry(Guid id);
-        Task<BaseResponse<bool>> UpdateCountry(UpdateCountryDTO model);
+        Task<BaseResponse<bool>> UpdateCountry(UpdateCountryDTO model, Guid UserId);
         Task<BaseResponse<bool>> DeleteCountry(Guid id);
         Task<BaseResponse<PagedList<CountryDTO>>> GetAllCountry(BaseSearchViewModel model);
         Task<BaseResponse<List<CountryDTO>>> GetAllCountry();

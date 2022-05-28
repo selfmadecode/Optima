@@ -9,4 +9,9 @@ namespace Optima.Models.DTO.CountryDTO
     {
         public string CountryName { get; set; }
     }
+
+    public class ValidateCountryDTO
+    {
+        public List<Guid> CountryIds { get; set; }
+    }
 }
