@@ -15,10 +15,10 @@ namespace Optima.Controllers
     [ApiController]
     public class RateController : BaseController
     {
-        private readonly IRateService _rateService; 
+        private readonly IDenominationService _rateService; 
         private readonly ILog _logger;
 
-        public RateController(IRateService rateService)
+        public RateController(IDenominationService rateService)
         {
             _rateService = rateService;
             _logger = LogManager.GetLogger(typeof(RateController));

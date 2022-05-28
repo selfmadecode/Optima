@@ -8,6 +8,7 @@ namespace Optima.Models.Entities
 {
     public class Receipt : BaseEntity
     {
-        public ReceiptType ReceiptType { get; set; }
+        public string Name { get; set; }
+        //public ReceiptType ReceiptType { get; set; }
     }
 }

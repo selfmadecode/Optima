@@ -28,7 +28,7 @@ namespace Optima.Services.Implementation
         {
             var result = new BaseResponse<BalanceInquiryDTO>();
 
-            var account = _context.AccountBalance.Include(x => x.User).FirstOrDefault(x => x.UserId == userId);
+            var account = _context.WalletBalance.Include(x => x.User).FirstOrDefault(x => x.UserId == userId);
 
             _logger.Info("Retrieving user account...- ExecutionPoint: GetUserAccountBalance");
 
@@ -117,11 +117,11 @@ namespace Optima.Services.Implementation
             return result;
         }
         
-        private async Task<BaseResponse<AccountBalance>> ValidateUserAccountBalanceExist(Guid userId)
+        private async Task<BaseResponse<WalletBalance>> ValidateUserAccountBalanceExist(Guid userId)
         {
-            var result = new BaseResponse<AccountBalance>();
+            var result = new BaseResponse<WalletBalance>();
 
-            var userAccountBalance = _context.AccountBalance.FirstOrDefault(x => x.UserId == userId);
+            var userAccountBalance = _context.WalletBalance.FirstOrDefault(x => x.UserId == userId);
 
             if (userAccountBalance == null)
             {
@@ -136,7 +136,7 @@ namespace Optima.Services.Implementation
             return result;
         }
 
-        private async Task<BaseResponse<bool>> Withdraw(AccountBalance model, decimal amount, Guid BankAccountId, Guid UserId)
+        private async Task<BaseResponse<bool>> Withdraw(WalletBalance model, decimal amount, Guid BankAccountId, Guid UserId)
         {
             var result = new BaseResponse<bool>();
 

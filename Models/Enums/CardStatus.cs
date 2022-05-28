@@ -5,11 +5,9 @@ using System.Threading.Tasks;
 
 namespace Optima.Models.Enums
 {
-    public enum CardSubCategory
+    public enum CardStatus
     {
-         CATEGORY_A,
-         CATEGORY_B,
-         CATEGOTY_C
-
+         Pending = 1,
+         Approved
     }
 }

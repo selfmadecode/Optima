@@ -166,8 +166,21 @@ namespace Optima.Services.Implementation
             _logger.Info("SENDING CONFIRMATION LINK");
             await _emailService.SendAccountVerificationEmail(user.Email, user.FullName, EmailSubject.EmailConfirmation, emailConfirmationLink);
 
+            await CreateUserWalletBalance(user.Id);
+
             result.Data = model;
             return result;
+        }
+
+        private async Task CreateUserWalletBalance(Guid UserId)
+        {
+            var newUserAccountBalance = new WalletBalance
+            {
+                UserId = UserId
+            };
+
+            _context.WalletBalance.Add(newUserAccountBalance);
+            await _context.SaveChangesAsync();
         }
 
         private ClaimsPrincipal GetPrincipalFromToken(string token)

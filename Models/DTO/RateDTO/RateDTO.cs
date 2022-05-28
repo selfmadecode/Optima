@@ -12,7 +12,7 @@ namespace Optima.Models.DTO.RateDTO
         public decimal Amount { get; set; }
 
 
-        public static implicit operator RateDTO(Rate model)
+        public static implicit operator RateDTO(Denomination model)
         {
             return model is null ? null
                : new RateDTO

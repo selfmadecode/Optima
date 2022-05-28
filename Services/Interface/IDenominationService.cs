@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Optima.Services.Implementation
 {
-    public interface IRateService
+    public interface IDenominationService
     {
         Task<BaseResponse<bool>> CreateRate(CreateRateDTO model);
         Task<BaseResponse<RateDTO>> GetRate(Guid id);

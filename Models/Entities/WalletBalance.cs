@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Optima.Models.Entities
 {
-    public class AccountBalance : BaseEntity
+    public class WalletBalance : BaseEntity
     {
         public decimal Balance { get; set; }
         public decimal Excro { get; set; }

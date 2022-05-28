@@ -7,6 +7,6 @@ namespace Optima.Models.Enums
 {
     public enum ReceiptType
     {
-
+        //No
     }
 }

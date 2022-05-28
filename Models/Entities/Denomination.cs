@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace Optima.Models.Entities
 {
-    public class Rate : BaseEntity
+    public class Denomination : BaseEntity
     {
         [Column(TypeName = "decimal(18,4)")] //This will store 18 digits in the database with 4 of those after the decimal.
-        public decimal Amount { get; set; }
+        public decimal Amount { get; set; } // Card denomination ($10, $20...)
     }
 }
