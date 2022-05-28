@@ -100,7 +100,7 @@ namespace Optima.Services.Implementation
         {
             var query = _context.Countries.AsQueryable();
 
-            var countries = await query.ToPagedListAsync(model.PageIndex, model.PageSize);
+            var countries = await query.OrderBy(x => x.Name).ToPagedListAsync(model.PageIndex, model.PageSize);
 
             var countriesDTO = countries.Select(X => (CountryDTO)X).ToList();
 
@@ -115,7 +115,7 @@ namespace Optima.Services.Implementation
         /// <returns>Task&lt;BaseResponse&lt;List&lt;CountryDTO&gt;&gt;&gt;.</returns>
         public async Task<BaseResponse<List<CountryDTO>>> GetAllCountry()
         {
-            var countries = await _context.Countries.ToListAsync();
+            var countries = await _context.Countries.OrderBy(x => x.Name).ToListAsync();
 
             var countriesDTO = countries.Select(X => (CountryDTO)X).ToList();
 
@@ -172,11 +172,24 @@ namespace Optima.Services.Implementation
                 return response;
             }
 
-            country.Name = model.Name;
+            var checkExistingCountries = _context.Countries.Any(x => x.Name == model.Name);
 
-            _context.Countries.Update(country);
+            if (!checkExistingCountries)
+            {
+                var newCountry = new Country
+                {
+                    Name = model.Name
+                };
+
+                _context.Add(newCountry);
+            }
+            else
+            {
+                country.Name = model.Name;
+                _context.Countries.Update(country);
+            }
+           
             await _context.SaveChangesAsync();
-
 
             response.Data = true;
             response.ResponseMessage = "Success";

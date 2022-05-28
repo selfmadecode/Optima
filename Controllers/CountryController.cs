@@ -36,9 +36,6 @@ namespace Optima.Controllers
             {
                 var result = await _countryService.CreateCountry(model);
 
-                if (result.Errors.Any())
-                    return ReturnResponse(result);
-
                 return ReturnResponse(result);
             }
             catch (Exception ex)
@@ -56,9 +53,6 @@ namespace Optima.Controllers
             try
             {
                 var result = await _countryService.GetCountry(id);
-
-                if (result.Errors.Any())
-                    return ReturnResponse(result);
 
                 return ReturnResponse(result);
             }
@@ -78,9 +72,6 @@ namespace Optima.Controllers
             try
             {
                 var result = await _countryService.GetAllCountry(model);
-
-                if (result.Errors.Any())
-                    return ReturnResponse(result);
 
                 return ReturnResponse(result);
             }
@@ -118,9 +109,6 @@ namespace Optima.Controllers
             {
                 var result = await _countryService.UpdateCountry(model);
 
-                if (result.Errors.Any())
-                    return ReturnResponse(result);
-
                 return ReturnResponse(result);
             }
             catch (Exception ex)
@@ -139,9 +127,6 @@ namespace Optima.Controllers
             try
             {
                 var result = await _countryService.DeleteCountry(id);
-
-                if (result.Errors.Any())
-                    return ReturnResponse(result);
 
                 return ReturnResponse(result);
             }

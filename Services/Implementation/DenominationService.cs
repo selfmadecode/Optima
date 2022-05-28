@@ -26,11 +26,12 @@ namespace Optima.Services.Implementation
         /// </summary>
         /// <param name="model">The model.</param>
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
-        public async Task<BaseResponse<bool>> CreateRate(CreateRateDTO model)
+        public async Task<BaseResponse<bool>> CreateDenomination(CreateRateDTO model)
         {
+            var checkRate = await CheckDenomination(null, model.Amount);
             var checkRate = await _context.Denominations.FirstOrDefaultAsync(x => x.Amount == model.Amount);
 
-            if(!(checkRate is null))
+            if (checkRate is true)
             {
                 return new BaseResponse<bool>
                 {
@@ -51,7 +52,7 @@ namespace Optima.Services.Implementation
 
             return new BaseResponse<bool>
             {
-                Data = false,
+                Data = true,
                 ResponseMessage = $"Successfully Created the rate",
                 Status = RequestExecution.Successful
             };
@@ -62,7 +63,7 @@ namespace Optima.Services.Implementation
         /// </summary>
         /// <param name="id">The id.</param>
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
-        public async Task<BaseResponse<bool>> DeleteRate(Guid id)
+        public async Task<BaseResponse<bool>> DeleteDenomination(Guid id)
         {
 
             var checkRate = await _context.Denominations.FirstOrDefaultAsync(x => x.Id == id);
@@ -93,9 +94,9 @@ namespace Optima.Services.Implementation
         /// GET ALL RATES NON-PAGINATED
         /// </summary>
         /// <returns>Task&lt;BaseResponse&lt;List&lt;RateDTO&gt;&gt;&gt;.</returns>
-        public async Task<BaseResponse<List<RateDTO>>> GetAllRates()
+        public async Task<BaseResponse<List<RateDTO>>> GetAllDenominations()
         {
-            var rates = await _context.Denominations.ToListAsync();
+            var rates = await _context.Rates.ToListAsync();
 
             var ratesDTO = rates.Select(x => (RateDTO)x).ToList();
 
@@ -112,7 +113,7 @@ namespace Optima.Services.Implementation
         /// </summary>
         /// <param name="id">The id.</param>
         /// <returns>Task&lt;BaseResponse&lt;RateDTO&gt;&gt;.</returns>
-        public async Task<BaseResponse<RateDTO>> GetRate(Guid id)
+        public async Task<BaseResponse<RateDTO>> GetDenomination(Guid id)
         {
             var checkRate = await _context.Denominations.FirstOrDefaultAsync(x => x.Id == id);
 
@@ -138,7 +139,7 @@ namespace Optima.Services.Implementation
         /// </summary>
         /// <param name="model">The id.</param>
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
-        public async Task<BaseResponse<bool>> UpdateRate(UpdateRateDTO model)
+        public async Task<BaseResponse<bool>> UpdateDenomination(UpdateRateDTO model)
         {
             var checkRate = await _context.Denominations.FirstOrDefaultAsync(x => x.Id == model.Id);
 
@@ -153,9 +154,17 @@ namespace Optima.Services.Implementation
                 };
             }
 
-            checkRate.Amount = model.Amount;
+            var response = await CheckDenomination(checkRate.Id, model.Amount);
+            if (response is false)
+            {
+                var denomination = new Denomination
+                {
+                    Amount = model.Amount
+                };
 
-            _context.Update(checkRate);
+                _context.Add(denomination);
+            }
+           
             await _context.SaveChangesAsync();
 
             return new BaseResponse<bool>
@@ -165,5 +174,24 @@ namespace Optima.Services.Implementation
                 Status = RequestExecution.Successful
             };
         }
+
+        private async Task<bool> CheckDenomination(Guid? id, decimal? amount)
+        {
+         
+            if (amount.HasValue && id is null)
+            {
+                var response = await _context.Denominations.FirstOrDefaultAsync(x => x.Amount == amount);
+                if (!(response is null)) return true; else return false;
+            }
+            else if (id.HasValue && amount.HasValue)
+            {
+                var response = await _context.Denominations.AnyAsync(x => x.Amount == amount);
+                if (response) return true; else return false;            
+            }
+
+            return false;
+        }
+           
+
     }
 }
