@@ -13,7 +13,7 @@ namespace Optima.Models.Entities
             CreatedOn = DateTime.UtcNow;
         }
 
-        [Key]
+        //[Key]
         public Guid Id { get; set; }
         public Guid? DeletedBy { get; set; }
         public bool IsDeleted { get; set; }

@@ -5,11 +5,8 @@ using System.Threading.Tasks;
 
 namespace Optima.Models.Enums
 {
-
-    public enum CardCategory 
+    public enum ReceiptType
     {
-        PHYSICAL,
-        E_CODE,
+
     }
-     
 }
