@@ -24,7 +24,7 @@ namespace Optima.Context
         public DbSet<Country> Countries { get; set; }
         public DbSet<Rate> Rates { get; set; }
         public DbSet<TermsAndCondition> TermsAndConditions { get; set; }
-        public DbSet<AccountBalance> AccountBalance { get; set; }
+        public DbSet<WalletBalance> WalletBalance { get; set; }
         public DbSet<CreditDebit> CreditDebit { get; set; }
         public DbSet<UserDevice> UserDevices { get; set; }
 
