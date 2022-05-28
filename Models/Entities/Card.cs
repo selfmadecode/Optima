@@ -16,6 +16,7 @@ namespace Optima.Models.Entities
         public string Name { get; set; }
         public string LogoUrl { get; set; }
         public CardStatus CardStatus { get; set; }
-        public List<CardType> CardType { get; set; } 
+        public List<CardType> CardType { get; set; }
+
     }
 }
