@@ -8,7 +8,7 @@ namespace Optima.Models.Enums
 
     public enum CardCategory 
     {
-        PHYSICAL,
+        PHYSICAL = 1,
         E_CODE,
     }
      
