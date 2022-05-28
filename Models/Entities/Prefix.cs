@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 
 namespace Optima.Models.Entities
 {
-    public class VisaPrefix : BaseEntity
+    public class Prefix : BaseEntity
     {
-        public string Prefix { get; set; } 
+        public string PrefixNumber { get; set; } 
     }
 }

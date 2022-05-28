@@ -160,7 +160,7 @@ namespace Optima.Services.Implementation
                 CreatedOn = DateTime.UtcNow,
                 TransactionStatus = Models.Enums.TransactionStatus.Pending,
                 TransactionType = Models.Enums.TransactionType.Debit,
-                AccountBalanceId = model.Id,
+                WalletBalanceId = model.Id,
                 BankAccountId = BankAccountId,
                 CreatedBy = UserId                
             };

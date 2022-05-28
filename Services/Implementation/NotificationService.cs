@@ -130,15 +130,6 @@ namespace Optima.Services.Implementation
             return result;
         }
 
-        public async Task<BaseResponse<int>> GetAdminUnreadNotificationCount()
-        {
-            var result = new BaseResponse<int>();
-            var count = await _context.Notifications.Where(x => x.IsAdminNotification && x.IsRead == false).CountAsync();
-
-            result.Data = count;
-            return result;
-        }
-
         /// <summary>
         /// RETURNS ALL UNREAD NOTIFICATION FOR A USER
         /// </summary>
@@ -161,22 +152,7 @@ namespace Optima.Services.Implementation
             }).ToListAsync();
 
             return result;
-        }
-        /// <summary>
-        /// RETURNS UNREAD NOTIFICATION COUNT FOR A USER
-        /// </summary>
-        /// <param name="UserId"></param>
-        /// <returns>int</returns>
-        public async Task<BaseResponse<int>> GetUserUnreadNotificationCount(Guid UserId)
-        {
-            var result = new BaseResponse<int>();
-
-            result.Data = GetUnReadNotification(UserId).Result.Count();
-            return result;
-        }
-
-        private async Task<List<Notification>> GetUnReadNotification(Guid userId)
-            => await _context.Notifications.Where(x => x.UserId == userId && x.IsRead == false).OrderBy(x => x.CreatedOn).ToListAsync();
+        }        
 
 
         /// <summary>
@@ -207,5 +183,30 @@ namespace Optima.Services.Implementation
             result.ResponseMessage = ResponseMessage.NotificationUpdate;
             return result;
         }
+
+        public async Task<BaseResponse<int>> GetAdminUnreadNotificationCount()
+        {
+            var result = new BaseResponse<int>();
+            var count = await _context.Notifications.Where(x => x.IsAdminNotification && x.IsRead == false).CountAsync();
+
+            result.Data = count;
+            return result;
+        }
+
+        /// <summary>
+        /// RETURNS UNREAD NOTIFICATION COUNT FOR A USER
+        /// </summary>
+        /// <param name="UserId"></param>
+        /// <returns>int</returns>
+        public async Task<BaseResponse<int>> GetUserUnreadNotificationCount(Guid UserId)
+        {
+            var result = new BaseResponse<int>();
+
+            result.Data = GetUnReadNotification(UserId).Result.Count();
+            return result;
+        }
+        private async Task<List<Notification>> GetUnReadNotification(Guid userId)
+            => await _context.Notifications.Where(x => x.UserId == userId && x.IsRead == false).OrderBy(x => x.CreatedOn).ToListAsync();
+
     }
 }

@@ -28,7 +28,7 @@ namespace Optima.Services.Implementation
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
         public async Task<BaseResponse<bool>> CreateRate(CreateRateDTO model)
         {
-            var checkRate = await _context.Rates.FirstOrDefaultAsync(x => x.Amount == model.Amount);
+            var checkRate = await _context.Denominations.FirstOrDefaultAsync(x => x.Amount == model.Amount);
 
             if(!(checkRate is null))
             {
@@ -65,7 +65,7 @@ namespace Optima.Services.Implementation
         public async Task<BaseResponse<bool>> DeleteRate(Guid id)
         {
 
-            var checkRate = await _context.Rates.FirstOrDefaultAsync(x => x.Id == id);
+            var checkRate = await _context.Denominations.FirstOrDefaultAsync(x => x.Id == id);
 
             if (checkRate is null)
             {
@@ -78,7 +78,7 @@ namespace Optima.Services.Implementation
                 };
             }
 
-            _context.Rates.Remove(checkRate);
+            _context.Denominations.Remove(checkRate);
             await _context.SaveChangesAsync();
 
             return new BaseResponse<bool>
@@ -95,7 +95,7 @@ namespace Optima.Services.Implementation
         /// <returns>Task&lt;BaseResponse&lt;List&lt;RateDTO&gt;&gt;&gt;.</returns>
         public async Task<BaseResponse<List<RateDTO>>> GetAllRates()
         {
-            var rates = await _context.Rates.ToListAsync();
+            var rates = await _context.Denominations.ToListAsync();
 
             var ratesDTO = rates.Select(x => (RateDTO)x).ToList();
 
@@ -114,7 +114,7 @@ namespace Optima.Services.Implementation
         /// <returns>Task&lt;BaseResponse&lt;RateDTO&gt;&gt;.</returns>
         public async Task<BaseResponse<RateDTO>> GetRate(Guid id)
         {
-            var checkRate = await _context.Rates.FirstOrDefaultAsync(x => x.Id == id);
+            var checkRate = await _context.Denominations.FirstOrDefaultAsync(x => x.Id == id);
 
             if (checkRate is null)
             {
@@ -140,7 +140,7 @@ namespace Optima.Services.Implementation
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
         public async Task<BaseResponse<bool>> UpdateRate(UpdateRateDTO model)
         {
-            var checkRate = await _context.Rates.FirstOrDefaultAsync(x => x.Id == model.Id);
+            var checkRate = await _context.Denominations.FirstOrDefaultAsync(x => x.Id == model.Id);
 
             if (checkRate is null)
             {
