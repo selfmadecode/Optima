@@ -56,22 +56,23 @@ namespace Optima.Services.Implementation
                 {
                     ResponseMessage = "The Token doesn't exists for this User",
                     Errors = new List<string> { "The Token doesn't exists for this user"},
-                    Status = RequestExecution.Error,
+                    Status = RequestExecution.Failed,
                 };
 
             _context.UserDevices.RemoveRange(tokens);
+            await _context.SaveChangesAsync();
 
-           /* foreach (var token in tokens)
-            {
-                _context.UserDevices.Remove(token);
-                await _unitOfWork.SaveChangesAsync();
-            }*/
+            /* foreach (var token in tokens)
+             {
+                 _context.UserDevices.Remove(token);
+                 await _unitOfWork.SaveChangesAsync();
+             }*/
 
             return new BaseResponse<string> { Data = "Success", ResponseMessage = $"Successfully Deleted the User device token", Status = RequestExecution.Successful };
         }
 
         /// <summary>
-        /// Registers for push.
+        /// REGISTERS THE DEVICE TOKEN FOR PUSH NOTIFICATION
         /// </summary>
         /// <param name="model">The model.</param>
         /// <returns>Task&lt;ResultModel&lt;System.String&gt;&gt;.</returns>
@@ -85,6 +86,7 @@ namespace Optima.Services.Implementation
             {
                 result.ResponseMessage = "User doesn't exists";
                 result.Errors = new List<string> { "User doesn't exists" };
+                result.Status = RequestExecution.Failed;
                 return result;
             };
 
@@ -119,7 +121,7 @@ namespace Optima.Services.Implementation
         }
 
         /// <summary>
-        /// Sends the push notification.
+        /// SENDS THE PUSH NOTIFICATION
         /// </summary>
         /// <param name="model">The model.</param>
         /// <returns>Task.</returns>
@@ -144,7 +146,7 @@ namespace Optima.Services.Implementation
         }
 
         /// <summary>
-        /// Tests the push notification.
+        /// TESTS THE PUSH NOTIFICATION
         /// </summary>
         /// <param name="model">The model.</param>
         /// <returns>Task&lt;ResponseModel&gt;.</returns>
@@ -174,7 +176,7 @@ namespace Optima.Services.Implementation
         }
 
         /// <summary>
-        /// Sends the push notification.
+        /// SENDS THE PUSH NOTIFICATION
         /// </summary>
         /// <param name="deviceTokens">The device tokens.</param>
         /// <param name="notificationModel">The notification model.</param>

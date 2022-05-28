@@ -26,48 +26,50 @@ namespace Optima.Services.Implementation
         /// <param name="model">The model.</param>
         /// <param name="UserId">The UserId.</param>
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
-        public async Task<BaseResponse<bool>> CreateBankAccount(List<CreateBankAccountDTO> model, Guid UserId)
+        public async Task<BaseResponse<bool>> CreateBankAccount(CreateBankAccountDTO model, Guid UserId)
         {
             var response = new BaseResponse<bool>();
 
-            if (model.Count > 3)
+            var getAllBanks = await _context.BankAccounts.Where(x => x.UserId == UserId).ToListAsync();
+
+            if (getAllBanks.Count == 3)
             {
                 response.Data = false;
-                response.ResponseMessage = "You cannot have more than 3 bank account" ;
-                response.Errors.Add($"You cannot have more than 3 bank account");
+                response.Errors = new List<string> { "You can only have 3 Bank Account(s)." };
                 response.Status = RequestExecution.Failed;
+                response.ResponseMessage = "You can only have 3 Bank Account(s).";
                 return response;
             }
 
             var checkBankInfo = await _context.BankAccounts
-                .Where(x => x.UserId == UserId && model.Select(x => x.AccountNumber.Replace(" ", "")).Contains(x.AccountNumber.Replace(" ", ""))).ToListAsync();
+                .Where(x => x.UserId == UserId && x.AccountNumber.Replace(" ", "") == model.AccountNumber.Replace(" ", "")).FirstOrDefaultAsync();
 
-            if (checkBankInfo.Any())
+            if (!(checkBankInfo is null))
             {
                 response.Data = false;
-                var message = checkBankInfo.Select(x => string.Join(",", $"{x.AccountNumber}, {x.BankName} already Exists")).ToList();
-                response.ResponseMessage = string.Join(", ", message);
-                message.ForEach(x => response.Errors.Add(x));
+                var message = $"AccountNumber: {checkBankInfo.AccountNumber} with AccountName: {checkBankInfo.BankName} already Exists";
+                response.ResponseMessage = message;
+                response.Errors = new List<string> { message };
                 response.Status = RequestExecution.Failed;
                 return response;
             }
 
-            var newBankAccount = model.Select(x => new BankAccount
+            var newBankAccount = new BankAccount
             {
-                AccountName = x.AccountName,
-                BankName = x.BankName,
-                AccountNumber = x.AccountNumber,
+                AccountName = model.AccountName,
+                BankName = model.BankName,
+                AccountNumber = model.AccountNumber,
                 UserId = UserId,
                 CreatedBy = UserId,
 
-            }).ToList();
+            };
            
-            _context.BankAccounts.AddRange(newBankAccount);
+            _context.BankAccounts.Add(newBankAccount);
             await _context.SaveChangesAsync();
 
             response.Data = true;
             response.Status = RequestExecution.Successful;
-            response.ResponseMessage = $"Successfully Created {model.Count} Bank Account(s).";
+            response.ResponseMessage = $"Successfully Created your Bank Account(s).";
             return response;
 
         }
