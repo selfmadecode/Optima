@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Optima.Models.Entities
 {
-    public class CardType
+    public class CardType : BaseEntity
     {
         public CardCategory CardCategory { get; set; }
 
@@ -21,24 +21,13 @@ namespace Optima.Models.Entities
 
         public List<CardTypeDenomination> Denomination { get; set; }
 
-        public virtual Receipt Receipt { get; set; }
-        public Guid? ReceiptId { get; set; }
+        //public virtual Receipt Receipt { get; set; }
+        //public Guid? ReceiptId { get; set; }
 
-        public virtual VisaPrefix SpecialPrefix { get; set; }
-        public Guid? SpecialPrefixId { get; set; }
+        //public virtual VisaPrefix SpecialPrefix { get; set; }
+        //public Guid? SpecialPrefixId { get; set; }
 
         // Rate at which this card will be bought
         //public decimal Rate { get; set; } // 100
-    }
-    public class CardTypeDenomination
-    {
-        public Denomination Denomination { get; set; }
-        public Guid DenominationId { get; set; }
-
-
-        public CardType CardType { get; set; }
-        public Guid CardTypeId { get; set; }
-
-        public decimal Rate { get; set; }
-    }
+    }    
 }
