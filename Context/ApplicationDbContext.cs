@@ -27,6 +27,9 @@ namespace Optima.Context
         public DbSet<WalletBalance> WalletBalance { get; set; }
         public DbSet<CreditDebit> CreditDebit { get; set; }
         public DbSet<UserDevice> UserDevices { get; set; }
+        public DbSet<Receipt> Receipts { get; set; }
+        public DbSet<SpecialPrefix> SpecialPrefixes { get; set; }
+        public DbSet<CardCreation> CardCreations { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

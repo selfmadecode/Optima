@@ -5,11 +5,11 @@ using System.Threading.Tasks;
 
 namespace Optima.Models.Enums
 {
-
-    public enum CardCategory 
+    public enum CardSubCategory
     {
-        PHYSICAL,
-        E_CODE,
+         CATEGORY_A,
+         CATEGORY_B,
+         CATEGOTY_C
+
     }
-     
 }

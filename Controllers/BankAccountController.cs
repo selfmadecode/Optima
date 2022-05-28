@@ -29,7 +29,7 @@ namespace Optima.Controllers
 
         [HttpPost]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
-        public async Task<IActionResult> Create([FromBody] List<CreateBankAccountDTO> model)
+        public async Task<IActionResult> Create([FromBody] CreateBankAccountDTO model)
         {
             try
             {
