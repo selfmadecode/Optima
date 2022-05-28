@@ -12,11 +12,11 @@ using System.Threading.Tasks;
 
 namespace Optima.Services.Implementation
 {
-    public class RateService : IRateService
+    public class DenominationService : IDenominationService
     {
         private readonly ApplicationDbContext _context;
 
-        public RateService(ApplicationDbContext context)
+        public DenominationService(ApplicationDbContext context)
         {
             _context = context;
         }
@@ -41,7 +41,7 @@ namespace Optima.Services.Implementation
                 };
             }
 
-            var newRate = new Rate
+            var newRate = new Denomination
             {
                 Amount = model.Amount
             };

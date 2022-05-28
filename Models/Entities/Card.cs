@@ -9,13 +9,8 @@ namespace Optima.Models.Entities
     public class Card : BaseEntity
     {
         public string Name { get; set; }
-        public string Logo { get; set; }
+        public string LogoUrl { get; set; }
 
-
-        public List<CardCreation> CardCreations { get; set; } = new List<CardCreation>();
-
-
-
-
+        public List<CardType> CardType { get; set; } = new List<CardType>();
     }
 }

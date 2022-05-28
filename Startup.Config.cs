@@ -172,7 +172,7 @@ namespace Optima
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IAuthenticationService, AuthenticationService>();
             services.AddScoped<IEncrypt, EncryptService>();
-            services.AddScoped<IRateService, RateService>();
+            services.AddScoped<IDenominationService, DenominationService>();
             services.AddScoped<ICountryService, CountryService>();
             services.AddScoped<ITermsService, TermsService>();
             services.AddScoped<ITransactionService, TransactionService>();
