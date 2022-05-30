@@ -16,6 +16,7 @@ namespace Optima.Services.Interface
         Task<BaseResponse<bool>> ConfigureReceiptTypeCard(ConfigureReceiptTypeCardDTO model, Guid UserId);
         Task<BaseResponse<bool>> ConfigureNormalCard(ConfigureNormalCardDTO model, Guid UserId);
         Task<BaseResponse<CardDTO>> GetCard(Guid id);
-        Task<BaseResponse<PagedList<CardDTO>>> GetAllPendingCard(BaseSearchViewModel model);
+        Task<BaseResponse<PagedList<CardDTO>>> GetAllCard(BaseSearchViewModel model);
+        Task<BaseResponse<PagedList<CardDTO>>> GetAllPendingCardConfig(BaseSearchViewModel model); 
     }
 }

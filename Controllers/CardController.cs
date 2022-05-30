@@ -101,11 +101,25 @@ namespace Optima.Controllers
 
         [HttpGet]
         [ProducesResponseType(typeof(BaseResponse<PagedList<CardDTO>>), 200)] // return the created model
-        public async Task<IActionResult> GetAllCardConfig([FromQuery]BaseSearchViewModel  model)
+        public async Task<IActionResult> GetAllCard([FromQuery]BaseSearchViewModel model)
         {
             try
             {
-                return ReturnResponse(await _cardService.GetAllPendingCard(model));
+                return ReturnResponse(await _cardService.GetAllCard(model));
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex); ;
+            }
+        }
+
+        [HttpGet]
+        [ProducesResponseType(typeof(BaseResponse<PagedList<CardDTO>>), 200)] // return the created model
+        public async Task<IActionResult> GetAllPendingCard([FromQuery] BaseSearchViewModel model) 
+        {
+            try
+            {
+                return ReturnResponse(await _cardService.GetAllPendingCardConfig(model));
             }
             catch (Exception ex)
             {
