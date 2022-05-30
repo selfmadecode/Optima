@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Optima.Map
 {
-    public class PrefixMap : IEntityTypeConfiguration<Prefix>
+    public class VisaPrefixMap : IEntityTypeConfiguration<Prefix>
     {
         public void Configure(EntityTypeBuilder<Prefix> builder)
         {
@@ -19,14 +19,14 @@ namespace Optima.Map
         {
             var One = new Prefix
             {
-                PrefixNumber = "4135",
-                Id = Guid.Parse("fbb2ffe7-b56d-4ad8-abf4-92331f30872e")
+                Id = Guid.Parse("1631bd64-f684-4893-bb51-f4a8e97af640"),
+                PrefixNumber = "4135"
             };
 
             var two = new Prefix
             {
-                PrefixNumber = "4153",
-                Id = Guid.Parse("1569a554-0faf-468c-be89-2584d5992c86")
+                Id = Guid.Parse("d0b7dcb4-fc4e-4996-b321-d27915efda54"),
+                PrefixNumber = "4153"
             };
 
             builder.HasData(One, two);

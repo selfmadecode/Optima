@@ -1,5 +1,7 @@
-﻿using Optima.Models.DTO.CardDTO;
+﻿using AzureRays.Shared.ViewModels;
+using Optima.Models.DTO.CardDTO;
 using Optima.Utilities.Helpers;
+using Optima.Utilities.Pagination;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,5 +15,7 @@ namespace Optima.Services.Interface
         Task<BaseResponse<bool>> ConfigureVisaCard(ConfigureVisaCardDTO model, Guid UserId);
         Task<BaseResponse<bool>> ConfigureReceiptTypeCard(ConfigureReceiptTypeCardDTO model, Guid UserId);
         Task<BaseResponse<bool>> ConfigureNormalCard(ConfigureNormalCardDTO model, Guid UserId);
+        Task<BaseResponse<CardDTO>> GetCard(Guid id);
+        Task<BaseResponse<PagedList<CardDTO>>> GetAllPendingCard(BaseSearchViewModel model);
     }
 }

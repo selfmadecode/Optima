@@ -177,7 +177,10 @@ namespace Optima
             services.AddScoped<ITermsService, TermsService>();
             services.AddScoped<ITransactionService, TransactionService>();
             services.AddScoped<IPushNotificationService, PushNotificationService>();
+            services.AddScoped<IReceiptService, ReceiptService>();
             services.AddScoped<ICardService, CardService>();
+            services.AddScoped<IPrefixService, PrefixService>();
+
 
             services.Configure<SmtpConfigSettings>(Configuration.GetSection("SmtpConfig"));
 

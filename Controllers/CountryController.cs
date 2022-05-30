@@ -3,7 +3,7 @@ using log4net;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Optima.Models.DTO.CountryDTO;
+using Optima.Models.DTO.CountryDTOs;
 using Optima.Services.Interface;
 using Optima.Utilities.Helpers;
 using Optima.Utilities.Pagination;
@@ -34,10 +34,7 @@ namespace Optima.Controllers
         {
             try
             {
-                var result = await _countryService.CreateCountry(model);
-
-                if (result.Errors.Any())
-                    return ReturnResponse(result);
+                var result = await _countryService.CreateCountry(model, UserId);
 
                 return ReturnResponse(result);
             }
@@ -57,9 +54,6 @@ namespace Optima.Controllers
             {
                 var result = await _countryService.GetCountry(id);
 
-                if (result.Errors.Any())
-                    return ReturnResponse(result);
-
                 return ReturnResponse(result);
             }
             catch (Exception ex)
@@ -78,9 +72,6 @@ namespace Optima.Controllers
             try
             {
                 var result = await _countryService.GetAllCountry(model);
-
-                if (result.Errors.Any())
-                    return ReturnResponse(result);
 
                 return ReturnResponse(result);
             }
@@ -116,10 +107,7 @@ namespace Optima.Controllers
         {
             try
             {
-                var result = await _countryService.UpdateCountry(model);
-
-                if (result.Errors.Any())
-                    return ReturnResponse(result);
+                var result = await _countryService.UpdateCountry(model, UserId);
 
                 return ReturnResponse(result);
             }
@@ -139,9 +127,6 @@ namespace Optima.Controllers
             try
             {
                 var result = await _countryService.DeleteCountry(id);
-
-                if (result.Errors.Any())
-                    return ReturnResponse(result);
 
                 return ReturnResponse(result);
             }

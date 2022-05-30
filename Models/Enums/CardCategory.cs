@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -8,8 +9,8 @@ namespace Optima.Models.Enums
 
     public enum CardCategory // Rename to Card type
     {
-        PHYSICAL = 1,
-        E_CODE,
+        [Description("Physical")] PHYSICAL = 1,
+        [Description("E-Code")]  E_CODE,
     }
      
 }

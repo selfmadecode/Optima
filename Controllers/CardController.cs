@@ -1,9 +1,11 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using AzureRays.Shared.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Optima.Models.DTO.CardDTO;
 using Optima.Services.Interface;
 using Optima.Utilities.Helpers;
+using Optima.Utilities.Pagination;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,28 +29,88 @@ namespace Optima.Controllers
         [ProducesResponseType(typeof(BaseResponse<CreatedCardDTO>), 200)] // return the created model
         public async Task<IActionResult> Create([FromForm]CreateCardDTO model)
         {
-            return ReturnResponse(await _cardService.CreateCard(model, UserId));
+            try
+            {
+                return ReturnResponse(await _cardService.CreateCard(model, UserId));
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex); ;
+            }
         }
 
         [HttpPost]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)] // return the created model
         public async Task<IActionResult> Visa([FromBody] ConfigureVisaCardDTO model)
         {
-            return ReturnResponse(await _cardService.ConfigureVisaCard(model, UserId));
+            try
+            {
+                return ReturnResponse(await _cardService.ConfigureVisaCard(model, UserId));
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex);
+            }
         }
+          
+        
 
         [HttpPost]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)] // return the created model
         public async Task<IActionResult> ReceiptType([FromBody] ConfigureReceiptTypeCardDTO model)
         {
-            return ReturnResponse(await _cardService.ConfigureReceiptTypeCard(model, UserId));
+            try
+            {
+                return ReturnResponse(await _cardService.ConfigureReceiptTypeCard(model, UserId));
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex);
+            }
+           
         }
 
         [HttpPost]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)] // return the created model
         public async Task<IActionResult> Normal([FromBody] ConfigureNormalCardDTO model)
         {
-            return ReturnResponse(await _cardService.ConfigureNormalCard(model, UserId));
+            try
+            {
+                return ReturnResponse(await _cardService.ConfigureNormalCard(model, UserId));
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex);
+            }
+           
+        }
+
+        [HttpGet("{id}")]
+        [ProducesResponseType(typeof(BaseResponse<CardDTO>), 200)] // return the created model
+        public async Task<IActionResult> Get(Guid id)
+        {
+            try
+            {
+                return ReturnResponse(await _cardService.GetCard(id));
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex); ;
+            }
+        }
+
+        [HttpGet]
+        [ProducesResponseType(typeof(BaseResponse<PagedList<CardDTO>>), 200)] // return the created model
+        public async Task<IActionResult> GetAllCardConfig([FromQuery]BaseSearchViewModel  model)
+        {
+            try
+            {
+                return ReturnResponse(await _cardService.GetAllPendingCard(model));
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex); ;
+            }
         }
     }
 }

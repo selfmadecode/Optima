@@ -14,15 +14,15 @@ namespace Optima.Controllers
 {
     [Route("api/[controller]/[action]")]
     [ApiController]
-    public class PushNotification : BaseController
+    public class PushNotificationController : BaseController
     {
         private readonly IPushNotificationService _pushNotificationService;
         private readonly ILog _logger;
 
-        public PushNotification(IPushNotificationService pushNotificationService)
+        public PushNotificationController(IPushNotificationService pushNotificationService)
         {
             _pushNotificationService = pushNotificationService;
-            _logger = LogManager.GetLogger(typeof(PushNotification));
+            _logger = LogManager.GetLogger(typeof(PushNotificationController));
         }
 
         [HttpPost]

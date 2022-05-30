@@ -1,7 +1,7 @@
 ﻿using AzureRays.Shared.ViewModels;
 using Microsoft.EntityFrameworkCore;
 using Optima.Context;
-using Optima.Models.DTO.CountryDTO;
+using Optima.Models.DTO.CountryDTOs;
 using Optima.Models.Entities;
 using Optima.Models.Enums;
 using Optima.Services.Interface;
@@ -18,7 +18,6 @@ namespace Optima.Services.Implementation
     {
         private readonly ApplicationDbContext _context;
        
-
         public CountryService(ApplicationDbContext context)
         { 
             _context = context;
@@ -30,7 +29,7 @@ namespace Optima.Services.Implementation
         /// </summary>
         /// <param name="model">The model.</param>
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
-        public async Task<BaseResponse<bool>> CreateCountry(CreateCountryDTO model)
+        public async Task<BaseResponse<bool>> CreateCountry(CreateCountryDTO model, Guid UserId)
         {
             var response = new BaseResponse<bool>();
 
@@ -49,7 +48,7 @@ namespace Optima.Services.Implementation
             var newCountry = new Country
             {
                 Name = model.CountryName,
-
+                CreatedBy = UserId
             };
 
              _context.Countries.Add(newCountry);
@@ -82,6 +81,16 @@ namespace Optima.Services.Implementation
                 return response;
             }
 
+            var _ = await _context.CardTypes.AnyAsync(x => x.CountryId == id);
+            if (_)
+            {
+                response.Data = false;
+                response.ResponseMessage = "You cannot delete this country.";
+                response.Errors = new List<string> { "You cannot delete this country." };
+                response.Status = RequestExecution.Failed;
+                return response;
+            }
+
             _context.Remove(country);
             await _context.SaveChangesAsync();
 
@@ -100,7 +109,7 @@ namespace Optima.Services.Implementation
         {
             var query = _context.Countries.AsQueryable();
 
-            var countries = await query.ToPagedListAsync(model.PageIndex, model.PageSize);
+            var countries = await query.OrderBy(x => x.Name).ToPagedListAsync(model.PageIndex, model.PageSize);
 
             var countriesDTO = countries.Select(X => (CountryDTO)X).ToList();
 
@@ -115,7 +124,7 @@ namespace Optima.Services.Implementation
         /// <returns>Task&lt;BaseResponse&lt;List&lt;CountryDTO&gt;&gt;&gt;.</returns>
         public async Task<BaseResponse<List<CountryDTO>>> GetAllCountry()
         {
-            var countries = await _context.Countries.ToListAsync();
+            var countries = await _context.Countries.OrderBy(x => x.Name).ToListAsync();
 
             var countriesDTO = countries.Select(X => (CountryDTO)X).ToList();
 
@@ -157,7 +166,7 @@ namespace Optima.Services.Implementation
         /// </summary>
         /// <param name="model">The model.</param>
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
-        public async Task<BaseResponse<bool>> UpdateCountry(UpdateCountryDTO model) 
+        public async Task<BaseResponse<bool>> UpdateCountry(UpdateCountryDTO model, Guid UserId) 
         {
             var response = new BaseResponse<bool>();
 
@@ -172,11 +181,27 @@ namespace Optima.Services.Implementation
                 return response;
             }
 
-            country.Name = model.Name;
+            var checkExistingCountries = _context.Countries.Any(x => x.Name.ToLower().Replace(" ", "") == model.Name.ToLower().Replace(" ", ""));
 
-            _context.Countries.Update(country);
+            if (!checkExistingCountries)
+            {
+                var newCountry = new Country
+                {
+                    Name = model.Name,
+                    CreatedBy = UserId,
+                };
+
+                _context.Add(newCountry);
+            }
+            else
+            {
+                country.Name = string.IsNullOrWhiteSpace(model.Name) ? country.Name : model.Name;
+                country.ModifiedBy = UserId;
+                country.ModifiedOn = DateTime.UtcNow;
+                _context.Countries.Update(country);
+            }
+           
             await _context.SaveChangesAsync();
-
 
             response.Data = true;
             response.ResponseMessage = "Success";
