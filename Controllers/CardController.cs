@@ -1,9 +1,11 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using AzureRays.Shared.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Optima.Models.DTO.CardDTO;
 using Optima.Services.Interface;
 using Optima.Utilities.Helpers;
+using Optima.Utilities.Pagination;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -81,6 +83,34 @@ namespace Optima.Controllers
                 return HandleError(ex);
             }
            
+        }
+
+        [HttpGet("{id}")]
+        [ProducesResponseType(typeof(BaseResponse<CardDTO>), 200)] // return the created model
+        public async Task<IActionResult> Get(Guid id)
+        {
+            try
+            {
+                return ReturnResponse(await _cardService.GetCard(id));
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex); ;
+            }
+        }
+
+        [HttpGet]
+        [ProducesResponseType(typeof(BaseResponse<PagedList<CardDTO>>), 200)] // return the created model
+        public async Task<IActionResult> GetAllCardConfig([FromQuery]BaseSearchViewModel  model)
+        {
+            try
+            {
+                return ReturnResponse(await _cardService.GetAllPendingCard(model));
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex); ;
+            }
         }
     }
 }

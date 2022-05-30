@@ -1,5 +1,5 @@
 ﻿using AzureRays.Shared.ViewModels;
-using Optima.Models.DTO.CountryDTO;
+using Optima.Models.DTO.CountryDTOs;
 using Optima.Utilities.Helpers;
 using Optima.Utilities.Pagination;
 using System;

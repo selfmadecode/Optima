@@ -1,7 +1,7 @@
 ﻿using AzureRays.Shared.ViewModels;
 using Microsoft.EntityFrameworkCore;
 using Optima.Context;
-using Optima.Models.DTO.CountryDTO;
+using Optima.Models.DTO.CountryDTOs;
 using Optima.Models.Entities;
 using Optima.Models.Enums;
 using Optima.Services.Interface;
@@ -18,7 +18,6 @@ namespace Optima.Services.Implementation
     {
         private readonly ApplicationDbContext _context;
        
-
         public CountryService(ApplicationDbContext context)
         { 
             _context = context;
@@ -78,6 +77,16 @@ namespace Optima.Services.Implementation
                 response.Data = false;
                 response.ResponseMessage = "Country doesn't Exists.";
                 response.Errors.Add("Country doesn't Exists.");
+                response.Status = RequestExecution.Failed;
+                return response;
+            }
+
+            var _ = await _context.CardTypes.AnyAsync(x => x.CountryId == id);
+            if (_)
+            {
+                response.Data = false;
+                response.ResponseMessage = "You cannot delete this country.";
+                response.Errors = new List<string> { "You cannot delete this country." };
                 response.Status = RequestExecution.Failed;
                 return response;
             }
@@ -172,7 +181,7 @@ namespace Optima.Services.Implementation
                 return response;
             }
 
-            var checkExistingCountries = _context.Countries.Any(x => x.Name == model.Name);
+            var checkExistingCountries = _context.Countries.Any(x => x.Name.ToLower().Replace(" ", "") == model.Name.ToLower().Replace(" ", ""));
 
             if (!checkExistingCountries)
             {
@@ -186,7 +195,7 @@ namespace Optima.Services.Implementation
             }
             else
             {
-                country.Name = model.Name;
+                country.Name = string.IsNullOrWhiteSpace(model.Name) ? country.Name : model.Name;
                 country.ModifiedBy = UserId;
                 country.ModifiedOn = DateTime.UtcNow;
                 _context.Countries.Update(country);

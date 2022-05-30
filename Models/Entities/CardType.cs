@@ -10,7 +10,7 @@ namespace Optima.Models.Entities
     {
         public CardType()
         {
-            Denomination = new List<CardTypeDenomination>();
+            CardTypeDenomination = new List<CardTypeDenomination>();
         }
 
     
@@ -25,7 +25,7 @@ namespace Optima.Models.Entities
         //public Denomination Denomination { get; set; } // $10
         //public Guid DenominationId { get; set; }
 
-        public List<CardTypeDenomination> Denomination { get; set; }
+        public List<CardTypeDenomination> CardTypeDenomination { get; set; }
 
         //public virtual Receipt Receipt { get; set; }
         //public Guid? ReceiptId { get; set; }

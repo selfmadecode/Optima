@@ -3,7 +3,7 @@ using log4net;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Optima.Models.DTO.CountryDTO;
+using Optima.Models.DTO.CountryDTOs;
 using Optima.Services.Interface;
 using Optima.Utilities.Helpers;
 using Optima.Utilities.Pagination;

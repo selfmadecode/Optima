@@ -1,14 +1,10 @@
-﻿using log4net;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Optima.Models.DTO.ReceiptDTOs;
-using Optima.Services.Implementation;
+using Optima.Models.DTO.PrefixDTOs;
 using Optima.Services.Interface;
 using Optima.Utilities.Helpers;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace Optima.Controllers
@@ -16,65 +12,60 @@ namespace Optima.Controllers
     [Route("api/[controller]/[action]")]
     [ApiController]
     [Authorize]
-    public class ReceiptController : BaseController
+    public class PrefixController : BaseController
     {
-        private readonly IReceiptService _receiptService;
-        private readonly ILog _logger;
+        private readonly IPrefixService _prefixService;
 
-        public ReceiptController(IReceiptService receiptService)
+        public PrefixController(IPrefixService prefixService)
         {
-            _receiptService = receiptService;
-            _logger = LogManager.GetLogger(typeof(ReceiptController));
-            
+            _prefixService = prefixService;
+
         }
 
         [HttpPost]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
-        public async Task<IActionResult> Create(CreateReceiptDTO model)
+        public async Task<IActionResult> Create(CreatePrefixDTO model)
         {
             try
             {
-                var result = await _receiptService.CreateReceipt(model, UserId);
+                var result = await _prefixService.CreatePrefix(model, UserId);
 
                 return ReturnResponse(result);
             }
             catch (Exception ex)
             {
-                _logger.Error(ex.Message, ex);
                 return HandleError(ex);
             }
         }
 
         [HttpGet]
-        [ProducesResponseType(typeof(BaseResponse<List<ReceiptDTO>>), 200)]
+        [ProducesResponseType(typeof(BaseResponse<List<PrefixDTO>>), 200)]
         public async Task<IActionResult> GetAll()
         {
             try
             {
-                var result = await _receiptService.GetAllReceipt();
+                var result = await _prefixService.GetAllPrefix();
 
                 return ReturnResponse(result);
             }
             catch (Exception ex)
             {
-                _logger.Error(ex.Message, ex);
                 return HandleError(ex);
             }
         }
 
         [HttpPut]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
-        public async Task<IActionResult> Update(UpdateReceiptDTO model)
+        public async Task<IActionResult> Update(UpdatePrefixDTO model)
         {
             try
             {
-                var result = await _receiptService.UpdateReceipt(model);
+                var result = await _prefixService.UpdatePrefix(model);
 
                 return ReturnResponse(result);
             }
             catch (Exception ex)
             {
-                _logger.Error(ex.Message, ex);
                 return HandleError(ex);
             }
         }
@@ -85,13 +76,12 @@ namespace Optima.Controllers
         {
             try
             {
-                var result = await _receiptService.DeleteReceipt(id);
+                var result = await _prefixService.DeletePrefix(id);
 
                 return ReturnResponse(result);
             }
             catch (Exception ex)
             {
-                _logger.Error(ex.Message, ex);
                 return HandleError(ex);
             }
         }

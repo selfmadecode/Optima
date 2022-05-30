@@ -79,6 +79,18 @@ namespace Optima.Services.Implementation
                 };
             }
 
+            var _ = await _context.CardTypeDenomination.AnyAsync(x => x.PrefixId == id);
+
+            if (_)
+                return new BaseResponse<bool>
+                {
+                    Data = false,
+                    ResponseMessage = "Denomination Cannot be deleted.",
+                    Errors = new List<string> { "Denomination Cannot be deleted." },
+                    Status = RequestExecution.Failed
+                };  
+
+
             _context.Denominations.Remove(checkRate);
             await _context.SaveChangesAsync();
 

@@ -1,11 +1,13 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AzureRays.Shared.ViewModels;
+using Microsoft.EntityFrameworkCore;
 using Optima.Context;
 using Optima.Models.DTO.CardDTO;
-using Optima.Models.DTO.CountryDTO;
+using Optima.Models.DTO.CountryDTOs;
 using Optima.Models.Entities;
 using Optima.Models.Enums;
 using Optima.Services.Interface;
 using Optima.Utilities.Helpers;
+using Optima.Utilities.Pagination;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -129,7 +131,8 @@ namespace Optima.Services.Implementation
                     CardTypeId = item.CardTypeId,
                     DenominationId = item.DenominationId,
                     Rate = item.Rate,
-                    PrefixId = item.PrefixId
+                    PrefixId = item.PrefixId,
+                    CreatedBy = UserId
                 });
                          
             }
@@ -137,7 +140,7 @@ namespace Optima.Services.Implementation
             await _dbContext.SaveChangesAsync();
 
             response.Data = true;
-            response.ResponseMessage = "Successfully Created";
+            response.ResponseMessage = "Successfully Configured Visa Card";
 
             return response;
 
@@ -253,5 +256,52 @@ namespace Optima.Services.Implementation
             return false;
         }
 
+        public async Task<BaseResponse<CardDTO>> GetCard(Guid id)
+        {
+            var response = new BaseResponse<CardDTO>();
+
+            var card = await _dbContext.Cards.Where(x => x.Id == id)
+                .Include(x => x.CardType).ThenInclude(x => x.Country)
+                .FirstOrDefaultAsync();
+
+            if (card is null)
+            {
+                response.ResponseMessage = "Card doesn't Exists";
+                response.Errors.Add("Card doesn't Exists");
+                response.Status = RequestExecution.Failed;
+                return response;
+
+            }
+
+            var cardTypesDTO = card.CardType.OrderByDescending(x => x.CreatedOn).Select(x => (CardTypeDTO)x).ToList();
+
+            CardDTO cardDto = card;
+            cardDto.CardTypeDTOs = cardTypesDTO;
+
+            response.Data = cardDto;
+            response.ResponseMessage = "Success";
+
+            return response;
+        }
+
+        public async Task<BaseResponse<PagedList<CardDTO>>> GetAllPendingCard(BaseSearchViewModel model)
+        {
+            var cards = _dbContext.Cards.AsNoTracking()
+                .Where(x => x.CardStatus == CardStatus.Pending)
+                .Include(x => x.CardType).ThenInclude(x => x.Country)
+                .Include(x => x.CardType).ThenInclude(x => x.CardTypeDenomination).ThenInclude(x => x.Denomination)
+                .Include(x => x.CardType).ThenInclude(x => x.CardTypeDenomination).ThenInclude(x => x.Prefix)
+                .Include(x => x.CardType).ThenInclude(x => x.CardTypeDenomination).ThenInclude(x => x.Receipt)
+                .AsQueryable();
+
+            var pagedCards = await cards.OrderByDescending(x => x.CreatedOn).ToPagedListAsync(model.PageIndex, model.PageSize);
+
+            var cardsDto = pagedCards.Select(x => (CardDTO)x).ToList();
+
+            var data = new PagedList<CardDTO>(cardsDto, model.PageIndex, model.PageSize, pagedCards.TotalItemCount);
+
+            return new BaseResponse<PagedList<CardDTO>> { Data = data, ResponseMessage = $"Found {cardsDto.Count} Cards" };
+
+        }
     }
 }
