@@ -10,6 +10,7 @@ namespace Optima.Models.DTO.RateDTO
     {
         public Guid Id { get; set; }
         public decimal Amount { get; set; }
+        public DateTime CreatedOn { get; set; }
 
 
         public static implicit operator DenominationDTO(Denomination model)
@@ -19,6 +20,7 @@ namespace Optima.Models.DTO.RateDTO
                {
                    Id = model.Id,
                    Amount = model.Amount,
+                   CreatedOn = model.CreatedOn,
 
                };
         }

@@ -15,6 +15,7 @@ namespace Optima.Models.DTO.CardDTO
         public DenominationDTO DenominationDTO { get; set; }
         public PrefixDTO PrefixDTO { get; set; }
         public ReceiptDTO ReceiptDTO { get; set; }
+        public decimal Rate { get; set; }
         public DateTime CreatedOn { get; set; }
 
 
@@ -28,6 +29,7 @@ namespace Optima.Models.DTO.CardDTO
                    DenominationDTO = model.Denomination,
                    PrefixDTO = model.Prefix,
                    ReceiptDTO = model.Receipt,
+                   Rate = model.Rate,
                    CreatedOn = model.CreatedOn
                };
         }
