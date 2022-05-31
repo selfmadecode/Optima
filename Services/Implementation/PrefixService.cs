@@ -128,14 +128,20 @@ namespace Optima.Services.Implementation
                 response.Status = RequestExecution.Error;
                 return response;
             }
-            else if (_context.VisaPrefixes.Any(x => x.PrefixNumber.ToLower().Replace(" ", "") == model.PrefixNumber.ToLower().Replace(" ", "")))
+            if (model.PrefixNumber.Replace(" ", "").ToLower() != checkPrefix.PrefixNumber.Replace(" ", "").ToLower())
             {
-                response.Data = false;
-                response.ResponseMessage = "Visa Prefix already Exists";
-                response.Errors = new List<string> { "Visa Prefix already Exists" };
-                response.Status = RequestExecution.Error;
-                return response;
+                var checkExistingReceipts = await _context.Receipts.AnyAsync(x => x.Name.ToLower().Replace(" ", "") == model.PrefixNumber.ToLower().Replace(" ", ""));
+
+                if (checkExistingReceipts)
+                {
+                    response.Data = false;
+                    response.ResponseMessage = "Visa Prefix already Exists";
+                    response.Errors = new List<string> { "Visa Prefix already Exists" };
+                    response.Status = RequestExecution.Error;
+                    return response;
+                }
             }
+            
 
             checkPrefix.PrefixNumber = string.IsNullOrWhiteSpace(model.PrefixNumber) ? checkPrefix.PrefixNumber : model.PrefixNumber;
 
@@ -143,7 +149,7 @@ namespace Optima.Services.Implementation
             await _context.SaveChangesAsync();
 
             response.Data = true;
-            response.ResponseMessage = "Receipt Type Updated Successfully";
+            response.ResponseMessage = "Visa Prefix Updated Successfully";
             return response;
         }
     }

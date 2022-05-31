@@ -10,6 +10,7 @@ namespace Optima.Models.DTO.CountryDTOs
     {
         public Guid Id { get; set; }
         public string Name { get; set; }
+        public string CountryLogo { get; set; }
         public DateTime CreatedOn { get; set; }
 
 
@@ -20,7 +21,8 @@ namespace Optima.Models.DTO.CountryDTOs
                : new CountryDTO
                {
                    Id = model.Id,
-                   Name = model.Name,  
+                   Name = model.Name, 
+                   CountryLogo = model.LogoUrl,
                    CreatedOn = model.CreatedOn
                };
         }

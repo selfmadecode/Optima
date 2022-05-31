@@ -12,7 +12,7 @@ namespace Optima.Models.DTO.CardDTO
     {
         public Guid Id { get; set; }
         public string Name { get; set; }
-        public string CardStatus { get; set; }
+        public string Logo { get; set; }
         public DateTime CreatedOn { get; set; }
         public List<CardTypeDTO> CardTypeDTOs { get; set; }
 
@@ -24,7 +24,7 @@ namespace Optima.Models.DTO.CardDTO
                {
                    Id = model.Id,
                    Name = model.Name,
-                   CardStatus = model.CardStatus.GetDescription(),
+                   Logo = model.LogoUrl,
                    CardTypeDTOs = model.CardType.Select(x => (CardTypeDTO)x).ToList(),
                    CreatedOn = model.CreatedOn
                };
