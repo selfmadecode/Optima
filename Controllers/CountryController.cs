@@ -16,6 +16,7 @@ namespace Optima.Controllers
 {
     [Route("api/[controller]/[action]")]
     [ApiController]
+    [Authorize]
     public class CountryController : BaseController
     {
         private readonly ICountryService _countryService;
@@ -30,7 +31,7 @@ namespace Optima.Controllers
         [HttpPost]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
         //[Authorize(Policy = "CanAdd")]
-        public async Task<IActionResult> Create([FromBody]CreateCountryDTO model)
+        public async Task<IActionResult> Create([FromForm]CreateCountryDTO model)
         {
             try
             {
@@ -103,7 +104,7 @@ namespace Optima.Controllers
         [HttpPut]
         [Authorize]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
-        public async Task<IActionResult> Update([FromBody] UpdateCountryDTO model)
+        public async Task<IActionResult> Update([FromForm] UpdateCountryDTO model)
         {
             try
             {

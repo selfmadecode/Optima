@@ -128,14 +128,20 @@ namespace Optima.Services.Implementation
                 response.Status = RequestExecution.Failed;
                 return response;
             }
-            else if (_context.Receipts.Any(x => x.Name.ToLower().Replace(" ", "") == model.Name.ToLower().Replace(" ", "")))
+            if (model.Name.Replace(" ", "").ToLower() != checkReceipt.Name.Replace(" ", "").ToLower())
             {
-                response.Data = false;
-                response.ResponseMessage = "Receipt Type already Exists";
-                response.Errors = new List<string> { "Receipt Type already Exists" };
-                response.Status = RequestExecution.Failed;
-                return response;
+                var checkExistingReceipts = await _context.Receipts.AnyAsync(x => x.Name.ToLower().Replace(" ", "") == model.Name.ToLower().Replace(" ", ""));
+
+                if (checkExistingReceipts)
+                {
+                    response.Data = false;
+                    response.ResponseMessage = "Receipt Type already Exists.";
+                    response.Errors.Add("Receipt Type already Exists.");
+                    response.Status = RequestExecution.Failed;
+                    return response;
+                }
             }
+
 
             checkReceipt.Name = string.IsNullOrWhiteSpace(model.Name) ? checkReceipt.Name : model.Name;
 

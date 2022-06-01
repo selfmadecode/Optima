@@ -9,6 +9,7 @@ namespace Optima.Models.Entities
     public class Country : BaseEntity
     {
         public string Name { get; set; }
+        public string LogoUrl { get; set; }
 
     }
 }
