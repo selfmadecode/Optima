@@ -121,6 +121,7 @@ namespace Optima.Services.Implementation
             return new BaseResponse<List<BankAccountDTO>>
             {
                 Data = bankAccountDTOs,
+                TotalCount = bankAccountDTOs.Count,
                 Status = RequestExecution.Successful,
                 ResponseMessage = $"Found {bankAccounts.Count} Bank Account(s)."
             };

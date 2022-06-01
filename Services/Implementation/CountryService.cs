@@ -132,7 +132,7 @@ namespace Optima.Services.Implementation
             CloudinaryUploadHelper.DeleteImage(_configuration, fullPath);
 
             response.Data = true;
-            response.ResponseMessage = "Success deleted the Country";
+            response.ResponseMessage = "Successfully deleted the Country";
             response.Status = RequestExecution.Successful;
             return response;
         }
@@ -152,7 +152,7 @@ namespace Optima.Services.Implementation
 
             var data = new PagedList<CountryDTO>(countriesDTO, model.PageIndex, model.PageSize, countries.TotalItemCount);
 
-            return new BaseResponse<PagedList<CountryDTO>> { Data = data, ResponseMessage = $"Found {countriesDTO.Count()} Countries", Status = RequestExecution.Successful };
+            return new BaseResponse<PagedList<CountryDTO>> { Data = data, TotalCount = data.TotalItemCount, ResponseMessage = $"Found {countriesDTO.Count()} Countries", Status = RequestExecution.Successful };
         }
 
         /// <summary>
@@ -165,7 +165,7 @@ namespace Optima.Services.Implementation
 
             var countriesDTO = countries.Select(X => (CountryDTO)X).ToList();
 
-            return new BaseResponse<List<CountryDTO>> { Data = countriesDTO, ResponseMessage = $"Found {countriesDTO.Count()} Countries" };
+            return new BaseResponse<List<CountryDTO>> { Data = countriesDTO, TotalCount = countriesDTO.Count, ResponseMessage = $"Found {countriesDTO.Count()} Countries" };
         }
 
         /// <summary>
@@ -192,7 +192,7 @@ namespace Optima.Services.Implementation
 
 
             response.Data = countryDTO;
-            response.ResponseMessage = "Success.";
+            response.ResponseMessage = "Successfully Found the Country.";
             response.Status = RequestExecution.Successful;
             return response;
 

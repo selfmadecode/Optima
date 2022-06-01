@@ -126,5 +126,19 @@ namespace Optima.Controllers
                 return HandleError(ex); ;
             }
         }
+
+        [HttpGet]
+        [ProducesResponseType(typeof(BaseResponse<PagedList<CardDTO>>), 200)]
+        public async Task<IActionResult> GetAllApprovedCard([FromQuery] BaseSearchViewModel model) 
+        {
+            try
+            {
+                return ReturnResponse(await _cardService.GetAllApprovedCardConfig(model));
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex); ;
+            }
+        }
     }
 }

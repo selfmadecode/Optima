@@ -589,7 +589,7 @@ namespace Optima.Services.Implementation
             cardDto.CardTypeDTOs = cardTypesDTO;
 
             response.Data = cardDto;
-            response.ResponseMessage = "Success";
+            response.ResponseMessage = "Successfully found the Card";
 
             return response;
         }
@@ -616,7 +616,7 @@ namespace Optima.Services.Implementation
 
             var data = new PagedList<CardDTO>(cardsDto, model.PageIndex, model.PageSize, pagedCards.TotalItemCount);
 
-            return new BaseResponse<PagedList<CardDTO>> { Data = data, ResponseMessage = $"Found {cardsDto.Count} Card(s)." };
+            return new BaseResponse<PagedList<CardDTO>> { Data = data, TotalCount = data.TotalItemCount, ResponseMessage = $"Found {cardsDto.Count} Card(s)." };
 
         }
 
@@ -630,26 +630,58 @@ namespace Optima.Services.Implementation
         public async Task<BaseResponse<PagedList<CardDTO>>> GetAllPendingCardConfig(BaseSearchViewModel model)
         {
 
-            var cardTypes = await _dbContext.CardType.AsNoTracking().Where(x => x.CardStatus == CardStatus.Pending).Include(x => x.Country).ToListAsync();
+            var cardTypes = await _dbContext.CardType.AsNoTracking()
+                .Where(x => x.CardStatus == CardStatus.Pending)
+                .Include(x => x.Country)
+                .ToListAsync();
          
             var cards = _dbContext.Cards.AsNoTracking().AsQueryable();
-
 
             var pagedCards = await cards.OrderByDescending(x => x.CreatedOn).ToPagedListAsync(model.PageIndex, model.PageSize);
 
             var cardsDto = pagedCards.Select(x => (CardDTO)x).ToList();
 
-            foreach (var card in pagedCards)
+            cardsDto.ForEach(x =>
             {
-                var aCardDto = cardsDto.First(x => x.Id == card.Id);
-                aCardDto.CardTypeDTOs = cardTypes.Where(x => x.CardId == card.Id).Select(x => (CardTypeDTO)x).ToList();
-            }
+                x.CardTypeDTOs = cardTypes.Where(c => c.CardId == x.Id).Select(x => (CardTypeDTO)x).ToList();
+            });
 
             var data = new PagedList<CardDTO>(cardsDto, model.PageIndex, model.PageSize, pagedCards.TotalItemCount);
 
-            return new BaseResponse<PagedList<CardDTO>> { Data = data, ResponseMessage = $"Found {cardsDto.Count} Card(s)." };
+            return new BaseResponse<PagedList<CardDTO>> { Data = data, TotalCount = data.TotalItemCount, ResponseMessage = $"Found {cardsDto.Count} Card(s)." };
         }
 
+
+        /// <summary>
+        /// GET ALL APPROVED CARD
+        /// </summary>
+        /// <param name="model">The model.</param>
+        /// <returns>Task&lt;BaseResponse&lt;PagedList&lt;CardDTO&gt;&gt;&gt;.</returns>
+        public async Task<BaseResponse<PagedList<CardDTO>>> GetAllApprovedCardConfig(BaseSearchViewModel model)
+        {
+            var cardTypes = await _dbContext.CardType.AsNoTracking()
+                .Where(x => x.CardStatus == CardStatus.Approved)
+                .Include(x => x.Country)
+                .Include(x => x.CardTypeDenomination).ThenInclude(x => x.Prefix)
+                .Include(x => x.CardTypeDenomination).ThenInclude(x => x.Receipt)
+                .Include(x => x.CardTypeDenomination).ThenInclude(x => x.Denomination)
+                .ToListAsync();
+
+            var cards = _dbContext.Cards.AsNoTracking().Where(x => cardTypes.Select(x => x.CardId).Contains(x.Id)).AsQueryable();
+
+            var pagedCards = await cards.OrderByDescending(x => x.CreatedOn).ToPagedListAsync(model.PageIndex, model.PageSize);
+
+            var cardsDto = pagedCards.Select(x => (CardDTO)x).ToList();
+
+            cardsDto.ForEach(x =>
+            {
+                x.CardTypeDTOs = cardTypes.Where(c => c.CardId == x.Id).Select(x => (CardTypeDTO)x).ToList();
+            });
+
+            var data = new PagedList<CardDTO>(cardsDto, model.PageIndex, model.PageSize, pagedCards.TotalItemCount);
+
+            return new BaseResponse<PagedList<CardDTO>> { Data = data, TotalCount = data.TotalItemCount, ResponseMessage = $"Found {cardsDto.Count} Card(s)." };
+        }
 
         /// <summary>
         /// FIND CARD
@@ -693,5 +725,6 @@ namespace Optima.Services.Implementation
 
             return response;
         }
+     
     }
 }

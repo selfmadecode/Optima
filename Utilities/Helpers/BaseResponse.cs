@@ -34,6 +34,7 @@ namespace Optima.Utilities.Helpers
         public RequestExecution Status { get; set; }
         public T Data { get; set; }
         public string ResponseMessage { get; set; }
+        public int TotalCount { get; set; }
         public List<string> Errors { get; set; } = new List<string>();
     }
 }

@@ -105,7 +105,7 @@ namespace Optima.Services.Implementation
 
             var receiptsDTO = receipts.Select(x => (ReceiptDTO)x).ToList();
 
-            return new BaseResponse<List<ReceiptDTO>> { Data = receiptsDTO, ResponseMessage = $"Found {receiptsDTO.Count} Receipt Type(s)." };
+            return new BaseResponse<List<ReceiptDTO>> { Data = receiptsDTO, TotalCount = receiptsDTO.Count, ResponseMessage = $"Found {receiptsDTO.Count} Receipt Type(s)." };
         }
 
 
