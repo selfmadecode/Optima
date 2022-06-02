@@ -142,7 +142,7 @@ namespace Optima.Controllers
         }
 
         [HttpPut]
-        [ProducesResponseType(typeof(BaseResponse<CreatedCardDTO>), 200)] // return the created model
+        [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
         public async Task<IActionResult> Update([FromForm] UpdateCardDTO model)
         {
             try
@@ -152,6 +152,63 @@ namespace Optima.Controllers
             catch (Exception ex)
             {
                 return HandleError(ex); ;
+            }
+        }
+
+        [HttpPut]
+        [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
+        public async Task<IActionResult> UpdateNormalCard([FromBody] UpdateNormalCardConfigDTO model)
+        {
+            try
+            {
+                return ReturnResponse(await _cardService.UpdateNormalCard(model, UserId));
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex); ;
+            }
+        }
+
+        [HttpPut]
+        [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
+        public async Task<IActionResult> UpdateReceiptCard([FromBody] UpdateReceiptTypeConfigDTO model)
+        {
+            try
+            {
+                return ReturnResponse(await _cardService.UpdateReceiptCard(model, UserId));
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex); ;
+            }
+        }
+
+        [HttpPut]
+        [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
+        public async Task<IActionResult> UpdateVisaCard([FromBody] UpdateVisaCardConfigDTO model)
+        {
+            try
+            {
+                return ReturnResponse(await _cardService.UpdateVisaCard(model, UserId));
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex); ;
+            }
+        }
+
+
+        [HttpDelete]
+        [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
+        public async Task<IActionResult> DeleteCardType([FromBody] DeleteCardTypeDTO model)
+        {
+            try
+            {
+                return ReturnResponse(await _cardService.DeleteCardType(model));
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex);
             }
         }
     }

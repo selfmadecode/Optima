@@ -16,6 +16,20 @@ namespace Optima.Models.DTO.CardDTO
         public IFormFile Logo { get; set; }
         [Required]
         public List<Guid> CountryIds { get; set; }
-        //public List<Guid> CardTypeIds { get; set; }
+    }
+
+
+    public class UpdateCardConfigDTO
+    {     
+        public Guid CardTypeDenominationId { get; set; }
+        [Required]
+        public Guid DenominationId { get; set; }
+
+        [Required]
+        public Decimal Rate { get; set; }
+
+        public Guid CountryId { get; set; }
+
+        public Guid CardTypeId { get; set; }
     }
 }

@@ -63,13 +63,6 @@ namespace Optima.Services.Implementation
             //Upload to Cloudinary
             var (uploadedFile, hasUploadError, responseMessage) = await CloudinaryUploadHelper.UploadImage(model.Logo, _configuration);
 
-            /*if (hasUploadError)
-            {
-                resultModel.Message = $"{responseMessage}";
-                resultModel.AddError("Failed to Upload the file");
-                return resultModel;
-            }*/
-
             var newCountry = new Country
             {
                 Name = model.CountryName,
@@ -259,26 +252,12 @@ namespace Optima.Services.Implementation
 
                 var (uploadedFile, hasUploadError, responseMessage) = await CloudinaryUploadHelper.UploadImage(model.Logo, _configuration);
 
-                /*if (hasUploadError)
-                {
-                    resultModel.Message = $"{responseMessage}";
-                    resultModel.AddError("Failed to Upload the file");
-                    return resultModel;
-                }*/
-
                 country.LogoUrl = uploadedFile;
             }
 
             if (!(model.Logo is null) && (country.LogoUrl is null))
             {
                 var (uploadedFile, hasUploadError, responseMessage) = await CloudinaryUploadHelper.UploadImage(model.Logo, _configuration);
-
-                /*if (hasUploadError)
-                {
-                    resultModel.Message = $"{responseMessage}";
-                    resultModel.AddError("Failed to Upload the file");
-                    return resultModel;
-                }*/
 
                 country.LogoUrl = uploadedFile;
             }
