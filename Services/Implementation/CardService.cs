@@ -725,6 +725,106 @@ namespace Optima.Services.Implementation
 
             return response;
         }
-     
+
+
+
+        /// <summary>
+        /// UPDATE CARD
+        /// </summary>
+        /// <param name="model">The model.</param>
+        /// <param name="UserId">The UserId.</param>
+        /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
+        public async Task<BaseResponse<bool>> UpdateCard(UpdateCardDTO model, Guid UserId)
+        {
+            var response = new BaseResponse<bool>();
+
+            var result = ValidateFile(model.Logo);
+
+            if (response.Errors.Any())
+            {
+                result.ResponseMessage = response.ResponseMessage;
+                result.Errors = response.Errors;
+                result.Status = RequestExecution.Failed;
+                return result;
+            }
+
+            var card = await FindCard(model.Id);
+
+            if (card is null)
+            {
+                response.ResponseMessage = "Card doesn't Exists";
+                response.Errors.Add("Card doesn't Exists");
+                response.Status = RequestExecution.Failed;
+                return response;
+            };
+
+            var countryValidation = ValidateCountry(model.CountryIds);
+
+            if (countryValidation.Errors.Any())
+            {
+                response.ResponseMessage = countryValidation.ResponseMessage;
+                response.Errors = countryValidation.Errors;
+                response.Status = RequestExecution.Failed;
+                return response;
+            };
+
+            //Check If Incoming Updated Card doesn't Exists.
+            if (model.Name.Replace(" ", "").ToLower() != card.Name.Replace(" ", "").ToLower())
+            {
+                var checkExistingCard = await _dbContext.Cards.AnyAsync(x => x.Name.ToLower().Replace(" ", "") == model.Name.ToLower().Replace(" ", ""));
+
+                if (checkExistingCard)
+                {
+                    response.Data = false;
+                    response.ResponseMessage = "Card already Exists.";
+                    response.Errors.Add("Card already Exists.");
+                    response.Status = RequestExecution.Failed;
+                    return response;
+                }
+            }
+
+            var getExistingCards = await _dbContext.Cards.Where(x => x.Id == card.Id).Include(x => x.CardType).FirstOrDefaultAsync();
+            var existingsCountryIds = getExistingCards.CardType.Select(x => x.CountryId);
+            var getNewCountryIds = countryValidation.Data.CountryIds.Where(x => !existingsCountryIds.Contains(x));
+
+
+            var cardTypes = CreateCardTypes(getNewCountryIds.ToList(), UserId);
+            card.CardType.AddRange(cardTypes);
+            card.Name = string.IsNullOrWhiteSpace(model.Name) ? card.Name : model.Name;
+            card.ModifiedBy = UserId;
+            card.ModifiedOn = DateTime.UtcNow;          
+
+            //Update Card Logo
+            if (!(model.Logo is null) && !(card.LogoUrl is null))
+            {
+
+                var splittedLogoUrl = card.LogoUrl.Split("/");
+
+                //get the cloudinary PublicId
+                var LogoPublicId = splittedLogoUrl[8];
+                var splittedLogoPublicId = LogoPublicId.Split(".");
+
+                //Get the Full Asset Path
+                var fullPath = $"Optima/{splittedLogoPublicId[0]}";
+                CloudinaryUploadHelper.DeleteImage(_configuration, fullPath);
+
+                var (uploadedFile, hasUploadError, responseMessage) = await CloudinaryUploadHelper.UploadImage(model.Logo, _configuration);
+
+                card.LogoUrl = uploadedFile;
+            }
+
+            if (!(model.Logo is null) && (card.LogoUrl is null))
+            {
+                var (uploadedFile, hasUploadError, responseMessage) = await CloudinaryUploadHelper.UploadImage(model.Logo, _configuration);
+
+                card.LogoUrl = uploadedFile;
+            }
+
+            await _dbContext.SaveChangesAsync();
+
+            result.Data = true;
+            result.ResponseMessage = "Card Updated Successfully";
+            return result;
+        }
     }
 }

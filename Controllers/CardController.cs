@@ -137,6 +137,20 @@ namespace Optima.Controllers
             }
             catch (Exception ex)
             {
+                return HandleError(ex); 
+            }
+        }
+
+        [HttpPut]
+        [ProducesResponseType(typeof(BaseResponse<CreatedCardDTO>), 200)] // return the created model
+        public async Task<IActionResult> Update([FromForm] UpdateCardDTO model)
+        {
+            try
+            {
+                return ReturnResponse(await _cardService.UpdateCard(model, UserId));
+            }
+            catch (Exception ex)
+            {
                 return HandleError(ex); ;
             }
         }

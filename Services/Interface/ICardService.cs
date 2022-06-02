@@ -19,5 +19,6 @@ namespace Optima.Services.Interface
         Task<BaseResponse<PagedList<CardDTO>>> GetAllCard(BaseSearchViewModel model);
         Task<BaseResponse<PagedList<CardDTO>>> GetAllPendingCardConfig(BaseSearchViewModel model);
         Task<BaseResponse<PagedList<CardDTO>>> GetAllApprovedCardConfig(BaseSearchViewModel model);
+        Task<BaseResponse<bool>> UpdateCard(UpdateCardDTO model, Guid UserId);
     }
 }
