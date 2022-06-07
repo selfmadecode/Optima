@@ -704,6 +704,10 @@ namespace Optima.Services.Implementation
                         PrefixId = visaCardUpdateConfigDTO.PrefixId,
                         CreatedBy = UserId
                     });
+
+                    //Update CardType 
+                    var cardType = await _dbContext.CardType.FirstOrDefaultAsync(x => x.Id == visaCardUpdateConfigDTO.CardTypeId);
+                    cardType.CardStatus = CardStatus.Approved;
                 }
 
             }
@@ -811,6 +815,10 @@ namespace Optima.Services.Implementation
                         ReceiptId = receiptTypeUpdateConfigDTO.ReceiptId,
                         CreatedBy = UserId
                     });
+
+                    //Update CardType 
+                    var cardType = await _dbContext.CardType.FirstOrDefaultAsync(x => x.Id == receiptTypeUpdateConfigDTO.CardTypeId);
+                    cardType.CardStatus = CardStatus.Approved;
                 }
 
             }
@@ -904,6 +912,10 @@ namespace Optima.Services.Implementation
                         Rate = updateNormalCardConfigDTO.Rate,
                         CreatedBy = UserId
                     });
+
+                    //Update CardType 
+                    var cardType = await _dbContext.CardType.FirstOrDefaultAsync(x => x.Id == updateNormalCardConfigDTO.CardTypeId);
+                    cardType.CardStatus = CardStatus.Approved;
                 }
 
             }

@@ -125,7 +125,7 @@ namespace Optima.Services.Implementation
                 response.Data = false;
                 response.ResponseMessage = "Visa Prefix doesn't Exists";
                 response.Errors = new List<string> { "Visa Prefix doesn't Exists" };
-                response.Status = RequestExecution.Error;
+                response.Status = RequestExecution.Failed;
                 return response;
             }
             if (model.PrefixNumber.Replace(" ", "").ToLower() != checkPrefix.PrefixNumber.Replace(" ", "").ToLower())
