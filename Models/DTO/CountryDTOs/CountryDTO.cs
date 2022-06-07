@@ -4,12 +4,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Optima.Models.DTO.CountryDTO
+namespace Optima.Models.DTO.CountryDTOs
 {
     public class CountryDTO
     {
         public Guid Id { get; set; }
         public string Name { get; set; }
+        public string CountryLogo { get; set; }
+        public DateTime CreatedOn { get; set; }
 
 
 
@@ -19,8 +21,9 @@ namespace Optima.Models.DTO.CountryDTO
                : new CountryDTO
                {
                    Id = model.Id,
-                   Name = model.Name,
-                   
+                   Name = model.Name, 
+                   CountryLogo = model.LogoUrl,
+                   CreatedOn = model.CreatedOn
                };
         }
     }

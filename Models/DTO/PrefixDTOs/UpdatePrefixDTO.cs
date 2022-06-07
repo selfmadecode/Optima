@@ -3,12 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Optima.Models.DTO.RateDTO
+namespace Optima.Models.DTO.PrefixDTOs
 {
-    public class UpdateRateDTO
+    public class UpdatePrefixDTO
     {
         public Guid Id { get; set; }
-        public decimal Amount { get; set; }
+        public string PrefixNumber { get; set; } 
     }
 }
- 

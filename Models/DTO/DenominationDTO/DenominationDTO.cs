@@ -6,19 +6,21 @@ using System.Threading.Tasks;
 
 namespace Optima.Models.DTO.RateDTO
 {
-    public class RateDTO
+    public class DenominationDTO
     {
         public Guid Id { get; set; }
         public decimal Amount { get; set; }
+        public DateTime CreatedOn { get; set; }
 
 
-        public static implicit operator RateDTO(Denomination model)
+        public static implicit operator DenominationDTO(Denomination model)
         {
             return model is null ? null
-               : new RateDTO
+               : new DenominationDTO
                {
                    Id = model.Id,
                    Amount = model.Amount,
+                   CreatedOn = model.CreatedOn,
 
                };
         }

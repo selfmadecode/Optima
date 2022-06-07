@@ -1,19 +1,15 @@
 ﻿using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Optima.Models.DTO.CardDTO
+namespace Optima.Models.DTO.CountryDTOs
 {
-    public class CreateCardDTO
+    public class UpdateCountryDTO
     {
-        [Required]
+        public Guid Id { get; set; }
         public string Name { get; set; }
-       
         public IFormFile Logo { get; set; }
-        [Required]
-        public List<Guid> CountryIds { get; set; }
     }
 }

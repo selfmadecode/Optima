@@ -18,7 +18,8 @@ namespace Optima.Context
             
         }
 
-        public DbSet<BankAccount> BankAccounts { get; set; } 
+        public DbSet<BankAccount> BankAccounts { get; set; }
+        public DbSet<Card> Cards { get; set; }
         public DbSet<Notification> Notifications { get; set; } 
         public DbSet<RefreshToken> RefreshTokens { get; set; } 
         public DbSet<Country> Countries { get; set; }
@@ -29,9 +30,9 @@ namespace Optima.Context
         public DbSet<CreditDebit> CreditDebit { get; set; }
         public DbSet<UserDevice> UserDevices { get; set; }
         public DbSet<Receipt> Receipts { get; set; }
-        public DbSet<Prefix> SpecialPrefixes { get; set; }
-        public DbSet<Card> Cards { get; set; }
-        public DbSet<Models.Entities.CardType> CardType { get; set; }
+        public DbSet<CardType> CardTypes { get; set; }
+        public DbSet<Prefix> VisaPrefixes { get; set; }
+        public DbSet<CardType> CardType { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

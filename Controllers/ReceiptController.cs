@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Optima.Models.DTO.BankAccountDTO;
+using Optima.Models.DTO.ReceiptDTOs;
 using Optima.Services.Implementation;
 using Optima.Services.Interface;
 using Optima.Utilities.Helpers;
@@ -16,42 +16,25 @@ namespace Optima.Controllers
     [Route("api/[controller]/[action]")]
     [ApiController]
     [Authorize]
-    public class BankAccountController : BaseController
+    public class ReceiptController : BaseController
     {
-        private readonly IBankAccountService _bankAccountService;
+        private readonly IReceiptService _receiptService;
         private readonly ILog _logger;
 
-        public BankAccountController(IBankAccountService bankAccountService)
+        public ReceiptController(IReceiptService receiptService)
         {
-            _bankAccountService = bankAccountService;
-            _logger = LogManager.GetLogger(typeof(BankAccountController));
+            _receiptService = receiptService;
+            _logger = LogManager.GetLogger(typeof(ReceiptController));
+            
         }
 
         [HttpPost]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
-        public async Task<IActionResult> Create([FromBody] CreateBankAccountDTO model)
+        public async Task<IActionResult> Create(CreateReceiptDTO model)
         {
             try
             {
-                var result = await _bankAccountService.CreateBankAccount(model, UserId);
-
-                return ReturnResponse(result);
-            }
-            catch (Exception ex)
-            {
-               _logger.Error(ex.Message, ex);
-                return HandleError(ex);
-            }
-           
-        }
-
-        [HttpGet("{id}")]
-        [ProducesResponseType(typeof(BaseResponse<BankAccountDTO>), 200)]
-        public async Task<IActionResult> Get(Guid id)
-        {
-            try
-            {
-                var result = await _bankAccountService.GetBankAccount(id, UserId);
+                var result = await _receiptService.CreateReceipt(model, UserId);
 
                 return ReturnResponse(result);
             }
@@ -60,17 +43,15 @@ namespace Optima.Controllers
                 _logger.Error(ex.Message, ex);
                 return HandleError(ex);
             }
-
         }
 
         [HttpGet]
-        [ProducesResponseType(typeof(BaseResponse<List<BankAccountDTO>>), 200)]
-
+        [ProducesResponseType(typeof(BaseResponse<List<ReceiptDTO>>), 200)]
         public async Task<IActionResult> GetAll()
         {
             try
             {
-                var result = await _bankAccountService.GetAllBankAccount(UserId);
+                var result = await _receiptService.GetAllReceipt();
 
                 return ReturnResponse(result);
             }
@@ -79,16 +60,15 @@ namespace Optima.Controllers
                 _logger.Error(ex.Message, ex);
                 return HandleError(ex);
             }
-
         }
 
         [HttpPut]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
-        public async Task<IActionResult> Update([FromBody]UpdateBankAccountDTO model, Guid UserId) 
+        public async Task<IActionResult> Update(UpdateReceiptDTO model)
         {
             try
             {
-                var result = await _bankAccountService.UpdateBankAccount(model, UserId); 
+                var result = await _receiptService.UpdateReceipt(model);
 
                 return ReturnResponse(result);
             }
@@ -97,16 +77,15 @@ namespace Optima.Controllers
                 _logger.Error(ex.Message, ex);
                 return HandleError(ex);
             }
-
         }
 
         [HttpDelete("{id}")]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
-        public async Task<IActionResult> Delete(Guid id) 
+        public async Task<IActionResult> Delete(Guid id)
         {
             try
             {
-                var result = await _bankAccountService.DeleteBankAccount(id, UserId); 
+                var result = await _receiptService.DeleteReceipt(id);
 
                 return ReturnResponse(result);
             }
@@ -115,7 +94,6 @@ namespace Optima.Controllers
                 _logger.Error(ex.Message, ex);
                 return HandleError(ex);
             }
-
         }
     }
 }

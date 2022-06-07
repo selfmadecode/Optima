@@ -10,10 +10,10 @@ namespace Optima.Services.Implementation
 {
     public interface IDenominationService
     {
-        Task<BaseResponse<bool>> CreateRate(CreateRateDTO model);
-        Task<BaseResponse<RateDTO>> GetRate(Guid id);
-        Task<BaseResponse<bool>> UpdateRate(UpdateRateDTO model);
-        Task<BaseResponse<bool>> DeleteRate(Guid id); 
-        Task<BaseResponse<List<RateDTO>>> GetAllRates(); 
+        Task<BaseResponse<bool>> CreateDenomination(CreateDenominationDTO model, Guid UserId);
+        Task<BaseResponse<DenominationDTO>> GetDenomination(Guid id);
+        Task<BaseResponse<bool>> UpdateDenomination(UpdateDenominationDTO model, Guid UserId);
+        Task<BaseResponse<bool>> DeleteDenomination(Guid id); 
+        Task<BaseResponse<List<DenominationDTO>>> GetAllDenominations(); 
     }
 }

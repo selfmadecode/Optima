@@ -18,6 +18,6 @@ namespace Optima.Models.Entities
         public Guid WalletBalanceId { get; set; }
 
         public BankAccount BankAccount { get; set; }
-        public Guid BankAccountId { get; set; }
+        public Guid? BankAccountId { get; set; }
     }
 }

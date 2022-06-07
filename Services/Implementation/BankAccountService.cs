@@ -114,24 +114,14 @@ namespace Optima.Services.Implementation
         /// <returns>Task&lt;BaseResponse&lt;List&lt;BankAccountDTO&gt;&gt;&gt;.</returns>
         public async Task<BaseResponse<List<BankAccountDTO>>> GetAllBankAccount(Guid UserId)
         {
-            var bankAccounts = await _context.BankAccounts.Where(x => x.UserId == UserId).ToListAsync();
-
-            if (!bankAccounts.Any())
-            {
-                return new BaseResponse<List<BankAccountDTO>>
-                {
-                    Data = null,
-                    Errors = new List<string> { "Found no Bank Account" },
-                    Status = RequestExecution.Failed,
-                    ResponseMessage = "Found no Bank Account"
-                };
-            }
+            var bankAccounts = await _context.BankAccounts.Where(x => x.UserId == UserId).OrderByDescending(x => x.CreatedOn).ToListAsync();
 
             var bankAccountDTOs = bankAccounts.Select(x => (BankAccountDTO)x).ToList();
 
             return new BaseResponse<List<BankAccountDTO>>
             {
                 Data = bankAccountDTOs,
+                TotalCount = bankAccountDTOs.Count,
                 Status = RequestExecution.Successful,
                 ResponseMessage = $"Found {bankAccounts.Count} Bank Account(s)."
             };

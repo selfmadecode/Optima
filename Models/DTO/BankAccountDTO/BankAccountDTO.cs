@@ -12,6 +12,7 @@ namespace Optima.Models.DTO.BankAccountDTO
         public string AccountName { get; set; }
         public string BankName { get; set; }
         public string AccountNumber { get; set; }
+        public DateTime CreatedOn { get; set; }
 
 
         public static implicit operator BankAccountDTO(BankAccount model)
@@ -23,6 +24,7 @@ namespace Optima.Models.DTO.BankAccountDTO
                    AccountName = model.AccountName,
                    AccountNumber = model.AccountNumber,
                    BankName = model.BankName,
+                   CreatedOn = model.CreatedOn
                };
         } 
     }   

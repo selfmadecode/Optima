@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Optima.Map
 {
-    public class RateMap : IEntityTypeConfiguration<Denomination>
+    public class DenominationMap : IEntityTypeConfiguration<Denomination>
     {
         public void Configure(EntityTypeBuilder<Denomination> builder)
         {
