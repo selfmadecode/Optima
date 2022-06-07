@@ -11,8 +11,9 @@ namespace Optima.Models.Entities
         public CardTypeDenomination CardTypeDenomination { get; set; }
 
         public int Quantity { get; set; }
+        public Decimal Amount { get; set; }
 
         public Guid TransactionId { get; set; }
-        public Transaction Transaction { get; set; }
+        public CardTransaction Transaction { get; set; }
     }
 }

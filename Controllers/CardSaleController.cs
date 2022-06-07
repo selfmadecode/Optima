@@ -13,6 +13,8 @@ namespace Optima.Controllers
     {
         // Create CardSale
 
-        // Return all CardSales(Filter by (approved, pending, PartialApproved, declined)) 
+        // Return all CardSales(Filter by (approved, pending, PartialApproved, declined))
+
+        // Approve or decline Transaction(SuperAdmin)
     }
 }

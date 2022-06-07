@@ -10,6 +10,6 @@ namespace Optima.Models.Entities
         public string Url { get; set; }
 
         public Guid TransactionId { get; set; }
-        public Transaction Transaction { get; set; }
+        public CardTransaction Transaction { get; set; }
     }
 }
