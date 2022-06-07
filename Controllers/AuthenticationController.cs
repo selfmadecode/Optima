@@ -62,7 +62,7 @@ namespace Optima.Controllers
         }
 
         
-        [HttpGet]
+        [HttpPost]
         public async Task<IActionResult> ConfirmEmail(string token, string email)
         {
             try
