@@ -6,13 +6,13 @@ using System.Threading.Tasks;
 
 namespace Optima.Models.Entities
 {
-    public class Transaction : BaseEntity
+    public class CardTransaction : BaseEntity
     {
         public string TransactionRef { get; set; }
 
         public TransactionStatus TransactionStatus { get; set; }
 
-        public decimal ExpectedAmount { get; set; }
+        public decimal TotalExpectedAmount { get; set; }
         public decimal AmountPaid { get; set; }
 
         public Guid ApplicationUserId { get; set; }
