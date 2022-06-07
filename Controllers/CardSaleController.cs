@@ -11,6 +11,8 @@ namespace Optima.Controllers
     [ApiController]
     public class CardSaleController : BaseController
     {
-        
+        // Create CardSale
+
+        // Return all CardSales(Filter by (approved, pending, PartialApproved, declined)) 
     }
 }
