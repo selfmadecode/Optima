@@ -106,7 +106,7 @@ namespace Optima.Services.Implementation
 
             var visaPrefixsDTO = visaPrefixs.Select(x => (PrefixDTO)x).ToList();
 
-            return new BaseResponse<List<PrefixDTO>> { Data = visaPrefixsDTO, ResponseMessage = $"Found {visaPrefixsDTO.Count} Receipt Type(s)." };
+            return new BaseResponse<List<PrefixDTO>> { Data = visaPrefixsDTO, TotalCount = visaPrefixsDTO.Count, ResponseMessage = $"Found {visaPrefixsDTO.Count} Receipt Type(s)." };
         }
 
         /// <summary>

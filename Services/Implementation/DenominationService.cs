@@ -28,9 +28,9 @@ namespace Optima.Services.Implementation
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
         public async Task<BaseResponse<bool>> CreateDenomination(CreateDenominationDTO model, Guid UserId)
         {
-            var checkRate = await CheckDenomination(null, model.Amount);
+            var checkDenomination = await CheckDenomination(null, model.Amount);
 
-            if (checkRate is true)
+            if (checkDenomination is true)
             {
                 return new BaseResponse<bool>
                 {
@@ -41,13 +41,13 @@ namespace Optima.Services.Implementation
                 };
             }
 
-            var newRate = new Denomination
+            var newDenomination = new Denomination
             {
                 Amount = model.Amount,
                 CreatedBy = UserId,
             };
 
-            _context.Add(newRate);
+            _context.Add(newDenomination);
             await _context.SaveChangesAsync();
 
             return new BaseResponse<bool>
@@ -66,9 +66,9 @@ namespace Optima.Services.Implementation
         public async Task<BaseResponse<bool>> DeleteDenomination(Guid id)
         {
 
-            var checkRate = await _context.Denominations.FirstOrDefaultAsync(x => x.Id == id);
+            var checkDenomination = await _context.Denominations.FirstOrDefaultAsync(x => x.Id == id);
 
-            if (checkRate is null)
+            if (checkDenomination is null)
             {
                 return new BaseResponse<bool>
                 {
@@ -91,7 +91,7 @@ namespace Optima.Services.Implementation
                 };  
 
 
-            _context.Denominations.Remove(checkRate);
+            _context.Denominations.Remove(checkDenomination);
             await _context.SaveChangesAsync();
 
             return new BaseResponse<bool>
@@ -108,15 +108,16 @@ namespace Optima.Services.Implementation
         /// <returns>Task&lt;BaseResponse&lt;List&lt;RateDTO&gt;&gt;&gt;.</returns>
         public async Task<BaseResponse<List<DenominationDTO>>> GetAllDenominations()
         {
-            var rates = await _context.Denominations.OrderBy(x => x.Amount).ToListAsync();
+            var denomination = await _context.Denominations.OrderBy(x => x.Amount).ToListAsync();
 
-            var ratesDTO = rates.Select(x => (DenominationDTO)x).ToList();
+            var denominationDTO = denomination.Select(x => (DenominationDTO)x).ToList();
 
             return new BaseResponse<List<DenominationDTO>>
             {
-                Data = ratesDTO,
+                Data = denominationDTO,
+                TotalCount = denominationDTO.Count,
                 Status = RequestExecution.Successful,
-                ResponseMessage = $"Found {rates.Count} Denomination(s)."
+                ResponseMessage = $"Found {denominationDTO.Count} Denomination(s)."
             };
         }
 
@@ -127,9 +128,9 @@ namespace Optima.Services.Implementation
         /// <returns>Task&lt;BaseResponse&lt;RateDTO&gt;&gt;.</returns>
         public async Task<BaseResponse<DenominationDTO>> GetDenomination(Guid id)
         {
-            var checkRate = await _context.Denominations.FirstOrDefaultAsync(x => x.Id == id);
+            var checkDenomination = await _context.Denominations.FirstOrDefaultAsync(x => x.Id == id);
 
-            if (checkRate is null)
+            if (checkDenomination is null)
             {
                 return new BaseResponse<DenominationDTO>
                 {
@@ -140,9 +141,9 @@ namespace Optima.Services.Implementation
                 };
             }
 
-            DenominationDTO rateDTO = checkRate;
+            DenominationDTO rateDTO = checkDenomination;
 
-            return new BaseResponse<DenominationDTO> { Data = rateDTO, ResponseMessage = "Success", Status = RequestExecution.Successful };
+            return new BaseResponse<DenominationDTO> { Data = rateDTO, ResponseMessage = "Successfully Found the Denomination", Status = RequestExecution.Successful };
 
         }
 
@@ -153,9 +154,9 @@ namespace Optima.Services.Implementation
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
         public async Task<BaseResponse<bool>> UpdateDenomination(UpdateDenominationDTO model, Guid UserId)
         {
-            var checkRate = await _context.Denominations.FirstOrDefaultAsync(x => x.Id == model.Id);
+            var checkDenomination = await _context.Denominations.FirstOrDefaultAsync(x => x.Id == model.Id);
 
-            if (checkRate is null)
+            if (checkDenomination is null)
             {
                 return new BaseResponse<bool>
                 {
@@ -166,7 +167,7 @@ namespace Optima.Services.Implementation
                 };
             }
 
-            var response = await CheckDenomination(checkRate.Id, model.Amount);
+            var response = await CheckDenomination(checkDenomination.Id, model.Amount);
             if (response is false)
             {
                 var denomination = new Denomination

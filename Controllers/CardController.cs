@@ -126,5 +126,90 @@ namespace Optima.Controllers
                 return HandleError(ex); ;
             }
         }
+
+        [HttpGet]
+        [ProducesResponseType(typeof(BaseResponse<PagedList<CardDTO>>), 200)]
+        public async Task<IActionResult> GetAllApprovedCard([FromQuery] BaseSearchViewModel model) 
+        {
+            try
+            {
+                return ReturnResponse(await _cardService.GetAllApprovedCardConfig(model));
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex); 
+            }
+        }
+
+        [HttpPut]
+        [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
+        public async Task<IActionResult> Update([FromForm] UpdateCardDTO model)
+        {
+            try
+            {
+                return ReturnResponse(await _cardService.UpdateCard(model, UserId));
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex); ;
+            }
+        }
+
+        [HttpPut]
+        [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
+        public async Task<IActionResult> UpdateNormalCard([FromBody] UpdateNormalCardConfigDTO model)
+        {
+            try
+            {
+                return ReturnResponse(await _cardService.UpdateNormalCard(model, UserId));
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex); ;
+            }
+        }
+
+        [HttpPut]
+        [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
+        public async Task<IActionResult> UpdateReceiptCard([FromBody] UpdateReceiptTypeConfigDTO model)
+        {
+            try
+            {
+                return ReturnResponse(await _cardService.UpdateReceiptCard(model, UserId));
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex); ;
+            }
+        }
+
+        [HttpPut]
+        [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
+        public async Task<IActionResult> UpdateVisaCard([FromBody] UpdateVisaCardConfigDTO model)
+        {
+            try
+            {
+                return ReturnResponse(await _cardService.UpdateVisaCard(model, UserId));
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex); ;
+            }
+        }
+
+
+        [HttpDelete]
+        [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
+        public async Task<IActionResult> DeleteCardType([FromBody] DeleteCardTypeDTO model)
+        {
+            try
+            {
+                return ReturnResponse(await _cardService.DeleteCardType(model));
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex);
+            }
+        }
     }
 }
