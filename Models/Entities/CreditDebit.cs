@@ -8,6 +8,7 @@ namespace Optima.Models.Entities
 {
     public class CreditDebit : BaseEntity
     {
+        // used to store all credit and debit
         public decimal Amount { get; set; }
         public TransactionType TransactionType { get; set; }
         public TransactionStatus TransactionStatus { get; set; }
