@@ -14,6 +14,7 @@ namespace Optima.Models.Enums
     {
         Approved = 1,
         Pending,
-        Declined
+        Declined,
+        PartialApproval
     }
 }
