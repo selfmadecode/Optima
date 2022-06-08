@@ -179,6 +179,7 @@ namespace Optima
             services.AddScoped<IPushNotificationService, PushNotificationService>();
             services.AddScoped<IReceiptService, ReceiptService>();
             services.AddScoped<ICardService, CardService>();
+            services.AddScoped<ICardSaleService, CardSaleService>();
             services.AddScoped<IPrefixService, PrefixService>();
 
 

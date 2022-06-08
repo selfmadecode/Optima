@@ -1,5 +1,5 @@
 ﻿using AzureRays.Shared.ViewModels;
-using Optima.Models.DTO.RateDTO;
+using Optima.Models.DTO.DenominationDTOs;
 using Optima.Utilities.Helpers;
 using System;
 using System.Collections.Generic;

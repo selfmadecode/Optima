@@ -1,5 +1,5 @@
 ﻿using Optima.Models.DTO.PrefixDTOs;
-using Optima.Models.DTO.RateDTO;
+using Optima.Models.DTO.DenominationDTOs;
 using Optima.Models.DTO.ReceiptDTOs;
 using Optima.Models.Entities;
 using System;

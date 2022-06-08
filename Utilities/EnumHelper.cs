@@ -36,5 +36,19 @@ namespace Optima.Utilities
             }
             return name;
         }
+
+
+        public static T Parse<T>(this string value)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(value)) return default(T);
+                return (T)Enum.Parse(typeof(T), value, true);
+            }
+            catch (Exception)
+            {
+                return default(T);
+            }
+        }
     }
 }

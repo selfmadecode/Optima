@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Optima.Models.DTO.RateDTO
+namespace Optima.Models.DTO.DenominationDTOs
 {
-    public class CreateDenominationDTO
+    public class UpdateDenominationDTO
     {
+        public Guid Id { get; set; }
         public decimal Amount { get; set; }
     }
 }
+ 

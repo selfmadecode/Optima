@@ -1,4 +1,5 @@
-﻿using Optima.Models.DTO.RateDTO;
+﻿using Optima.Models.DTO.CardCodeDTOs;
+using Optima.Models.DTO.CardDTO;
 using Optima.Models.Entities;
 using System;
 using System.Collections.Generic;
@@ -10,9 +11,9 @@ namespace Optima.Models.DTO.CardSaleDTO
     public class CardSalesDTO
     {
         public Guid Id { get; set; }
-        public string Name { get; set; }
-        public string Logo { get; set; }
-        public DenominationDTO DenominationDTO { get; set; }
+        public decimal Amount { get; set; }
+        public CardTypeDenominationDTO CardTypeDenominationDTO { get; set; }
+        public List<CardCodeDTO> CardCodeDTOs { get; set; }
         public DateTime CreatedOn { get; set; }
        
 
@@ -23,9 +24,9 @@ namespace Optima.Models.DTO.CardSaleDTO
                : new CardSalesDTO
                {
                    Id = model.Id,
-                   Name = model.Name,
-                   Logo = model.LogoUrl,
-                   CardTypeDTOs = model.CardType.Select(x => (CardTypeDTO)x).ToList(),
+                   Amount = model.Amount,
+                   CardTypeDenominationDTO = model.CardTypeDenomination,
+                   CardCodeDTOs = model.CardCodes.Select(x => (CardCodeDTO)x).ToList(),
                    CreatedOn = model.CreatedOn
                };
         }
