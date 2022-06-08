@@ -13,7 +13,8 @@ namespace Optima.Models.Entities
         public int Quantity { get; set; }
         public Decimal Amount { get; set; }
 
+        public List<CardCodes> CardCodes { get; set; }
         public Guid TransactionId { get; set; }
         public CardTransaction Transaction { get; set; }
-    }
+    }    
 }

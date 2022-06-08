@@ -15,10 +15,16 @@ namespace Optima.Models.DTO.CardSaleDTO
 
     public class CardTypeDTO
     {
+        public CardTypeDTO()
+        {
+            Quantity = CardCodes.Count();
+        }
         [Required]
-        public Guid CardTypeDenominationId { get; set; }
+        public Guid CardTypeDenominationId { get; set; } // rate
+               
+        public int Quantity { get; set; }
 
         [Required]
-        public int Quantity { get; set; }
+        public List<string> CardCodes { get; set; } = new List<string>();
     }
 }
