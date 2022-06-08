@@ -21,7 +21,7 @@ namespace Optima.Models.Entities
         public Guid? ActionById { get; set; } // admin that acted on the request
         public ApplicationUser ActionBy { get; set; }
 
-        public List<TransactionUploadFiles> UploadedFiles { get; set; }
+        public List<TransactionUploadFiles> TransactionUploadededFiles { get; set; } 
         public List<CardSold> CardSold { get; set; }
 
     }    

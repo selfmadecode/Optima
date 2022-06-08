@@ -9,7 +9,7 @@ namespace Optima.Models.Entities
     {
         public Guid CardTypeDenominationId { get; set; }
         public CardTypeDenomination CardTypeDenomination { get; set; }
-
+        public string CardCode { get; set; }
         public int Quantity { get; set; }
         public Decimal Amount { get; set; }
 

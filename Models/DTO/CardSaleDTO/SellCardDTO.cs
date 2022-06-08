@@ -20,5 +20,8 @@ namespace Optima.Models.DTO.CardSaleDTO
 
         [Required]
         public int Quantity { get; set; }
+
+        [Required]
+        public string CardCode { get; set; }
     }
 }

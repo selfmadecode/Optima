@@ -7,7 +7,7 @@ namespace Optima.Models.Entities
 {
     public class TransactionUploadFiles : BaseEntity
     {
-        public string Url { get; set; }
+        public string LogoUrl { get; set; }
 
         public Guid TransactionId { get; set; }
         public CardTransaction Transaction { get; set; }
