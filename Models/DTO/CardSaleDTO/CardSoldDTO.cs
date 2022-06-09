@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Optima.Models.DTO.CardSaleDTO
 {
-    public class CardSalesDTO
+    public class CardSoldDTO
     {
         public Guid Id { get; set; }
         public decimal Amount { get; set; }
@@ -18,10 +18,10 @@ namespace Optima.Models.DTO.CardSaleDTO
        
 
 
-        public static implicit operator CardSalesDTO(CardSold model)
+        public static implicit operator CardSoldDTO(CardSold model)
         {
             return model is null ? null
-               : new CardSalesDTO
+               : new CardSoldDTO
                {
                    Id = model.Id,
                    Amount = model.Amount,

@@ -62,10 +62,60 @@ namespace Optima.Controllers
 
         }
 
-        // Create CardSale
+        [HttpPut]
+        [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
+        //[Authorize(Policy = "CanAdd")]
+        public async Task<IActionResult> UpdateCardCode([FromBody] UpdateSellCardDTO model)
+        {
+            try
+            {
+                var result = await _cardSaleService.UpdateCardSales(model, UserId);
 
-        // Return all CardSales(Filter by (approved, pending, PartialApproved, declined))
+                return ReturnResponse(result);
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex);
+            }
 
-        // Approve or decline Transaction(SuperAdmin)
+        }
+
+        [HttpPut]
+        [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
+        //[Authorize(Policy = "CanAdd")]
+        public async Task<IActionResult> UpdateCardTransactionStatus([FromBody] UpdateCardTransactionStatusDTO model)
+        {
+            try
+            {
+                var result = await _cardSaleService.UpdateCardTransactionStatus(model, UserId);
+
+                return ReturnResponse(result);
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex);
+            }
+
+        }
+
+        [HttpGet]
+        [ProducesResponseType(typeof(BaseResponse<PagedList<CardTransactionDTO>>), 200)]
+        //[Authorize(Policy = "CanAdd")]
+        public async Task<IActionResult> GetUserCardTransactions([FromQuery] BaseSearchViewModel model) 
+        {
+            try
+            {
+                var result = await _cardSaleService.GetUserCardTransactions(model, UserId);
+
+                return ReturnResponse(result);
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex);
+            }
+
+        }
+
+
     }
 }

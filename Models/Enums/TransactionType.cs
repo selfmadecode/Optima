@@ -14,13 +14,13 @@ namespace Optima.Models.Enums
 
     public enum TransactionStatus
     {
-        [Description("Approved")]
-        Approved = 1,
         [Description("Pending")]
-        Pending,
+        Pending = 1,
         [Description("Declined")]
         Declined,
-        [Description("Partial Approved")]
-        PartialApproval
+        [Description("Partial Approval")]
+        PartialApproval,
+        [Description("Approved")]
+        Approved
     }
 }

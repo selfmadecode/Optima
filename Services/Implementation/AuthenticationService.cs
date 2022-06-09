@@ -127,6 +127,7 @@ namespace Optima.Services.Implementation
             await _context.SaveChangesAsync();
 
             result.Data = true;
+            result.ResponseMessage = "LOGGED OUT SUCCESSFULLY";
             return result;
         }
 

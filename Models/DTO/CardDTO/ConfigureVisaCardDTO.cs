@@ -15,7 +15,8 @@ namespace Optima.Models.DTO.CardDTO
     }
 
     public class VisaCardConfigDTO : CardConfigDTO
-    {        
+    {
+        [Required]
         public Guid PrefixId { get; set; }       
 
     }

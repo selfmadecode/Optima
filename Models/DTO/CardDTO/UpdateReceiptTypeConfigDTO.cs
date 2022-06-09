@@ -16,6 +16,7 @@ namespace Optima.Models.DTO.CardDTO
 
     public class ReceiptTypeUpdateConfigDTO : UpdateCardConfigDTO
     {
+        [Required]
         public Guid ReceiptId { get; set; } 
     }
 }

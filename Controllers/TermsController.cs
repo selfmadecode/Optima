@@ -30,7 +30,7 @@ namespace Optima.Controllers
             return ReturnResponse(await _termsService.AcceptTermsAndCondition(UserId));
         }
 
-        [HttpPost]
+        [HttpGet]
         [ProducesResponseType(typeof(BaseResponse<GetRateDTO>), 200)]
         public async Task<IActionResult> Get()
         {
