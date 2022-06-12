@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Optima.Models.DTO.BankAccountDTO
+namespace Optima.Models.DTO.BankAccountDTOs
 {
     public class UpdateBankAccountDTO
     {

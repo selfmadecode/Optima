@@ -18,6 +18,7 @@ namespace Optima.Models.DTO.CardTransactionDTOs
         public string TransactionStatus { get; set; }        
         public DateTime CreatedOn { get; set; }
         public UserDTO UserDTO { get; set; }
+        public UserDTO ActionByUser { get; set; }
         public List<CardSoldDTO> CardSoldDTOs { get; set; }
         public List<CardTransactionImagesDTO> CardTransactionImagesDTOs { get; set; }
 
@@ -34,6 +35,7 @@ namespace Optima.Models.DTO.CardTransactionDTOs
                    AmountPaid = model.AmountPaid,
                    TransactionStatus = model.TransactionStatus.GetDescription(),
                    UserDTO = model.ApplicationUser,
+                   ActionByUser = model.ActionBy,
                    CardSoldDTOs = model.CardSold.Select(x => (CardSoldDTO)x).ToList(),
                    CardTransactionImagesDTOs = model.TransactionUploadededFiles.Select(x => (CardTransactionImagesDTO)x).ToList(),
                    CreatedOn = model.CreatedOn

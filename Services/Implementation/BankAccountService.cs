@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Optima.Context;
-using Optima.Models.DTO.BankAccountDTO;
+using Optima.Models.DTO.BankAccountDTOs;
 using Optima.Models.Entities;
 using Optima.Models.Enums;
 using Optima.Services.Interface;

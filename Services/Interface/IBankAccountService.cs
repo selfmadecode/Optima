@@ -1,4 +1,4 @@
-﻿using Optima.Models.DTO.BankAccountDTO;
+﻿using Optima.Models.DTO.BankAccountDTOs;
 using Optima.Utilities.Helpers;
 using System;
 using System.Collections.Generic;

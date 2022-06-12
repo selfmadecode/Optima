@@ -14,7 +14,7 @@ namespace Optima.Models.DTO.CardDTO
     {
         [Required]
         public Guid CardId { get; set; }
-        public List<Guid> CardTypeIds { get; set; }
+        public List<Guid> CardTypeIds { get; set; } = new List<Guid>();
     }
 
 }

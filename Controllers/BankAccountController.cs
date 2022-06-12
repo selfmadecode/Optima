@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Optima.Models.DTO.BankAccountDTO;
+using Optima.Models.DTO.BankAccountDTOs;
 using Optima.Services.Implementation;
 using Optima.Services.Interface;
 using Optima.Utilities.Helpers;

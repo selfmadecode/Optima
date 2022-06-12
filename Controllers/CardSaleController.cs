@@ -98,14 +98,14 @@ namespace Optima.Controllers
 
         }
 
-        [HttpGet]
+        [HttpGet("{userId}")]
         [ProducesResponseType(typeof(BaseResponse<PagedList<CardTransactionDTO>>), 200)]
         //[Authorize(Policy = "CanAdd")]
-        public async Task<IActionResult> GetUserCardTransactions([FromQuery] BaseSearchViewModel model) 
+        public async Task<IActionResult> GetUserCardTransactions([FromQuery] BaseSearchViewModel model, Guid userId) 
         {
             try
             {
-                var result = await _cardSaleService.GetUserCardTransactions(model, UserId);
+                var result = await _cardSaleService.GetUserCardTransactions(model, userId);
 
                 return ReturnResponse(result);
             }

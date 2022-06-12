@@ -12,7 +12,7 @@ namespace Optima.Map
     {
         public void Configure(EntityTypeBuilder<CreditDebit> builder)
         {
-            builder.HasOne(x => x.BankAccount).WithOne().OnDelete(DeleteBehavior.NoAction);
+            //builder.HasOne(x => x.BankAccount).WithOne().OnDelete(DeleteBehavior.NoAction);
         }
     }
 }

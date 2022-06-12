@@ -68,7 +68,7 @@ namespace Optima.Services.Implementation
                  await _unitOfWork.SaveChangesAsync();
              }*/
 
-            return new BaseResponse<string> { Data = "Success", ResponseMessage = $"Successfully Deleted the User device token", Status = RequestExecution.Successful };
+            return new BaseResponse<string> { Data = "Success", ResponseMessage = "Successfully Deleted the User device token", Status = RequestExecution.Successful };
         }
 
         /// <summary>
@@ -82,7 +82,7 @@ namespace Optima.Services.Implementation
 
             var user = await _userManager.FindByIdAsync(model.UserId.ToString());
 
-            if (user == null)
+            if (user is null)
             {
                 result.ResponseMessage = "User doesn't exists";
                 result.Errors = new List<string> { "User doesn't exists" };

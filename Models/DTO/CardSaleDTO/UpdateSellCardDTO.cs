@@ -10,7 +10,7 @@ namespace Optima.Models.DTO.CardSaleDTO
     {
         [Required]
         public Guid TransactionId { get; set; }
-        public List<UpdateCardSoldDTO> UpdateCardSoldDTOs { get; set; } 
+        public List<UpdateCardSoldDTO> UpdateCardSoldDTOs { get; set; } = new List<UpdateCardSoldDTO>();
 
     }
 
@@ -18,7 +18,7 @@ namespace Optima.Models.DTO.CardSaleDTO
     {
         [Required]
         public Guid CardSoldId { get; set; }
-        public List<UpdateCardCodeDTO> UpdateCardCodeDTOs { get; set; }  
+        public List<UpdateCardCodeDTO> UpdateCardCodeDTOs { get; set; } = new List<UpdateCardCodeDTO>();
     }
 
     public class UpdateCardCodeDTO

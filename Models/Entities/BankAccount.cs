@@ -12,5 +12,6 @@ namespace Optima.Models.Entities
         public string AccountNumber { get; set; }
         public virtual ApplicationUser User { get; set; }
         public Guid UserId { get; set; }
+
     }
 }

@@ -181,6 +181,7 @@ namespace Optima
             services.AddScoped<ICardService, CardService>();
             services.AddScoped<ICardSaleService, CardSaleService>();
             services.AddScoped<IPrefixService, PrefixService>();
+            services.AddScoped<IUserService, UserService>();
 
 
             services.Configure<SmtpConfigSettings>(Configuration.GetSection("SmtpConfig"));

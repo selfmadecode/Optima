@@ -11,6 +11,8 @@ namespace Optima.Models.DTO.UserDTOs
     {
         public Guid Id { get; set; }
         public string FullName { get; set; }
+        public string PhoneNumber { get; set; }
+        public string ProfilePicture { get; set; }
         public string UserType { get; set; }
         public DateTime CreatedOn { get; set; }
 
@@ -22,6 +24,8 @@ namespace Optima.Models.DTO.UserDTOs
                {
                    Id = model.Id,
                    FullName = model.FullName,
+                   PhoneNumber = model.PhoneNumber,
+                   ProfilePicture = model.ProfilePicture,
                    UserType = model.UserType.GetDescription(),
                    CreatedOn = model.CreationTime
                };
