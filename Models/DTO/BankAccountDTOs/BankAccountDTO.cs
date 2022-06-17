@@ -1,4 +1,5 @@
-﻿using Optima.Models.Entities;
+﻿using Optima.Models.DTO.UserDTOs;
+using Optima.Models.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;

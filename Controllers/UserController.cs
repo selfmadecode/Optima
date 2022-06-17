@@ -60,7 +60,7 @@ namespace Optima.Controllers
 
 
         [HttpGet("{userId}")]
-        [ProducesResponseType(typeof(BaseResponse<UserDTO>), 200)] // return the created model
+        [ProducesResponseType(typeof(BaseResponse<UserDTO>), 200)]
         public async Task<IActionResult> AUser(Guid userId)   
         {
             try
@@ -70,6 +70,20 @@ namespace Optima.Controllers
             catch (Exception ex)
             {
                 return HandleError(ex); ;
+            }
+        }
+        
+        [HttpGet("{userId}")]
+        [ProducesResponseType(typeof(BaseResponse<UserDetailDTO>), 200)] 
+        public async Task<IActionResult> UserDetails(Guid userId)   
+        {
+            try
+            {
+                return ReturnResponse(await _userService.UserDetails(userId));
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex);
             }
         }
     }

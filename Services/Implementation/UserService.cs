@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Optima.Context;
 using Optima.Models.Constant;
+using Optima.Models.DTO.BankAccountDTOs;
+using Optima.Models.DTO.CardTransactionDTOs;
 using Optima.Models.DTO.UserDTOs;
 using Optima.Models.Entities;
 using Optima.Models.Enums;
@@ -111,7 +113,7 @@ namespace Optima.Services.Implementation
                 {
 
                     //Get the Full Asset Path
-                    var fullPath = GenerateDeleteUploadedPath(uploadedFileToDelete);
+                    var fullPath = GenerateDeleteUploadedPath(user.ProfilePicture);
                     CloudinaryUploadHelper.DeleteImage(_configuration, fullPath);
 
                     var (uploadedFile, hasUploadError, responseMessage) = await CloudinaryUploadHelper.UploadImage(model.ProfilePicture, _configuration);
@@ -149,6 +151,38 @@ namespace Optima.Services.Implementation
                 throw;
             }
 
+        }
+
+
+        /// <summary>
+        /// GET USER DETAILS
+        /// </summary>
+        /// <param name="UserId">the UserId</param>
+        /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
+        public async Task<BaseResponse<UserDetailDTO>> UserDetails(Guid UserId)
+        {
+            var response = new BaseResponse<UserDetailDTO>();
+            var data = new UserDetailDTO();
+
+            var user = await GetUserById(UserId);
+            if (user is null)
+            {
+                response.Data = null;
+                response.Errors.Add(ResponseMessage.ErrorMessage000);
+                response.Status = RequestExecution.Failed;
+                response.ResponseMessage = ResponseMessage.ErrorMessage000;
+                return response;
+            }
+
+            var users = await _context.Users.Where(x => x.Id == UserId).FirstOrDefaultAsync();
+
+            data.UserDTO = users;
+            data.BankAccountDTOs = GetUserBankAccount(UserId).Result.Select(x => (BankAccountDTO)x).ToList();
+            data.CardTransactionDTOs = GetUserCardTransaction(UserId).Result.Select(x => (CardTransactionDTO)x).ToList();
+
+            response.Data = data;
+            response.ResponseMessage = ResponseMessage.SuccessMessage000;
+            return response;
         }
 
 
@@ -192,10 +226,14 @@ namespace Optima.Services.Implementation
                             query = query.Where(x => x.UserType == model.Keyword.Parse<UserTypes>());
                             break;
                         }
-
                     case "FullName":
                         {
                             query = query.Where(x => x.FullName.ToLower() == model.Keyword.ToLower());
+                            break;
+                        }
+                    case "EmailAddress":
+                        {
+                            query = query.Where(x => x.Email.ToLower() == model.Keyword.ToLower()); 
                             break;
                         }
                     default:
@@ -218,5 +256,29 @@ namespace Optima.Services.Implementation
             return await _context.Users.FirstOrDefaultAsync(x => x.Id == id);
         }
 
+        /// <summary>
+        ///  GET A USER CARD TRANSACTION
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns>&lt;Task<ApplicationUser>&gt;</returns>
+        private async Task<List<CardTransaction>> GetUserCardTransaction(Guid userId) =>
+           await _context.CardTransactions
+                .Where(x => x.ApplicationUserId == userId)
+                .OrderByDescending(x => x.CreatedOn)
+                .AsNoTracking()
+                .ToListAsync();
+
+        /// <summary>
+        ///  GET A USER BANK ACCOUNTS
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns>&lt;Task<ApplicationUser>&gt;</returns>
+        private async Task<List<BankAccount>> GetUserBankAccount(Guid userId) =>
+           await _context.BankAccounts
+                .Where(x => x.UserId == userId)
+                .OrderByDescending(x => x.CreatedOn)
+                .ToListAsync();
+        
+        
     }
 }

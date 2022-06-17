@@ -372,7 +372,7 @@ namespace Optima.Services.Implementation
         /// FIND CARD TYPE DENOMINATIONS
         /// </summary>
         /// <param name="ids">The Ids.</param>
-        /// <returns>Task&lt;Card&gt;.</returns>
+        /// <returns>Task&lt;List&lt;CardTypeDenomination&gt;&gt;.</returns>
         private async Task<List<CardTypeDenomination>> FindCardTypeDenominations(List<Guid> ids) =>
             await _context.CardTypeDenomination.Where(x => ids.Contains(x.Id)).ToListAsync();
 

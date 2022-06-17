@@ -167,6 +167,7 @@ namespace Optima
             services.AddSingleton<IFileProvider>(new PhysicalFileProvider(Path.Combine(HostingEnvironment.ContentRootPath, Configuration.GetValue<string>("FilePath"))));
             services.AddSignalR();
 
+            services.AddTransient<DbContext, ApplicationDbContext>();
             services.AddScoped<IBankAccountService, BankAccountService>();
             services.AddScoped<INotificationService, NotificationService>();
             services.AddScoped<IEmailService, EmailService>();
@@ -182,6 +183,7 @@ namespace Optima
             services.AddScoped<ICardSaleService, CardSaleService>();
             services.AddScoped<IPrefixService, PrefixService>();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IDashboardService, DashboardService>();
 
 
             services.Configure<SmtpConfigSettings>(Configuration.GetSection("SmtpConfig"));

@@ -6,6 +6,7 @@ using Optima.Models.Enums;
 using Optima.Utilities.Helpers;
 using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -35,6 +36,8 @@ namespace Optima.Controllers
         {
             get { return Guid.Parse(User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value); }
             //get { return Guid.Parse(CurrentUser.Identities.FirstOrDefault(c => c.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value); }
+            //get { return Guid.Parse(User.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Sub)?.Value); }
+            //get { return Guid.Parse(User.Claims.FirstOrDefault(c => c.Type == ClaimTypesHelper.oid)?.Value); }
         }
 
         protected DateTime CurrentDateTime

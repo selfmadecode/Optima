@@ -19,12 +19,10 @@ namespace Optima.Controllers
     public class BankAccountController : BaseController
     {
         private readonly IBankAccountService _bankAccountService;
-        private readonly ILog _logger;
 
         public BankAccountController(IBankAccountService bankAccountService)
         {
             _bankAccountService = bankAccountService;
-            _logger = LogManager.GetLogger(typeof(BankAccountController));
         }
 
         [HttpPost]
@@ -39,7 +37,6 @@ namespace Optima.Controllers
             }
             catch (Exception ex)
             {
-               _logger.Error(ex.Message, ex);
                 return HandleError(ex);
             }
            
@@ -57,30 +54,29 @@ namespace Optima.Controllers
             }
             catch (Exception ex)
             {
-                _logger.Error(ex.Message, ex);
                 return HandleError(ex);
             }
 
         }
 
-        [HttpGet]
+        [HttpGet("{userId}")]
         [ProducesResponseType(typeof(BaseResponse<List<BankAccountDTO>>), 200)]
 
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetUserBankAccount(Guid userId)
         {
             try
             {
-                var result = await _bankAccountService.GetAllBankAccount(UserId);
+                var result = await _bankAccountService.GetUserBankAccounts(userId);
 
                 return ReturnResponse(result);
             }
             catch (Exception ex)
             {
-                _logger.Error(ex.Message, ex);
                 return HandleError(ex);
             }
 
         }
+
 
         [HttpPut]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
@@ -94,7 +90,6 @@ namespace Optima.Controllers
             }
             catch (Exception ex)
             {
-                _logger.Error(ex.Message, ex);
                 return HandleError(ex);
             }
 
@@ -112,7 +107,6 @@ namespace Optima.Controllers
             }
             catch (Exception ex)
             {
-                _logger.Error(ex.Message, ex);
                 return HandleError(ex);
             }
 

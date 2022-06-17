@@ -255,7 +255,7 @@ namespace Optima.Services.Implementation
                 {
 
                     //Get the Full Asset Path
-                    var fullPath = GenerateDeleteUploadedPath(uploadedFileToDelete);
+                    var fullPath = GenerateDeleteUploadedPath(country.LogoUrl);
                     CloudinaryUploadHelper.DeleteImage(_configuration, fullPath);
 
                     var (uploadedFile, hasUploadError, responseMessage) = await CloudinaryUploadHelper.UploadImage(model.Logo, _configuration);

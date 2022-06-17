@@ -18,6 +18,7 @@ namespace Optima.Models.Entities
         public UserTypes UserType { get; set; }
     }
 
+
     public class ApplicationUserRole : IdentityRole<Guid>
     {
         public ApplicationUserRole() 
