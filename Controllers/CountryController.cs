@@ -20,12 +20,10 @@ namespace Optima.Controllers
     public class CountryController : BaseController
     {
         private readonly ICountryService _countryService;
-        private readonly ILog _logger;
 
         public CountryController(ICountryService countryService)
         {
             _countryService = countryService;
-            _logger = LogManager.GetLogger(typeof(CountryController));
         }
 
         [HttpPost]
@@ -41,7 +39,6 @@ namespace Optima.Controllers
             }
             catch (Exception ex)
             {
-                _logger.Error(ex.Message, ex);
                 return HandleError(ex);
             }
 
@@ -59,7 +56,6 @@ namespace Optima.Controllers
             }
             catch (Exception ex)
             {
-                _logger.Error(ex.Message, ex);
                 return HandleError(ex);
             }
 
@@ -78,7 +74,6 @@ namespace Optima.Controllers
             }
             catch (Exception ex)
             {
-                _logger.Error(ex.Message, ex);
                 return HandleError(ex);
             }
 
@@ -95,7 +90,6 @@ namespace Optima.Controllers
             }
             catch (Exception ex)
             {
-                _logger.Error(ex.Message, ex);
                 return HandleError(ex);
             }
 
@@ -114,7 +108,6 @@ namespace Optima.Controllers
             }
             catch (Exception ex)
             {
-                _logger.Error(ex.Message, ex);
                 return HandleError(ex);
             }
 
@@ -133,7 +126,6 @@ namespace Optima.Controllers
             }
             catch (Exception ex)
             {
-                _logger.Error(ex.Message, ex);
                 return HandleError(ex);
             }
 

@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Optima.Context;
-using Optima.Models.DTO.BankAccountDTO;
+using Optima.Models.Constant;
+using Optima.Models.DTO.BankAccountDTOs;
 using Optima.Models.Entities;
 using Optima.Models.Enums;
 using Optima.Services.Interface;
@@ -32,12 +33,12 @@ namespace Optima.Services.Implementation
 
             var getAllBanks = await _context.BankAccounts.Where(x => x.UserId == UserId).ToListAsync();
 
-            if (getAllBanks.Count == 3)
+            if (getAllBanks.Count == 2)
             {
                 response.Data = false;
-                response.Errors = new List<string> { "You can only have 3 Bank Account(s)." };
+                response.Errors = new List<string> { "You can only have a minimun of 2 Bank Account(s)." };
                 response.Status = RequestExecution.Failed;
-                response.ResponseMessage = "You can only have 3 Bank Account(s).";
+                response.ResponseMessage = "You can only have a minimun of 2 Bank Account(s).";
                 return response;
             }
 
@@ -68,7 +69,6 @@ namespace Optima.Services.Implementation
             await _context.SaveChangesAsync();
 
             response.Data = true;
-            response.Status = RequestExecution.Successful;
             response.ResponseMessage = $"Successfully Created your Bank Account(s).";
             return response;
 
@@ -108,13 +108,27 @@ namespace Optima.Services.Implementation
         }
 
         /// <summary>
-        /// GET ALL BANK ACCOUNT
+        /// GET A USER BANK ACCOUNT
         /// </summary>
         /// <param name="UserId">The UserId.</param>
         /// <returns>Task&lt;BaseResponse&lt;List&lt;BankAccountDTO&gt;&gt;&gt;.</returns>
-        public async Task<BaseResponse<List<BankAccountDTO>>> GetAllBankAccount(Guid UserId)
+        public async Task<BaseResponse<List<BankAccountDTO>>> GetUserBankAccounts(Guid UserId)
         {
-            var bankAccounts = await _context.BankAccounts.Where(x => x.UserId == UserId).OrderByDescending(x => x.CreatedOn).ToListAsync();
+            var response = new BaseResponse<List<BankAccountDTO>>();
+
+            var user = GetUserById(UserId);
+            if (user is null)
+            {
+                response.Data = null;
+                response.Errors.Add(ResponseMessage.ErrorMessage000);
+                response.Status = RequestExecution.Failed;
+                response.ResponseMessage = ResponseMessage.ErrorMessage000;
+                return response;
+            }
+
+            var bankAccounts = await _context.BankAccounts.Where(x => x.UserId == UserId)
+                .OrderByDescending(x => x.CreatedOn)
+                .ToListAsync();
 
             var bankAccountDTOs = bankAccounts.Select(x => (BankAccountDTO)x).ToList();
 
@@ -122,7 +136,6 @@ namespace Optima.Services.Implementation
             {
                 Data = bankAccountDTOs,
                 TotalCount = bankAccountDTOs.Count,
-                Status = RequestExecution.Successful,
                 ResponseMessage = $"Found {bankAccounts.Count} Bank Account(s)."
             };
 
@@ -136,7 +149,7 @@ namespace Optima.Services.Implementation
         /// <returns>Task&lt;BaseResponse&lt;BankAccountDTO&gt;&gt;.</returns>
         public async Task<BaseResponse<BankAccountDTO>> GetBankAccount(Guid id, Guid UserId)
         {
-            var bankAccount = await _context.BankAccounts.FirstOrDefaultAsync(x=> x.UserId == UserId && x.Id == id);
+            var bankAccount = await _context.BankAccounts.FirstOrDefaultAsync(x => x.UserId == UserId && x.Id == id);
 
             if (bankAccount is null)
             {
@@ -189,10 +202,17 @@ namespace Optima.Services.Implementation
             return new BaseResponse<bool>
             {
                 Data = true,
-                Status = RequestExecution.Successful,
                 ResponseMessage = "Bank account updated successfully"
             };
 
         }
+
+        /// <summary>
+        /// GET USER BY ID
+        /// </summary>
+        /// <param name="id">The Id.</param>
+        /// <returns>IQueryable&lt;TimeSheet&gt;.</returns>
+        private async Task<ApplicationUser> GetUserById(Guid id) =>
+            await _context.Users.FirstOrDefaultAsync(x => x.Id == id);
     }
 }

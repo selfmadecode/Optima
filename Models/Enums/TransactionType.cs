@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -10,11 +11,16 @@ namespace Optima.Models.Enums
         Credit = 1,
         Debit
     }
+
     public enum TransactionStatus
     {
-        Approved = 1,
-        Pending,
+        [Description("Pending")]
+        Pending = 1,
+        [Description("Declined")]
         Declined,
-        PartialApproval
+        [Description("Partial Approval")]
+        PartialApproval,
+        [Description("Approved")]
+        Approved
     }
 }

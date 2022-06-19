@@ -14,6 +14,6 @@ namespace Optima.Models.Entities
         public ApplicationUser User { get; set; }
         public Guid UserId { get; set; }
 
-        public List<CreditDebit> CreditDebit { get; set; }
+        public List<CreditDebit> CreditDebit { get; set; } = new List<CreditDebit>();
     }
 }

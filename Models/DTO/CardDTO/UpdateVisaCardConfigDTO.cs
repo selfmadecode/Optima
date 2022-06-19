@@ -10,11 +10,12 @@ namespace Optima.Models.DTO.CardDTO
     {
         [Required]
         public Guid CardId { get; set; }
-        public List<VisaCardUpdateConfigDTO> VisaCardUpdateConfigDTO { get; set; }
+        public List<VisaCardUpdateConfigDTO> VisaCardUpdateConfigDTO { get; set; } = new List<VisaCardUpdateConfigDTO>();
     }
 
     public class VisaCardUpdateConfigDTO : UpdateCardConfigDTO
     {
+        [Required]
         public Guid PrefixId { get; set; }       
     }
 }

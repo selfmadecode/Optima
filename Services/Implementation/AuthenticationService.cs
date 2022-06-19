@@ -81,13 +81,14 @@ namespace Optima.Services.Implementation
 
             var userClaims = new List<Claim>()
             {
-                new Claim(identityOptions.ClaimsIdentity.UserIdClaimType, user.Id.ToString()),
-                new Claim(identityOptions.ClaimsIdentity.UserNameClaimType, user.Email),
+                //new Claim(identityOptions.ClaimsIdentity.UserIdClaimType, user.Id.ToString()),
+                //new Claim(identityOptions.ClaimsIdentity.UserNameClaimType, user.Email),
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Name, user.UserName.ToString()),
+                new Claim(ClaimTypes.Name, user.FullName.ToString()),
                 new Claim(ClaimTypes.Email, user.Email),
-                new Claim(JwtRegisteredClaimNames.Email, user.Email),
-                new Claim("oid", user.Id.ToString())
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new Claim(ClaimTypesHelper.oid, user.Id.ToString()),
+                new Claim(ClaimTypesHelper.LastLoginDate, user.LastLoginDate.ToString())
             };
 
             foreach (var userRole in userRoles)
@@ -127,6 +128,7 @@ namespace Optima.Services.Implementation
             await _context.SaveChangesAsync();
 
             result.Data = true;
+            result.ResponseMessage = "LOGGED OUT SUCCESSFULLY";
             return result;
         }
 

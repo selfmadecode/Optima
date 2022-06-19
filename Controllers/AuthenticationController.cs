@@ -102,8 +102,8 @@ namespace Optima.Controllers
                 return HandleError(ex);
             }
         }
-                
-        [HttpPost]
+
+        [HttpPost("{email}")]
         public async Task<IActionResult> LogOut(string email)
         {
             try
@@ -115,8 +115,7 @@ namespace Optima.Controllers
                 return HandleError(ex);
             }
         }
-        
-        
+             
         [HttpPost]
         public async Task<IActionResult> ChangePassword(ChangePasswordDTO model)
         {
@@ -131,7 +130,7 @@ namespace Optima.Controllers
             }
         }
                 
-        [HttpPost]
+        [HttpPost("{userEmail}")]
         //[Authorize(Roles = AppRoles.AdminRole)]
         public async Task<IActionResult> LockoutUser(string userEmail)
         {
@@ -145,7 +144,7 @@ namespace Optima.Controllers
             }
         }
                 
-        [HttpPost]
+        [HttpPost("{userEmail}")]
         //[Authorize(Roles = AppRoles.AdminRole)]
         public async Task<IActionResult> UnLockUser(string userEmail)
         {

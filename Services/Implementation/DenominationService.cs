@@ -1,7 +1,7 @@
 ﻿using AzureRays.Shared.ViewModels;
 using Microsoft.EntityFrameworkCore;
 using Optima.Context;
-using Optima.Models.DTO.RateDTO;
+using Optima.Models.DTO.DenominationDTOs;
 using Optima.Models.Entities;
 using Optima.Models.Enums;
 using Optima.Utilities.Helpers;

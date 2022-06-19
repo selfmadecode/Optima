@@ -1,4 +1,5 @@
 ﻿using AzureRays.Shared.ViewModels;
+using log4net;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -22,11 +23,13 @@ namespace Optima.Services.Implementation
     {
         private readonly ApplicationDbContext _dbContext;
         private readonly IConfiguration _configuration;
+        private readonly ILog _logger;
 
         public CardService(ApplicationDbContext dbContext, IConfiguration configuration)
         {
             _dbContext = dbContext;
             _configuration = configuration;
+            _logger = LogManager.GetLogger(typeof(ICardService));
         }
 
 
@@ -38,59 +41,74 @@ namespace Optima.Services.Implementation
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
         public async Task<BaseResponse<CreatedCardDTO>> CreateCard(CreateCardDTO model, Guid UserId)
         {
-            var result = new BaseResponse<CreatedCardDTO>();
-            // TODO
-            // WRAP ALL THIS IN A TRANSACTION
-        
-            var countryValidation = ValidateCountry(model.CountryIds);
+            var uploadedFileToDelete = string.Empty;
 
-            if (countryValidation.Errors.Any())
+            try
             {
-                result.ResponseMessage = countryValidation.ResponseMessage;
-                result.Errors = countryValidation.Errors;
-                result.Status = RequestExecution.Failed;
+                var result = new BaseResponse<CreatedCardDTO>();
+                // TODO
+                // WRAP ALL THIS IN A TRANSACTION
+
+                var countryValidation = ValidateCountry(model.CountryIds);
+
+                if (countryValidation.Errors.Any())
+                {
+                    result.ResponseMessage = countryValidation.ResponseMessage;
+                    result.Errors = countryValidation.Errors;
+                    result.Status = RequestExecution.Failed;
+                    return result;
+                }
+
+                var card = _dbContext.Cards.FirstOrDefault(x => x.Name.ToLower().Replace(" ", "") == model.Name.ToLower().Replace(" ", ""));
+
+                if (card != null)
+                {
+                    result.ResponseMessage = "Card name already exist";
+                    result.Errors.Add("Card name already exist");
+                    result.Status = RequestExecution.Failed;
+                    return result;
+                }
+
+                var response = ValidateFile(model.Logo);
+
+                if (response.Errors.Any())
+                {
+                    result.ResponseMessage = response.ResponseMessage;
+                    result.Errors = response.Errors;
+                    result.Status = RequestExecution.Failed;
+                    return result;
+                }
+
+                //Upload to Cloudinary
+                var (uploadedFile, hasUploadError, responseMessage) = await CloudinaryUploadHelper.UploadImage(model.Logo, _configuration);
+                //Set this Property to delete uploaded cloudinary file if an exception occur
+                uploadedFileToDelete = uploadedFile;
+
+                var newCard = new Card()
+                {
+                    Name = model.Name,
+                    LogoUrl = uploadedFile,
+                    CreatedBy = UserId
+                };
+
+                var cardTypes = CreateCardTypes(countryValidation.Data.CountryIds, UserId);
+                newCard.CardType.AddRange(cardTypes);
+
+                await _dbContext.Cards.AddAsync(newCard);
+                await _dbContext.SaveChangesAsync();
+
+                result.Data = new CreatedCardDTO { Id = newCard.Id, Name = newCard.Name };
+                result.ResponseMessage = "Card Created Successfully";
                 return result;
             }
-
-            var card = _dbContext.Cards.FirstOrDefault(x => x.Name.ToLower().Replace(" ", "") == model.Name.ToLower().Replace(" ", ""));
-
-            if (card != null)
+            catch (Exception ex)
             {
-                result.ResponseMessage = "Card name already exist";
-                result.Errors.Add("Card name already exist");
-                result.Status = RequestExecution.Failed;
-                return result;
+                CloudinaryUploadHelper.DeleteImage(_configuration, GenerateDeleteUploadedPath(uploadedFileToDelete));
+                _logger.Error(ex.Message, ex);
+
+                throw;
             }
-
-            var response = ValidateFile(model.Logo);
-
-            if (response.Errors.Any())
-            {
-                result.ResponseMessage = response.ResponseMessage;
-                result.Errors = response.Errors;
-                result.Status = RequestExecution.Failed;
-                return result;
-            }
-
-            //Upload to Cloudinary
-            var (uploadedFile, hasUploadError, responseMessage) = await CloudinaryUploadHelper.UploadImage(model.Logo, _configuration);
-
-            var newCard = new Card()
-            {
-                Name = model.Name,
-                LogoUrl = uploadedFile,
-                CreatedBy = UserId
-            };
-
-            var cardTypes = CreateCardTypes(countryValidation.Data.CountryIds, UserId);
-            newCard.CardType.AddRange(cardTypes);
-
-            await _dbContext.Cards.AddAsync(newCard);
-            _dbContext.SaveChanges();
-
-            result.Data = new CreatedCardDTO { Id = newCard.Id, Name = newCard.Name };
-            result.ResponseMessage = "Card Created Successfully";
-            return result;
+            
         }
 
 
@@ -433,11 +451,12 @@ namespace Optima.Services.Implementation
         public async Task<BaseResponse<PagedList<CardDTO>>> GetAllCard(BaseSearchViewModel model) 
         {
          
-            var cards = _dbContext.Cards.AsNoTracking()
+            var cards = _dbContext.Cards
                 .Include(x => x.CardType).ThenInclude(x => x.Country)
                 .Include(x => x.CardType).ThenInclude(x => x.CardTypeDenomination).ThenInclude(x => x.Denomination)
                 .Include(x => x.CardType).ThenInclude(x => x.CardTypeDenomination).ThenInclude(x => x.Prefix)
                 .Include(x => x.CardType).ThenInclude(x => x.CardTypeDenomination).ThenInclude(x => x.Receipt)
+                .AsNoTracking()
                 .AsQueryable();
 
             var pagedCards = await cards.OrderByDescending(x => x.CreatedOn).ToPagedListAsync(model.PageIndex, model.PageSize);
@@ -459,9 +478,10 @@ namespace Optima.Services.Implementation
         public async Task<BaseResponse<PagedList<CardDTO>>> GetAllPendingCardConfig(BaseSearchViewModel model)
         {
 
-            var cardTypes = await _dbContext.CardType.AsNoTracking()
+            var cardTypes = await _dbContext.CardType
                 .Where(x => x.CardStatus == CardStatus.Pending)
                 .Include(x => x.Country)
+                .AsNoTracking()
                 .ToListAsync();
          
             var cards = _dbContext.Cards.AsNoTracking().AsQueryable();
@@ -488,12 +508,13 @@ namespace Optima.Services.Implementation
         /// <returns>Task&lt;BaseResponse&lt;PagedList&lt;CardDTO&gt;&gt;&gt;.</returns>
         public async Task<BaseResponse<PagedList<CardDTO>>> GetAllApprovedCardConfig(BaseSearchViewModel model)
         {
-            var cardTypes = await _dbContext.CardType.AsNoTracking()
+            var cardTypes = await _dbContext.CardType
                 .Where(x => x.CardStatus == CardStatus.Approved)
                 .Include(x => x.Country)
                 .Include(x => x.CardTypeDenomination).ThenInclude(x => x.Prefix)
                 .Include(x => x.CardTypeDenomination).ThenInclude(x => x.Receipt)
                 .Include(x => x.CardTypeDenomination).ThenInclude(x => x.Denomination)
+                .AsNoTracking()
                 .ToListAsync();
 
             var cards = _dbContext.Cards.AsNoTracking().Where(x => cardTypes.Select(x => x.CardId).Contains(x.Id)).AsQueryable();
@@ -521,95 +542,101 @@ namespace Optima.Services.Implementation
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
         public async Task<BaseResponse<bool>> UpdateCard(UpdateCardDTO model, Guid UserId)
         {
-            var response = new BaseResponse<bool>();
+            var uploadedFileToDelete = string.Empty;
 
-            var result = ValidateFile(model.Logo);
-
-            if (response.Errors.Any())
+            try
             {
-                result.ResponseMessage = response.ResponseMessage;
-                result.Errors = response.Errors;
-                result.Status = RequestExecution.Failed;
-                return result;
-            }
+                var response = new BaseResponse<bool>();
 
-            var card = await FindCard(model.Id);
+                var result = ValidateFile(model.Logo);
 
-            if (card is null)
-            {
-                response.ResponseMessage = "Card doesn't Exists";
-                response.Errors.Add("Card doesn't Exists");
-                response.Status = RequestExecution.Failed;
-                return response;
-            };
-
-            var countryValidation = ValidateCountry(model.CountryIds);
-
-            if (countryValidation.Errors.Any())
-            {
-                response.ResponseMessage = countryValidation.ResponseMessage;
-                response.Errors = countryValidation.Errors;
-                response.Status = RequestExecution.Failed;
-                return response;
-            };
-
-            //Check If Incoming Updated Card doesn't Exists.
-            if (model.Name.Replace(" ", "").ToLower() != card.Name.Replace(" ", "").ToLower())
-            {
-                var checkExistingCard = await _dbContext.Cards.AnyAsync(x => x.Name.ToLower().Replace(" ", "") == model.Name.ToLower().Replace(" ", ""));
-
-                if (checkExistingCard)
+                if (response.Errors.Any())
                 {
-                    response.Data = false;
-                    response.ResponseMessage = "Card already Exists.";
-                    response.Errors.Add("Card already Exists.");
+                    result.ResponseMessage = response.ResponseMessage;
+                    result.Errors = response.Errors;
+                    result.Status = RequestExecution.Failed;
+                    return result;
+                }
+
+                var card = await FindCard(model.Id);
+
+                if (card is null)
+                {
+                    response.ResponseMessage = "Card doesn't Exists";
+                    response.Errors.Add("Card doesn't Exists");
                     response.Status = RequestExecution.Failed;
                     return response;
+                };
+
+                var countryValidation = ValidateCountry(model.CountryIds);
+
+                if (countryValidation.Errors.Any())
+                {
+                    response.ResponseMessage = countryValidation.ResponseMessage;
+                    response.Errors = countryValidation.Errors;
+                    response.Status = RequestExecution.Failed;
+                    return response;
+                };
+
+                //Check If Incoming Updated Card doesn't Exists.
+                if (model.Name.Replace(" ", "").ToLower() != card.Name.Replace(" ", "").ToLower())
+                {
+                    var checkExistingCard = await _dbContext.Cards.AnyAsync(x => x.Name.ToLower().Replace(" ", "") == model.Name.ToLower().Replace(" ", ""));
+
+                    if (checkExistingCard)
+                    {
+                        response.Data = false;
+                        response.ResponseMessage = "Card already Exists.";
+                        response.Errors.Add("Card already Exists.");
+                        response.Status = RequestExecution.Failed;
+                        return response;
+                    }
                 }
+
+                var getExistingCards = await _dbContext.Cards.Where(x => x.Id == card.Id).Include(x => x.CardType).FirstOrDefaultAsync();
+                var existingsCountryIds = getExistingCards.CardType.Select(x => x.CountryId);
+                var getNewCountryIds = countryValidation.Data.CountryIds.Where(x => !existingsCountryIds.Contains(x));
+
+
+                var cardTypes = CreateCardTypes(getNewCountryIds.ToList(), UserId);
+                card.CardType.AddRange(cardTypes);
+                card.Name = string.IsNullOrWhiteSpace(model.Name) ? card.Name : model.Name;
+                card.ModifiedBy = UserId;
+                card.ModifiedOn = DateTime.UtcNow;
+
+                //Update Card Logo
+                if (!(model.Logo is null) && !(card.LogoUrl is null))
+                {
+
+                    var fullPath = GenerateDeleteUploadedPath(card.LogoUrl);
+                    CloudinaryUploadHelper.DeleteImage(_configuration, fullPath);
+
+                    var (uploadedFile, hasUploadError, responseMessage) = await CloudinaryUploadHelper.UploadImage(model.Logo, _configuration);
+
+                    card.LogoUrl = uploadedFile;
+                }
+
+                if (!(model.Logo is null) && (card.LogoUrl is null))
+                {
+                    var (uploadedFile, hasUploadError, responseMessage) = await CloudinaryUploadHelper.UploadImage(model.Logo, _configuration);
+
+                    card.LogoUrl = uploadedFile;
+                }
+
+                await _dbContext.SaveChangesAsync();
+
+                result.Data = true;
+                result.ResponseMessage = "Card Updated Successfully";
+                return result;
             }
-
-            var getExistingCards = await _dbContext.Cards.Where(x => x.Id == card.Id).Include(x => x.CardType).FirstOrDefaultAsync();
-            var existingsCountryIds = getExistingCards.CardType.Select(x => x.CountryId);
-            var getNewCountryIds = countryValidation.Data.CountryIds.Where(x => !existingsCountryIds.Contains(x));
-
-
-            var cardTypes = CreateCardTypes(getNewCountryIds.ToList(), UserId);
-            card.CardType.AddRange(cardTypes);
-            card.Name = string.IsNullOrWhiteSpace(model.Name) ? card.Name : model.Name;
-            card.ModifiedBy = UserId;
-            card.ModifiedOn = DateTime.UtcNow;          
-
-            //Update Card Logo
-            if (!(model.Logo is null) && !(card.LogoUrl is null))
+            catch (Exception ex)
             {
+                CloudinaryUploadHelper.DeleteImage(_configuration, GenerateDeleteUploadedPath(uploadedFileToDelete));
+                _logger.Error(ex.Message, ex);
 
-                var splittedLogoUrl = card.LogoUrl.Split("/");
-
-                //get the cloudinary PublicId
-                var LogoPublicId = splittedLogoUrl[8];
-                var splittedLogoPublicId = LogoPublicId.Split(".");
-
-                //Get the Full Asset Path
-                var fullPath = $"Optima/{splittedLogoPublicId[0]}";
-                CloudinaryUploadHelper.DeleteImage(_configuration, fullPath);
-
-                var (uploadedFile, hasUploadError, responseMessage) = await CloudinaryUploadHelper.UploadImage(model.Logo, _configuration);
-
-                card.LogoUrl = uploadedFile;
+                throw;
             }
-
-            if (!(model.Logo is null) && (card.LogoUrl is null))
-            {
-                var (uploadedFile, hasUploadError, responseMessage) = await CloudinaryUploadHelper.UploadImage(model.Logo, _configuration);
-
-                card.LogoUrl = uploadedFile;
-            }
-
-            await _dbContext.SaveChangesAsync();
-
-            result.Data = true;
-            result.ResponseMessage = "Card Updated Successfully";
-            return result;
+            
         }
 
 
@@ -704,6 +731,10 @@ namespace Optima.Services.Implementation
                         PrefixId = visaCardUpdateConfigDTO.PrefixId,
                         CreatedBy = UserId
                     });
+
+                    //Update CardType 
+                    var cardType = await _dbContext.CardType.FirstOrDefaultAsync(x => x.Id == visaCardUpdateConfigDTO.CardTypeId);
+                    cardType.CardStatus = CardStatus.Approved;
                 }
 
             }
@@ -811,6 +842,10 @@ namespace Optima.Services.Implementation
                         ReceiptId = receiptTypeUpdateConfigDTO.ReceiptId,
                         CreatedBy = UserId
                     });
+
+                    //Update CardType 
+                    var cardType = await _dbContext.CardType.FirstOrDefaultAsync(x => x.Id == receiptTypeUpdateConfigDTO.CardTypeId);
+                    cardType.CardStatus = CardStatus.Approved;
                 }
 
             }
@@ -904,6 +939,10 @@ namespace Optima.Services.Implementation
                         Rate = updateNormalCardConfigDTO.Rate,
                         CreatedBy = UserId
                     });
+
+                    //Update CardType 
+                    var cardType = await _dbContext.CardType.FirstOrDefaultAsync(x => x.Id == updateNormalCardConfigDTO.CardTypeId);
+                    cardType.CardStatus = CardStatus.Approved;
                 }
 
             }
@@ -1216,6 +1255,27 @@ namespace Optima.Services.Implementation
             }
 
             return response;
+        }
+
+
+        /// <summary>
+        /// GENERATE DELETE UPLOADED PATH
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>BaseResponse&lt;bool&gt;.</returns>
+        private string GenerateDeleteUploadedPath(string value)
+        {
+            //Delete Image From Cloudinary
+            var splittedLogoUrl = value.Split("/");
+
+            //get the cloudinary PublicId
+            var LogoPublicId = splittedLogoUrl[8];
+            var splittedLogoPublicId = LogoPublicId.Split(".");
+
+            //Get the Full Asset Path
+            var fullPath = $"Optima/{splittedLogoPublicId[0]}";
+
+            return fullPath;
         }
     }
 }

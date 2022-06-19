@@ -14,6 +14,6 @@ namespace Optima.Models.DTO.CardDTO
        
         public IFormFile Logo { get; set; }
         [Required]
-        public List<Guid> CountryIds { get; set; }
+        public List<Guid> CountryIds { get; set; } = new List<Guid>();
     }
 }

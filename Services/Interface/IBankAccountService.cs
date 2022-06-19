@@ -1,4 +1,4 @@
-﻿using Optima.Models.DTO.BankAccountDTO;
+﻿using Optima.Models.DTO.BankAccountDTOs;
 using Optima.Utilities.Helpers;
 using System;
 using System.Collections.Generic;
@@ -13,7 +13,7 @@ namespace Optima.Services.Interface
         Task<BaseResponse<BankAccountDTO>> GetBankAccount(Guid id, Guid UserId);
         Task<BaseResponse<bool>> UpdateBankAccount(UpdateBankAccountDTO model, Guid UserId);
         Task<BaseResponse<bool>> DeleteBankAccount(Guid id, Guid UserId);
-        Task<BaseResponse<List<BankAccountDTO>>> GetAllBankAccount(Guid UserId); 
-
+        Task<BaseResponse<List<BankAccountDTO>>> GetUserBankAccounts(Guid UserId); 
     }
 }
+

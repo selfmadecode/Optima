@@ -21,12 +21,12 @@ namespace Optima.Models.Entities
         public Guid CountryId { get; set; }
         
         public virtual Card Card { get; set; }
-        public Guid CardId { get; set; }       
+        public Guid CardId { get; set; }
 
         //public Denomination Denomination { get; set; } // $10
         //public Guid DenominationId { get; set; }
 
-        public List<CardTypeDenomination> CardTypeDenomination { get; set; }
+        public List<CardTypeDenomination> CardTypeDenomination { get; set; } = new List<CardTypeDenomination>();
 
         //public virtual Receipt Receipt { get; set; }
         //public Guid? ReceiptId { get; set; }

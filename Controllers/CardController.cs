@@ -26,7 +26,7 @@ namespace Optima.Controllers
         }
 
         [HttpPost]
-        [ProducesResponseType(typeof(BaseResponse<CreatedCardDTO>), 200)] // return the created model
+        [ProducesResponseType(typeof(BaseResponse<CreatedCardDTO>), 200)] 
         public async Task<IActionResult> Create([FromForm]CreateCardDTO model)
         {
             try
@@ -40,7 +40,7 @@ namespace Optima.Controllers
         }
 
         [HttpPost]
-        [ProducesResponseType(typeof(BaseResponse<bool>), 200)] // return the created model
+        [ProducesResponseType(typeof(BaseResponse<bool>), 200)] 
         public async Task<IActionResult> Visa([FromBody] ConfigureVisaCardDTO model)
         {
             try
@@ -56,7 +56,7 @@ namespace Optima.Controllers
         
 
         [HttpPost]
-        [ProducesResponseType(typeof(BaseResponse<bool>), 200)] // return the created model
+        [ProducesResponseType(typeof(BaseResponse<bool>), 200)] 
         public async Task<IActionResult> ReceiptType([FromBody] ConfigureReceiptTypeCardDTO model)
         {
             try
@@ -71,7 +71,7 @@ namespace Optima.Controllers
         }
 
         [HttpPost]
-        [ProducesResponseType(typeof(BaseResponse<bool>), 200)] // return the created model
+        [ProducesResponseType(typeof(BaseResponse<bool>), 200)] 
         public async Task<IActionResult> Normal([FromBody] ConfigureNormalCardDTO model)
         {
             try
@@ -86,7 +86,7 @@ namespace Optima.Controllers
         }
 
         [HttpGet("{id}")]
-        [ProducesResponseType(typeof(BaseResponse<CardDTO>), 200)] // return the created model
+        [ProducesResponseType(typeof(BaseResponse<CardDTO>), 200)] 
         public async Task<IActionResult> Get(Guid id)
         {
             try
@@ -100,7 +100,7 @@ namespace Optima.Controllers
         }
 
         [HttpGet]
-        [ProducesResponseType(typeof(BaseResponse<PagedList<CardDTO>>), 200)] // return the created model
+        [ProducesResponseType(typeof(BaseResponse<PagedList<CardDTO>>), 200)] 
         public async Task<IActionResult> GetAllCard([FromQuery]BaseSearchViewModel model)
         {
             try
@@ -114,7 +114,7 @@ namespace Optima.Controllers
         }
 
         [HttpGet]
-        [ProducesResponseType(typeof(BaseResponse<PagedList<CardDTO>>), 200)] // return the created model
+        [ProducesResponseType(typeof(BaseResponse<PagedList<CardDTO>>), 200)] 
         public async Task<IActionResult> GetAllPendingCard([FromQuery] BaseSearchViewModel model) 
         {
             try

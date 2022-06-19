@@ -19,13 +19,10 @@ namespace Optima.Controllers
     public class ReceiptController : BaseController
     {
         private readonly IReceiptService _receiptService;
-        private readonly ILog _logger;
 
         public ReceiptController(IReceiptService receiptService)
         {
-            _receiptService = receiptService;
-            _logger = LogManager.GetLogger(typeof(ReceiptController));
-            
+            _receiptService = receiptService;            
         }
 
         [HttpPost]
@@ -40,7 +37,6 @@ namespace Optima.Controllers
             }
             catch (Exception ex)
             {
-                _logger.Error(ex.Message, ex);
                 return HandleError(ex);
             }
         }
@@ -57,7 +53,6 @@ namespace Optima.Controllers
             }
             catch (Exception ex)
             {
-                _logger.Error(ex.Message, ex);
                 return HandleError(ex);
             }
         }
@@ -74,7 +69,6 @@ namespace Optima.Controllers
             }
             catch (Exception ex)
             {
-                _logger.Error(ex.Message, ex);
                 return HandleError(ex);
             }
         }
@@ -91,7 +85,6 @@ namespace Optima.Controllers
             }
             catch (Exception ex)
             {
-                _logger.Error(ex.Message, ex);
                 return HandleError(ex);
             }
         }

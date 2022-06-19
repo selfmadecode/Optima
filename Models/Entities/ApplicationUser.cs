@@ -12,10 +12,12 @@ namespace Optima.Models.Entities
         public bool IsAccountLocked { get; set; }
         public bool HasAcceptedTerms { get; set; }
         public string FullName { get; set; }
+        public string ProfilePicture { get; set; }
         public DateTime CreationTime { get; set; }
         public DateTime LastLoginDate { get; set; }
         public UserTypes UserType { get; set; }
     }
+
 
     public class ApplicationUserRole : IdentityRole<Guid>
     {

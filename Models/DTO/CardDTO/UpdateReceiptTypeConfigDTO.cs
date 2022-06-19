@@ -11,11 +11,12 @@ namespace Optima.Models.DTO.CardDTO
 
         [Required]
         public Guid CardId { get; set; }
-        public List<ReceiptTypeUpdateConfigDTO> ReceiptTypeUpdateCardConfigDTO { get; set; }
+        public List<ReceiptTypeUpdateConfigDTO> ReceiptTypeUpdateCardConfigDTO { get; set; } = new List<ReceiptTypeUpdateConfigDTO>();
     }
 
     public class ReceiptTypeUpdateConfigDTO : UpdateCardConfigDTO
     {
+        [Required]
         public Guid ReceiptId { get; set; } 
     }
 }

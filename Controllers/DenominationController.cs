@@ -1,7 +1,7 @@
 ﻿using log4net;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Optima.Models.DTO.RateDTO;
+using Optima.Models.DTO.DenominationDTOs;
 using Optima.Services.Implementation;
 using Optima.Utilities.Helpers;
 using System;
