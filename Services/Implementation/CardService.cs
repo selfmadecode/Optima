@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Optima.Context;
+using Optima.Models.Constant;
 using Optima.Models.DTO.CardDTO;
 using Optima.Models.DTO.CountryDTOs;
 using Optima.Models.Entities;
@@ -19,16 +20,20 @@ using System.Threading.Tasks;
 
 namespace Optima.Services.Implementation
 {
-    public class CardService : ICardService
+    public class CardService : BaseService, ICardService
     {
         private readonly ApplicationDbContext _dbContext;
         private readonly IConfiguration _configuration;
+        private readonly ICloudinaryServices _cloudinaryServices;
         private readonly ILog _logger;
 
-        public CardService(ApplicationDbContext dbContext, IConfiguration configuration)
+
+        public CardService(ApplicationDbContext dbContext, IConfiguration configuration,
+            ICloudinaryServices cloudinaryServices)
         {
             _dbContext = dbContext;
             _configuration = configuration;
+            _cloudinaryServices = cloudinaryServices;
             _logger = LogManager.GetLogger(typeof(ICardService));
         }
 
@@ -45,7 +50,6 @@ namespace Optima.Services.Implementation
 
             try
             {
-                var result = new BaseResponse<CreatedCardDTO>();
                 // TODO
                 // WRAP ALL THIS IN A TRANSACTION
 
@@ -53,36 +57,40 @@ namespace Optima.Services.Implementation
 
                 if (countryValidation.Errors.Any())
                 {
-                    result.ResponseMessage = countryValidation.ResponseMessage;
-                    result.Errors = countryValidation.Errors;
-                    result.Status = RequestExecution.Failed;
-                    return result;
+                    return new BaseResponse<CreatedCardDTO>(ResponseMessage.CardCreationFailure, countryValidation.Errors);
                 }
 
-                var card = _dbContext.Cards.FirstOrDefault(x => x.Name.ToLower().Replace(" ", "") == model.Name.ToLower().Replace(" ", ""));
+                var card = _dbContext.Cards
+                    .FirstOrDefault(x => x.Name.ToLower().Replace(" ", "") == model.Name.ToLower().Replace(" ", ""));
 
                 if (card != null)
                 {
-                    result.ResponseMessage = "Card name already exist";
-                    result.Errors.Add("Card name already exist");
-                    result.Status = RequestExecution.Failed;
-                    return result;
+                    Errors.Add(ResponseMessage.CardExist);
+                    return new BaseResponse<CreatedCardDTO>(ResponseMessage.CardExist, Errors);
                 }
 
-                var response = ValidateFile(model.Logo);
+                //var response = ValidateFile(model.Logo);
 
-                if (response.Errors.Any())
-                {
-                    result.ResponseMessage = response.ResponseMessage;
-                    result.Errors = response.Errors;
-                    result.Status = RequestExecution.Failed;
-                    return result;
-                }
+                //if (response.Errors.Any())
+                //{
+                //    result.ResponseMessage = response.ResponseMessage;
+                //    result.Errors = response.Errors;
+                //    result.Status = RequestExecution.Failed;
+                //    return result;
+                //}
 
                 //Upload to Cloudinary
-                var (uploadedFile, hasUploadError, responseMessage) = await CloudinaryUploadHelper.UploadImage(model.Logo, _configuration);
+                var (uploadedFile, hasUploadError, responseMessage) = 
+                    await _cloudinaryServices.UploadImage(model.Logo);
                 //Set this Property to delete uploaded cloudinary file if an exception occur
                 uploadedFileToDelete = uploadedFile;
+
+                // if error occured while uploading image to cloudinary
+                if(hasUploadError == true)
+                {
+                    Errors.Add(ResponseMessage.ErrorMessage999);
+                    return new BaseResponse<CreatedCardDTO>(ResponseMessage.ErrorMessage999, Errors);
+                }
 
                 var newCard = new Card()
                 {
@@ -91,22 +99,29 @@ namespace Optima.Services.Implementation
                     CreatedBy = UserId
                 };
 
+                // Created E-Code and Physical Card for selected countries
                 var cardTypes = CreateCardTypes(countryValidation.Data.CountryIds, UserId);
+
                 newCard.CardType.AddRange(cardTypes);
 
                 await _dbContext.Cards.AddAsync(newCard);
+
+                _logger.Info("About to save Card and CardsType...");
                 await _dbContext.SaveChangesAsync();
 
-                result.Data = new CreatedCardDTO { Id = newCard.Id, Name = newCard.Name };
-                result.ResponseMessage = "Card Created Successfully";
-                return result;
+                _logger.Info("Saved Card and CardsType...");
+
+                var data = new CreatedCardDTO { Id = newCard.Id, Name = newCard.Name };
+
+                return new BaseResponse<CreatedCardDTO>(ResponseMessage.CardCreation);
             }
             catch (Exception ex)
             {
-                CloudinaryUploadHelper.DeleteImage(_configuration, GenerateDeleteUploadedPath(uploadedFileToDelete));
+                await _cloudinaryServices.DeleteImage(GenerateDeleteUploadedPath(uploadedFileToDelete));
                 _logger.Error(ex.Message, ex);
 
-                throw;
+                Errors.Add(ResponseMessage.ErrorMessage999);
+                return new BaseResponse<CreatedCardDTO>(ResponseMessage.ErrorMessage999, Errors);
             }
             
         }
@@ -1092,7 +1107,6 @@ namespace Optima.Services.Implementation
 
             foreach (var countryId in CountryIds)
             {
-
                 var newCardEcodeType = new CardType
                 {
                     CountryId = countryId,
@@ -1110,11 +1124,11 @@ namespace Optima.Services.Implementation
                     CreatedBy = UserId,
                     CardStatus = CardStatus.Pending
                 };
-                // Add Log
 
                 cardTypes.Add(newCardPhysicalType);
             }
 
+            _logger.Info("Configuring CardTypes...");
             return cardTypes;
         }
 
@@ -1126,25 +1140,24 @@ namespace Optima.Services.Implementation
         /// <returns>Task&lt;BaseResponse&lt;ValidateCountryDTO&gt;&gt;.</returns>
         private BaseResponse<ValidateCountryDTO> ValidateCountry(List<Guid> countryIds)
         {
-            var countries = _dbContext.Countries.Where(x => countryIds.Contains(x.Id)).ToListAsync().Result.Select(x => x.Id);
-            var data = new ValidateCountryDTO();
+            var countries = _dbContext.Countries
+                .Where(x => countryIds.Contains(x.Id))
+                .ToListAsync().Result.Select(x => x.Id);
+
 
             if (countryIds.Count != countries.Distinct().Count())
             {
-                return new BaseResponse<ValidateCountryDTO>
-                {
-                    ResponseMessage = "Country doesn't Exist",
-                    Errors = new List<string> { "Country doesn't Exist" }
-                };
-
+                Errors.Add(ResponseMessage.CountryNotDistinct);
+                return new BaseResponse<ValidateCountryDTO>(ResponseMessage.CountryNotDistinct, Errors);
             }
             else
             {
-                data.CountryIds = countries.ToList();
-                return new BaseResponse<ValidateCountryDTO>
+                var data = new ValidateCountryDTO()
                 {
-                    Data = data,
+                    CountryIds = countries.ToList()
                 };
+
+                return new BaseResponse<ValidateCountryDTO>(data);                
             }
         }
 
@@ -1228,34 +1241,34 @@ namespace Optima.Services.Implementation
         /// </summary>
         /// <param name="id">The Id.</param>
         /// <returns>Task&lt;Card&gt;.</returns>
-        private BaseResponse<bool> ValidateFile(IFormFile file)
-        {
-            var response = new BaseResponse<bool>();
+        //private BaseResponse<bool> ValidateFile(IFormFile file)
+        //{
+        //    var response = new BaseResponse<bool>();
 
-            if (!(file is null))
-            {
-                if (file.Length > 1024 * 1024)
-                {
-                    response.ResponseMessage = "Logo file size must not exceed 1Mb";
-                    response.Errors.Add("Logo file size must not exceed 1Mb");
-                    response.Status = RequestExecution.Failed;
-                    return response;
-                }
+        //    if (!(file is null))
+        //    {
+        //        if (file.Length > 1024 * 1024)
+        //        {
+        //            response.ResponseMessage = "Logo file size must not exceed 1Mb";
+        //            response.Errors.Add("Logo file size must not exceed 1Mb");
+        //            response.Status = RequestExecution.Failed;
+        //            return response;
+        //        }
 
-                var error = ValidateFileTypeHelper.ValidateFile(new[] { "jpg", "png", "jpeg" }, file.FileName);
+        //        var error = ValidateFileTypeHelper.ValidateFile(new[] { "jpg", "png", "jpeg" }, file.FileName);
 
-                if (!error)
-                {
-                    response.ResponseMessage = "Logo file type must be .jpg or .png or .jpeg";
-                    response.Errors.Add("Logo file type must be .jpg or .png or .jpeg");
-                    response.Status = RequestExecution.Failed;
-                    return response;
-                }
+        //        if (!error)
+        //        {
+        //            response.ResponseMessage = "Logo file type must be .jpg or .png or .jpeg";
+        //            response.Errors.Add("Logo file type must be .jpg or .png or .jpeg");
+        //            response.Status = RequestExecution.Failed;
+        //            return response;
+        //        }
 
-            }
+        //    }
 
-            return response;
-        }
+        //    return response;
+        //}
 
 
         /// <summary>

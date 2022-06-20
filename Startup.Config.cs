@@ -184,11 +184,14 @@ namespace Optima
             services.AddScoped<IPrefixService, PrefixService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IDashboardService, DashboardService>();
+            services.AddScoped<ICloudinaryServices, CloudinaryUploadHelper>();
 
 
             services.Configure<SmtpConfigSettings>(Configuration.GetSection("SmtpConfig"));
 
             services.Configure<FcmNotification>(Configuration.GetSection("FcmNotification"));
+
+            services.Configure<CloudinaryAccount>(Configuration.GetSection("Cloudinary"));
 
             services.Configure<EmailLinkDTO>(options =>
              Configuration.GetSection(nameof(EmailLinkDTO)).Bind(options));
