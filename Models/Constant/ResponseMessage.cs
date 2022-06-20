@@ -26,6 +26,12 @@ namespace Optima.Models.Constant
         public const string TermsAndConditionUpdate = "TERMS AND CONDITION UPDATED SUCCESSFULLY";
         public const string AcceptedTermsAndCondition = "TERMS ACCEPTED SUCCESSFULLY";
 
+        public const string MaxAccountError = "YOU CAN ONLY HAVE A MAXIMUMOF TWO ACCOUNTS";
+        public const string BankAccountCreated = "BANK ACCOUNT CREATED";
+        public const string BankAccountNotFound = "BANK ACCOUNT NOT FOUND";
+        public const string BankAccountDeleted = "BANK ACCOUNT DELETED SUCCESSFULLY";
+        public const string BankAccountUpdated = "BANK ACCOUNT UPDATED SUCCESSFULLY";
+
 
         public const string ErrorMessage000 = "USER NOT FOUND!";
 
