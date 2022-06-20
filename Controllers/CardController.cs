@@ -26,6 +26,7 @@ namespace Optima.Controllers
         }
 
         [HttpPost]
+        //[Authorize]// ONLY Card Admin can create card
         [ProducesResponseType(typeof(BaseResponse<CreatedCardDTO>), 200)] 
         public async Task<IActionResult> Create([FromForm]CreateCardDTO model)
         {

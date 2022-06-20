@@ -32,6 +32,13 @@ namespace Optima.Models.Constant
         public const string BankAccountDeleted = "BANK ACCOUNT DELETED SUCCESSFULLY";
         public const string BankAccountUpdated = "BANK ACCOUNT UPDATED SUCCESSFULLY";
 
+        public const string CardCreationFailure = "CARD CREATION FAILED";
+        public const string CountryNotFound = "COUNTRY NOT FOUND";
+        public const string CountryNotDistinct = "SAME COUNTRY SELECTED MORE THAN ONCE OR COUNTRY NOT FOUND";
+
+        public const string CardExist = "CARD WITH SAME NAME ALREADY EXIST";
+        public const string CardCreation = "CARD CREATED SUCCESSFULLY";
+
 
         public const string ErrorMessage000 = "USER NOT FOUND!";
 
