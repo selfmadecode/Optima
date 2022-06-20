@@ -24,10 +24,10 @@ namespace Optima.Controllers
         [HttpPost]
         public async Task<IActionResult> Login([FromBody] LoginDTO model)
         {
-
             try
             {
-                return ReturnResponse(await _authService.Login(model, CurrentDateTime));            }
+                return ReturnResponse(await _authService.Login(model, CurrentDateTime));            
+            }
             catch (Exception ex)
             {
                 return HandleError(ex);
@@ -37,7 +37,6 @@ namespace Optima.Controllers
         [HttpPost]
         public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenDTO request)
         {
-
             try
             {
                 return ReturnResponse(await _authService.RefreshToken(request.AccessToken, request.RefreshToken));

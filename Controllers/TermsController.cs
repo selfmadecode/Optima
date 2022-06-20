@@ -13,7 +13,6 @@ namespace Optima.Controllers
 {
     [Route("api/[controller]/[action]")]
     [ApiController]
-    [Authorize]
     public class TermsController : BaseController
     {
         private readonly ITermsService _termsService;
@@ -25,23 +24,45 @@ namespace Optima.Controllers
 
         [HttpPost]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
-        public async Task<IActionResult> Accept()
+        public async Task<IActionResult> Accept(AcceptTerms model)
         {
-            return ReturnResponse(await _termsService.AcceptTermsAndCondition(UserId));
+            try
+            {
+                return ReturnResponse(await _termsService.AcceptTermsAndCondition(model));
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex);
+            }
         }
 
         [HttpGet]
-        [ProducesResponseType(typeof(BaseResponse<GetRateDTO>), 200)]
+        [ProducesResponseType(typeof(BaseResponse<GetTermsDTO>), 200)]
         public async Task<IActionResult> Get()
         {
-            return ReturnResponse(await _termsService.GetTermsAndCondition());
+            try
+            {
+                return ReturnResponse(await _termsService.GetTermsAndCondition());
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex);
+            }            
         }
 
         [HttpPut]
+        [Authorize] // TODO : ONLY SUPER ADMIN
         [ProducesResponseType(typeof(BaseResponse<Guid>), 200)]
         public async Task<IActionResult> Update([FromBody] UpdateTermsDTO model)
         {
-            return ReturnResponse(await _termsService.UpdateTermsAndCondition(UserId, model));
+            try
+            {
+                return ReturnResponse(await _termsService.UpdateTermsAndCondition(UserId, CurrentDateTime, model));
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex);
+            }            
         }
     }
 }
