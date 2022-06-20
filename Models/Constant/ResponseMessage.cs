@@ -10,6 +10,7 @@ namespace Optima.Models.Constant
         public const string NotificationNotFound = "NOTIFICATION NOT FOUND!";
         public const string NotificationUpdate = "NOTIFICATION UPDATED SUCCESSFULLY";
         public const string NotificationAdded = "NOTIFICATION SUCCESSFULLY ADDED";
+
         public const string AccountConfirmed = "ACCOUNT SUCCESSFULLY CONFIRMED!";
         public const string PasswordResetCodeSent = "PASSWORD RESET CODE SENT!";
         public const string PasswordChanged = "PASSWORD CHANGED SUCCESSFULLY!";
@@ -23,6 +24,7 @@ namespace Optima.Models.Constant
 
 
         public const string TermsAndConditionUpdate = "TERMS AND CONDITION UPDATED SUCCESSFULLY";
+        public const string AcceptedTermsAndCondition = "TERMS ACCEPTED SUCCESSFULLY";
 
 
         public const string ErrorMessage000 = "USER NOT FOUND!";
