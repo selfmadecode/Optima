@@ -13,8 +13,16 @@ namespace Optima.Models.Constant
         public const string AccountConfirmed = "ACCOUNT SUCCESSFULLY CONFIRMED!";
         public const string PasswordResetCodeSent = "PASSWORD RESET CODE SENT!";
         public const string PasswordChanged = "PASSWORD CHANGED SUCCESSFULLY!";
+        public const string PasswordChangedFailure = "PASSWORD CHANGED FAILED";
         public const string AccountUnlocked = "ACCOUNT UNLOCKED!";
         public const string DebitRequestSuccess = "DEBIT REQUEST SUBMITED";
+        public const string AccountCreationSuccess = "ACCOUNT CREATED SUCCESSFULLY";
+        public const string AccountCreationFailure = "ACCOUNT CREATION FAILED";
+
+        public const string RefreshTokenFailure = "USER NOT FOUND";
+
+
+        public const string TermsAndConditionUpdate = "TERMS AND CONDITION UPDATED SUCCESSFULLY";
 
 
         public const string ErrorMessage000 = "USER NOT FOUND!";
@@ -30,10 +38,14 @@ namespace Optima.Models.Constant
         public const string ErrorMessage508 = "ACCOUNT IS NOT LOCKED";
         public const string ErrorMessage509 = "USER HAS NOT ACCEPTED TERMS AND CONDITION";
 
+
         public const string ErrorMessage600 = "USER ACCOUNT NOT FOUND";
         public const string ErrorMessage601 = "USER ACCOUNT BALANCE NOT FOUND";
 
+        public const string ErrorMessage999 = "SOMETHING WENT WRONG";
+
         public const string SuccessMessage000 = "SUCCESSFUL";
+        public const string FailureMessage000 = "FAILED";
 
     }
 }
