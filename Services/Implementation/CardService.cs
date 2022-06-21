@@ -274,9 +274,9 @@ namespace Optima.Services.Implementation
             }
 
             //Validate Receipt Type
-            var validatePrefix = ValidateReceipt(model.ReceiptTypeCardConfigDTO.Select(x => x.ReceiptTypeId).ToList());
+            var validateReceipt = ValidateReceipt(model.ReceiptTypeCardConfigDTO.Select(x => x.ReceiptTypeId).ToList());
 
-            if (validatePrefix)
+            if (validateReceipt)
             {
                 Errors.Add(ResponseMessage.CardReceiptNotFound);
                 return new BaseResponse<bool>(ResponseMessage.CardReceiptNotFound, Errors);
@@ -646,11 +646,7 @@ namespace Optima.Services.Implementation
 
             if (validateCardConfig.Errors.Any())
             {
-                response.ResponseMessage = validateCardConfig.ResponseMessage;
-                response.Errors = validateCardConfig.Errors;
-                response.Status = RequestExecution.Failed;
-                return response;
-
+                return new BaseResponse<bool>(validateCardConfig.ResponseMessage, validateCardConfig.Errors);
             };
 
             //Validate Denomination
@@ -738,10 +734,8 @@ namespace Optima.Services.Implementation
 
             if (card is null)
             {
-                response.ResponseMessage = "Card doesn't Exists";
-                response.Errors.Add("Card doesn't Exists");
-                response.Status = RequestExecution.Failed;
-                return response;
+                Errors.Add(ResponseMessage.CardNotFound);
+                return new BaseResponse<bool>(ResponseMessage.CardNotFound, Errors);
             };
 
             //Validate Card Config
@@ -750,11 +744,7 @@ namespace Optima.Services.Implementation
 
             if (validateCardConfig.Errors.Any())
             {
-                response.ResponseMessage = validateCardConfig.ResponseMessage;
-                response.Errors = validateCardConfig.Errors;
-                response.Status = RequestExecution.Failed;
-                return response;
-
+                return new BaseResponse<bool>(validateCardConfig.ResponseMessage, validateCardConfig.Errors);
             };
 
             //Validate Denomination
@@ -762,10 +752,8 @@ namespace Optima.Services.Implementation
 
             if (validateDenomination)
             {
-                response.ResponseMessage = "Denomination doesn't exists";
-                response.Errors = new List<string> { "Denomination doesn't exists" };
-                response.Status = RequestExecution.Failed;
-                return response;
+                Errors.Add(ResponseMessage.CardTypeDenominationNotFound);
+                return new BaseResponse<bool>(ResponseMessage.CardTypeDenominationNotFound, Errors);
             }
 
             //Validate Prefix
@@ -773,10 +761,8 @@ namespace Optima.Services.Implementation
 
             if (validateReceipt)
             {
-                response.ResponseMessage = "Receipt Type doesn't exists";
-                response.Errors = new List<string> { "Receipt Type doesn't exists" };
-                response.Status = RequestExecution.Failed;
-                return response;
+                Errors.Add(ResponseMessage.CardReceiptNotFound);
+                return new BaseResponse<bool>(ResponseMessage.CardReceiptNotFound, Errors);
             }
 
 
@@ -784,15 +770,20 @@ namespace Optima.Services.Implementation
             var validateCardTypeDenomination = ValidateCardTypeDenomination(model.ReceiptTypeUpdateCardConfigDTO.Select(x => x.CardTypeDenominationId).ToList());
             if (validateCardTypeDenomination)
             {
-                response.ResponseMessage = "Card Type Denomination doesn't exists";
-                response.Errors = new List<string> { "Card Type Denomination doesn't exists" };
-                response.Status = RequestExecution.Failed;
-                return response;
+                Errors.Add(ResponseMessage.CardTypeDenominationNotFound);
+                return new BaseResponse<bool>(ResponseMessage.CardTypeDenominationNotFound, Errors);
             }
 
+            await UpdateReceiptType(model.ReceiptTypeUpdateCardConfigDTO, UserId);
+
+            return new BaseResponse<bool>(true, ResponseMessage.CardUpdate);
+        }
+
+        private async Task UpdateReceiptType(List<ReceiptTypeUpdateConfigDTO> ReceiptTypeUpdateCardConfigDTO, Guid UserId)
+        {
             var newCardTypeDenomination = new List<CardTypeDenomination>();
 
-            foreach (var receiptTypeUpdateConfigDTO in model.ReceiptTypeUpdateCardConfigDTO)
+            foreach (var receiptTypeUpdateConfigDTO in ReceiptTypeUpdateCardConfigDTO)
             {
                 var cardTypeDenomination = _dbContext.CardTypeDenomination.FirstOrDefault(x => x.CardTypeId == receiptTypeUpdateConfigDTO.CardTypeId);
 
@@ -826,12 +817,6 @@ namespace Optima.Services.Implementation
 
             await _dbContext.CardTypeDenomination.AddRangeAsync(newCardTypeDenomination);
             await _dbContext.SaveChangesAsync();
-
-            response.Data = true;
-            response.ResponseMessage = "Successfully Updated the Receipt Card";
-
-            return response;
-
         }
 
 
@@ -849,10 +834,8 @@ namespace Optima.Services.Implementation
 
             if (card is null)
             {
-                response.ResponseMessage = "Card doesn't Exists";
-                response.Errors.Add("Card doesn't Exists");
-                response.Status = RequestExecution.Failed;
-                return response;
+                Errors.Add(ResponseMessage.CardNotFound);
+                return new BaseResponse<bool>(ResponseMessage.CardNotFound, Errors);
             };
 
             //Validate Card Config
@@ -861,11 +844,7 @@ namespace Optima.Services.Implementation
 
             if (validateCardConfig.Errors.Any())
             {
-                response.ResponseMessage = validateCardConfig.ResponseMessage;
-                response.Errors = validateCardConfig.Errors;
-                response.Status = RequestExecution.Failed;
-                return response;
-
+                return new BaseResponse<bool>(validateCardConfig.ResponseMessage, validateCardConfig.Errors);
             };
 
             //Validate Denomination
@@ -873,25 +852,28 @@ namespace Optima.Services.Implementation
 
             if (validateDenomination)
             {
-                response.ResponseMessage = "Denomination doesn't exists";
-                response.Errors = new List<string> { "Denomination doesn't exists" };
-                response.Status = RequestExecution.Failed;
-                return response;
+                Errors.Add(ResponseMessage.CardTypeDenominationNotFound);
+                return new BaseResponse<bool>(ResponseMessage.CardTypeDenominationNotFound, Errors);
             }
 
             //Validate Card Type Denomination
             var validateCardTypeDenomination = ValidateCardTypeDenomination(model.UpdateCardConfigDTO.Select(x => x.CardTypeDenominationId).ToList());
             if (validateCardTypeDenomination)
             {
-                response.ResponseMessage = "Card Type Denomination doesn't exists";
-                response.Errors = new List<string> { "Card Type Denomination doesn't exists" };
-                response.Status = RequestExecution.Failed;
-                return response;
+                Errors.Add(ResponseMessage.CardTypeDenominationNotFound);
+                return new BaseResponse<bool>(ResponseMessage.CardTypeDenominationNotFound, Errors);
             }
 
+            await UpdateNormalCard(model.UpdateCardConfigDTO, UserId);
+
+            return new BaseResponse<bool>(true, ResponseMessage.CardUpdate);
+        }
+
+        private async Task UpdateNormalCard(List<UpdateCardConfigDTO> UpdateCardConfigDTO, Guid UserId)
+        {
             var newCardTypeDenomination = new List<CardTypeDenomination>();
 
-            foreach (var updateNormalCardConfigDTO in model.UpdateCardConfigDTO)
+            foreach (var updateNormalCardConfigDTO in UpdateCardConfigDTO)
             {
                 var cardTypeDenomination = _dbContext.CardTypeDenomination.FirstOrDefault(x => x.CardTypeId == updateNormalCardConfigDTO.CardTypeId);
 
@@ -923,11 +905,6 @@ namespace Optima.Services.Implementation
 
             await _dbContext.CardTypeDenomination.AddRangeAsync(newCardTypeDenomination);
             await _dbContext.SaveChangesAsync();
-
-            response.Data = true;
-            response.ResponseMessage = "Successfully Updated the Normal Card";
-
-            return response;
         }
 
 
