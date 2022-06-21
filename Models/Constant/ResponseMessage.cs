@@ -46,6 +46,8 @@ namespace Optima.Models.Constant
         public const string CardTypeDenominationNotFound = "DENOMINATION(s) DOES NOT EXIST";
         public const string CardConfigSuccess = "CONFIGURED CARD SUCCESSFULLY";
         public const string CardReceiptNotFound = "RECEIPT DOES NOT FOUND";
+        public const string CannotDeleteCard = "CANNOT DELETE CARD";
+        public const string DeleteCardType = "CARDTYPE DELETED SUCCESSFULLY";
 
 
         public const string ErrorMessage000 = "USER NOT FOUND!";

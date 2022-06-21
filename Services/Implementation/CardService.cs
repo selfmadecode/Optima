@@ -916,45 +916,34 @@ namespace Optima.Services.Implementation
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
         public async Task<BaseResponse<bool>> DeleteCardType(DeleteCardTypeDTO model)
         {
-            var response = new BaseResponse<bool>();
-
             var card = await FindCard(model.CardId);
 
             if (card is null)
             {
-                response.ResponseMessage = "Card doesn't Exists";
-                response.Errors.Add("Card doesn't Exists");
-                response.Status = RequestExecution.Failed;
-                return response;
+                Errors.Add(ResponseMessage.CardNotFound);
+                return new BaseResponse<bool>(ResponseMessage.CardNotFound, Errors);
             };
 
             var validateCardType = ValidateCardTypes(model.CardId, model.CardTypeIds);
 
             if (validateCardType)
             {
-                response.ResponseMessage = "Card Type doesn't exists for this Card";
-                response.Errors.Add("Card Type doesn't exists for this Card");
-                response.Status = RequestExecution.Failed;
-                return response;
+                Errors.Add(ResponseMessage.CardTypeNotFound);
+                return new BaseResponse<bool>(ResponseMessage.CardTypeNotFound, Errors);
             }
 
             var getCardType = await _dbContext.CardType.Where(x => x.CardId == card.Id && model.CardTypeIds.Contains(x.Id)).ToListAsync();
             
             if (await _dbContext.CardTypeDenomination.AnyAsync(x => getCardType.Select(x => x.Id).Contains(x.CardTypeId)))
             {
-                response.ResponseMessage = "You Cannot delete this Card Type";
-                response.Errors.Add("You Cannot delete this Card Type");
-                response.Status = RequestExecution.Failed;
-                return response;
+                Errors.Add(ResponseMessage.CannotDeleteCard);
+                return new BaseResponse<bool>(ResponseMessage.CannotDeleteCard, Errors);
             }
 
             _dbContext.CardType.RemoveRange(getCardType);
             await _dbContext.SaveChangesAsync();
 
-            response.Data = true;
-            response.ResponseMessage = "Successfully Deleted the Card Type";
-
-            return response;
+            return new BaseResponse<bool>(true, ResponseMessage.DeleteCardType);
         }
 
 

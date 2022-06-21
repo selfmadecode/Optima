@@ -27,14 +27,17 @@ namespace Optima.Services.Implementation
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IConfiguration _configuration;
         private readonly ILog _logger;
+        private readonly ICloudinaryServices _cloudinaryServices;
 
-        public UserService(ApplicationDbContext context, IConfiguration configuration, UserManager<ApplicationUser> userManager)
+
+        public UserService(ApplicationDbContext context, IConfiguration configuration,
+            UserManager<ApplicationUser> userManager, ICloudinaryServices cloudinaryServices)
         {
             _context = context;
             _configuration = configuration;
             _logger = LogManager.GetLogger(typeof(CountryService));
             _userManager = userManager;
-
+            _cloudinaryServices = cloudinaryServices;
         }
 
 
@@ -93,11 +96,10 @@ namespace Optima.Services.Implementation
         public async Task<BaseResponse<bool>> UpdateProfile(UpdateUserDTO model, Guid UserId)
         {
             var uploadedFileToDelete = string.Empty;
+            var response = new BaseResponse<bool>();
 
             try
             {
-                var response = new BaseResponse<bool>();
-
                 var user = await _userManager.FindByIdAsync(UserId.ToString());
 
                 if (user is null)
@@ -114,9 +116,9 @@ namespace Optima.Services.Implementation
 
                     //Get the Full Asset Path
                     var fullPath = GenerateDeleteUploadedPath(user.ProfilePicture);
-                    CloudinaryUploadHelper.DeleteImage(_configuration, fullPath);
+                    await _cloudinaryServices.DeleteImage(fullPath);
 
-                    var (uploadedFile, hasUploadError, responseMessage) = await CloudinaryUploadHelper.UploadImage(model.ProfilePicture, _configuration);
+                    var (uploadedFile, hasUploadError, responseMessage) = await _cloudinaryServices.UploadImage(model.ProfilePicture);
 
                     user.ProfilePicture = uploadedFile;
 
@@ -127,7 +129,7 @@ namespace Optima.Services.Implementation
 
                 if (!(model.ProfilePicture is null) && (user.ProfilePicture is null))
                 {
-                    var (uploadedFile, hasUploadError, responseMessage) = await CloudinaryUploadHelper.UploadImage(model.ProfilePicture, _configuration);
+                    var (uploadedFile, hasUploadError, responseMessage) = await _cloudinaryServices.UploadImage(model.ProfilePicture);
 
                    user.ProfilePicture = uploadedFile;
 
@@ -145,10 +147,10 @@ namespace Optima.Services.Implementation
             }
             catch (Exception ex)
             {
-                CloudinaryUploadHelper.DeleteImage(_configuration, GenerateDeleteUploadedPath(uploadedFileToDelete));
+                await _cloudinaryServices.DeleteImage(GenerateDeleteUploadedPath(uploadedFileToDelete));
                 _logger.Error(ex.Message, ex);
 
-                throw;
+                return response;
             }
 
         }
