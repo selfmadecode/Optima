@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace Optima.Services.Implementation
 {
-    public class NotificationService : INotificationService
+    public class NotificationService : BaseService, INotificationService
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
@@ -36,8 +36,6 @@ namespace Optima.Services.Implementation
         /// <returns></returns>
         public async Task<BaseResponse<bool>> CreateNotificationForAdmin(CreateAdminNotificationDTO model)
         {
-            var result = new BaseResponse<bool>();
-
             try
             {
                 var notification = new Notification
@@ -51,15 +49,13 @@ namespace Optima.Services.Implementation
                 var status = _context.Notifications.Add(notification);
                 await _context.SaveChangesAsync();
 
-                result.Data = true;
-                result.ResponseMessage = ResponseMessage.NotificationAdded;
-                return result;
+                return new BaseResponse<bool>(true, ResponseMessage.NotificationAdded);
             }
             catch (Exception ex)
             {
                 _logger.Error(ex.StackTrace, ex);
-                result.Data = false;
-                return result;
+                Errors.Add(ResponseMessage.ErrorMessage999);
+                return new BaseResponse<bool>(ResponseMessage.ErrorMessage999, Errors);
             }
         }
 
@@ -71,16 +67,14 @@ namespace Optima.Services.Implementation
         /// <returns></returns>
         public async Task<BaseResponse<bool>> CreateNotificationForUser(CreateNotificationDTO model, Guid UserId)
         {
-            var result = new BaseResponse<bool>();
             try
             {
                 var user = await _userManager.FindByIdAsync(UserId.ToString());
 
                 if (user == null)
                 {
-                    result.ResponseMessage = ResponseMessage.ErrorMessage000;
-                    result.Errors.Add(ResponseMessage.ErrorMessage000);
-                    return result;
+                    Errors.Add(ResponseMessage.ErrorMessage000);
+                    return new BaseResponse<bool>(ResponseMessage.ErrorMessage000, Errors);
                 };
 
                 var notification = new Notification
@@ -95,15 +89,14 @@ namespace Optima.Services.Implementation
                 var status = _context.Notifications.Add(notification);
                 await _context.SaveChangesAsync();
 
-                result.Data = true;
-                result.ResponseMessage = ResponseMessage.NotificationAdded;
-                return result;
+                return new BaseResponse<bool>(true, ResponseMessage.NotificationAdded);
+
             }
             catch (Exception ex)
             {
                 _logger.Error(ex.StackTrace, ex);
-                result.Data = false;
-                return result;
+                Errors.Add(ResponseMessage.ErrorMessage999);
+                return new BaseResponse<bool>(ResponseMessage.ErrorMessage999, Errors);
             }
         }        
 
@@ -113,12 +106,10 @@ namespace Optima.Services.Implementation
         /// <returns></returns>
         public async Task<BaseResponse<List<GetNotificationDTO>>> GetAdminNotification()
         {
-            var result = new BaseResponse<List<GetNotificationDTO>>();
-
-            var data = _context.Notifications.Where(x => x.IsAdminNotification == true && x.IsRead == false)
+            var notifications = _context.Notifications.Where(x => x.IsAdminNotification == true && x.IsRead == false)
                 .OrderBy(x => x.CreatedOn);
 
-            result.Data = await data.Select(x => new GetNotificationDTO
+            var data = await notifications.Select(x => new GetNotificationDTO
             {
                 DateCreated = x.CreatedOn,
                 IsRead = x.IsRead,
@@ -127,7 +118,7 @@ namespace Optima.Services.Implementation
                 NotificationType = NotificationHelper.GetNotificationType(x.NotificationType)
             }).ToListAsync();
 
-            return result;
+            return new BaseResponse<List<GetNotificationDTO>>(data);
         }
 
         /// <summary>
@@ -137,12 +128,10 @@ namespace Optima.Services.Implementation
         /// <returns></returns>
         public async Task<BaseResponse<List<GetNotificationDTO>>> GetUserUnReadNotification(Guid userId)
         {
-            var result = new BaseResponse<List<GetNotificationDTO>>();
-
-            var data = _context.Notifications.Where(x => x.UserId == userId && x.IsRead == false)
+            var notifications = _context.Notifications.Where(x => x.UserId == userId && x.IsRead == false)
                 .OrderBy(x => x.CreatedOn);
 
-            result.Data = await data.Select(x => new GetNotificationDTO
+            var data = await notifications.Select(x => new GetNotificationDTO
             {
                 DateCreated = x.CreatedOn,
                 IsRead = x.IsRead,
@@ -151,7 +140,7 @@ namespace Optima.Services.Implementation
                 NotificationType = NotificationHelper.GetNotificationType(x.NotificationType)
             }).ToListAsync();
 
-            return result;
+            return new BaseResponse<List<GetNotificationDTO>>(data);
         }        
 
 
@@ -162,15 +151,14 @@ namespace Optima.Services.Implementation
         /// <returns></returns>
         public async Task<BaseResponse<Guid>> ReadNotification(Guid NotificationId)
         {
-            var result = new BaseResponse<Guid>();
+            //var result = new BaseResponse<Guid>();
 
             var notification = _context.Notifications.FirstOrDefault(x => x.Id == NotificationId);
 
             if (notification == null)
             {
-                result.ResponseMessage = ResponseMessage.NotificationNotFound;
-                result.Errors.Add(ResponseMessage.NotificationNotFound);
-                return result;
+                Errors.Add(ResponseMessage.NotificationNotFound);
+                return new BaseResponse<Guid>(ResponseMessage.NotificationNotFound, Errors);
             }
 
             notification.IsRead = true;
@@ -179,18 +167,14 @@ namespace Optima.Services.Implementation
             _context.Update(notification);
             await _context.SaveChangesAsync();
 
-            result.Data = notification.Id;
-            result.ResponseMessage = ResponseMessage.NotificationUpdate;
-            return result;
+            return new BaseResponse<Guid>(notification.Id, ResponseMessage.NotificationUpdate);
         }
 
         public async Task<BaseResponse<int>> GetAdminUnreadNotificationCount()
         {
-            var result = new BaseResponse<int>();
             var count = await _context.Notifications.Where(x => x.IsAdminNotification && x.IsRead == false).CountAsync();
 
-            result.Data = count;
-            return result;
+            return new BaseResponse<int>(count);
         }
 
         /// <summary>
@@ -200,10 +184,9 @@ namespace Optima.Services.Implementation
         /// <returns>int</returns>
         public async Task<BaseResponse<int>> GetUserUnreadNotificationCount(Guid UserId)
         {
-            var result = new BaseResponse<int>();
+            var data = GetUnReadNotification(UserId).Result.Count();
 
-            result.Data = GetUnReadNotification(UserId).Result.Count();
-            return result;
+            return new BaseResponse<int>(data);
         }
         private async Task<List<Notification>> GetUnReadNotification(Guid userId)
             => await _context.Notifications.Where(x => x.UserId == userId && x.IsRead == false).OrderBy(x => x.CreatedOn).ToListAsync();
