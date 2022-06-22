@@ -25,11 +25,14 @@ namespace Optima.Services.Implementation
         private readonly ApplicationDbContext _context;
         private readonly IConfiguration _configuration;
         private readonly ILog _logger;
+        private readonly ICloudinaryServices _cloudinaryServices;
 
-        public CardSaleService(ApplicationDbContext context, IConfiguration configuration)
+
+        public CardSaleService(ApplicationDbContext context, IConfiguration configuration, ICloudinaryServices cloudinaryServices)
         {
             _context = context;
             _configuration = configuration;
+            _cloudinaryServices = cloudinaryServices;
             _logger = LogManager.GetLogger(typeof(CardSaleService));
         }
 
@@ -89,7 +92,7 @@ namespace Optima.Services.Implementation
 
                 foreach (var file in model.CardTypeDTOs.SelectMany(x => x.CardImages).Select(cardImage => cardImage))
                 {
-                    var (uploadedFile, hasUploadError, responseMessage) = await CloudinaryUploadHelper.UploadImage(file, _configuration);
+                    var (uploadedFile, hasUploadError, responseMessage) = await _cloudinaryServices.UploadImage(file);
                     transactionUploadedFiles.Add(new TransactionUploadFiles
                     {
                         LogoUrl = uploadedFile,
@@ -150,7 +153,7 @@ namespace Optima.Services.Implementation
                 foreach (var filePath in filesToDelete)
                 {
                     var fullPath = GenerateDeleteUploadedPath(filePath);
-                    CloudinaryUploadHelper.DeleteImage(_configuration, fullPath);
+                    await _cloudinaryServices.DeleteImage(fullPath);
                 }
 
                 _logger.Error(ex.Message, ex);
