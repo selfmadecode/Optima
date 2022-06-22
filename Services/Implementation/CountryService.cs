@@ -23,14 +23,15 @@ namespace Optima.Services.Implementation
         private readonly ApplicationDbContext _context;
         private readonly IConfiguration _configuration;
         private readonly ILog _logger;
+        private readonly ICloudinaryServices _cloudinaryServices;
 
 
-        public CountryService(ApplicationDbContext context, IConfiguration configuration)
+        public CountryService(ApplicationDbContext context, ICloudinaryServices cloudinaryServices, IConfiguration configuration)
         { 
             _context = context;
             _configuration = configuration;
             _logger = LogManager.GetLogger(typeof(CountryService));
-
+            _cloudinaryServices = cloudinaryServices;
         }
 
         /// <summary>
@@ -69,7 +70,7 @@ namespace Optima.Services.Implementation
 
 
                 //Upload to Cloudinary
-                var (uploadedFile, hasUploadError, responseMessage) = await CloudinaryUploadHelper.UploadImage(model.Logo, _configuration);
+                var (uploadedFile, hasUploadError, responseMessage) = await _cloudinaryServices.UploadImage(model.Logo);
                 //Set this Property to delete uploaded cloudinary file if an exception occur
                 uploadedFileToDelete = uploadedFile;
 
@@ -91,10 +92,10 @@ namespace Optima.Services.Implementation
             }
             catch (Exception ex)
             {
-                CloudinaryUploadHelper.DeleteImage(_configuration, GenerateDeleteUploadedPath(uploadedFileToDelete));
+                await _cloudinaryServices.DeleteImage(GenerateDeleteUploadedPath(uploadedFileToDelete));
                 _logger.Error(ex.Message, ex);
 
-                throw;
+                return new BaseResponse<bool>();
             }
            
         }
@@ -133,7 +134,7 @@ namespace Optima.Services.Implementation
             await _context.SaveChangesAsync();
 
             var fullPath = GenerateDeleteUploadedPath(country.LogoUrl);
-            CloudinaryUploadHelper.DeleteImage(_configuration, fullPath);
+            _cloudinaryServices.DeleteImage(fullPath);
 
             response.Data = true;
             response.ResponseMessage = "Successfully deleted the Country";
@@ -256,9 +257,9 @@ namespace Optima.Services.Implementation
 
                     //Get the Full Asset Path
                     var fullPath = GenerateDeleteUploadedPath(country.LogoUrl);
-                    CloudinaryUploadHelper.DeleteImage(_configuration, fullPath);
+                    await _cloudinaryServices.DeleteImage(fullPath);
 
-                    var (uploadedFile, hasUploadError, responseMessage) = await CloudinaryUploadHelper.UploadImage(model.Logo, _configuration);
+                    var (uploadedFile, hasUploadError, responseMessage) = await _cloudinaryServices.UploadImage(model.Logo);
 
                     country.LogoUrl = uploadedFile;
 
@@ -269,7 +270,7 @@ namespace Optima.Services.Implementation
 
                 if (!(model.Logo is null) && (country.LogoUrl is null))
                 {
-                    var (uploadedFile, hasUploadError, responseMessage) = await CloudinaryUploadHelper.UploadImage(model.Logo, _configuration);
+                    var (uploadedFile, hasUploadError, responseMessage) = await _cloudinaryServices.UploadImage(model.Logo);
 
                     country.LogoUrl = uploadedFile;
 
@@ -293,10 +294,10 @@ namespace Optima.Services.Implementation
             }
             catch (Exception ex)
             {
-                CloudinaryUploadHelper.DeleteImage(_configuration, GenerateDeleteUploadedPath(uploadedFileToDelete));
+                await _cloudinaryServices.DeleteImage(GenerateDeleteUploadedPath(uploadedFileToDelete));
                 _logger.Error(ex.Message, ex);
 
-                throw;
+                return new BaseResponse<bool>();
             }
            
         }
