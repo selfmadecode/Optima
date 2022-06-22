@@ -17,7 +17,7 @@ using System.Threading.Tasks;
 
 namespace Optima.Services.Implementation
 {
-    public class TransactionService : ITransactionService
+    public class TransactionService : BaseService, ITransactionService
     {
         private readonly ApplicationDbContext _context;
         private readonly ILog _logger;
@@ -36,7 +36,7 @@ namespace Optima.Services.Implementation
         /// <returns>Task&lt;BaseResponse&lt;BalanceInquiryDTO&gt;&gt;.</returns>
         public async Task<BaseResponse<BalanceInquiryDTO>> GetUserAccountBalance(Guid userId)
         {
-            var result = new BaseResponse<BalanceInquiryDTO>();
+           // var result = new BaseResponse<BalanceInquiryDTO>();
 
             var account = await _context.WalletBalance.Include(x => x.User).FirstOrDefaultAsync(x => x.UserId == userId);
 
@@ -44,10 +44,8 @@ namespace Optima.Services.Implementation
 
             if (account == null)
             {
-                result.ResponseMessage = ResponseMessage.ErrorMessage600;
-                result.Errors.Add(ResponseMessage.ErrorMessage600);
                 _logger.Info("....User account not found - Point: GetUserAccountBalance");
-                return result;
+                return new BaseResponse<BalanceInquiryDTO>(ResponseMessage.ErrorMessage600, Errors);
             };
 
             var data = new BalanceInquiryDTO
@@ -56,9 +54,7 @@ namespace Optima.Services.Implementation
                 FullName = account.User.FullName,
             };
 
-            result.ResponseMessage = ResponseMessage.SuccessMessage000;
-            result.Data = data;
-            return result;
+            return new BaseResponse<BalanceInquiryDTO>(data, ResponseMessage.SuccessMessage000);
         }
 
 
@@ -70,50 +66,39 @@ namespace Optima.Services.Implementation
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
         public async Task<BaseResponse<bool>> Withdraw(WithdrawDTO model, Guid userId)
         {
-            var result = new BaseResponse<bool>();
-
             // Validate that the user selected account exist
             var userBankAccountExist = await ValidateUserBankAccountExist(model, userId);
 
             if(userBankAccountExist.Errors.Any())
             {
-                foreach (var error in userBankAccountExist.Errors)
-                {
-                    result.Errors.Add(error);
-                }
-
-                return result;
+                //foreach (var error in userBankAccountExist.Errors)
+                //{
+                //    Errors.Add(error);
+                //}
+                return new BaseResponse<bool>(userBankAccountExist.ResponseMessage, userBankAccountExist.Errors);
             }
 
             // Validate that user has an account
-            var userAccountBalanceExist = await ValidateUserAccountBalanceExist(userId);
+            var userAccountBalanceExist = await ValidateAndReturnUserWallet(userId);
 
             if (userAccountBalanceExist.Data == null)
             {
-                foreach (var error in userAccountBalanceExist.Errors)
-                {
-                    result.Errors.Add(error);
-                }
+                //foreach (var error in userAccountBalanceExist.Errors)
+                //{
+                //    result.Errors.Add(error);
+                //}
 
-                return result;
+                return new BaseResponse<bool>(userAccountBalanceExist.ResponseMessage, userAccountBalanceExist.Errors);
             }
 
             var withdrawRequest = await Withdraw(userAccountBalanceExist.Data, model.Amount, userBankAccountExist.Data, userId);
 
             if (withdrawRequest.Errors.Any())
             {
-                foreach (var error in withdrawRequest.Errors)
-                {
-                    result.Errors.Add(error);
-                }
-
-                return result;
+                return new BaseResponse<bool>(withdrawRequest.ResponseMessage, withdrawRequest.Errors);
             }
 
-
-            result.ResponseMessage = ResponseMessage.DebitRequestSuccess;
-            result.Data = true;
-            return result;
+            return new BaseResponse<bool>(true, ResponseMessage.DebitRequestSuccess);
         }
 
 
@@ -125,9 +110,6 @@ namespace Optima.Services.Implementation
         /// <returns>Task&lt;BaseResponse&lt;PagedList&lt;CreditDebitDTO&gt;&gt;&gt;.</returns>
         public async Task<BaseResponse<PagedList<TransactionDTO>>> GetUserCreditDebit(BaseSearchViewModel model, Guid UserId)
         {
-
-            var response = new BaseResponse<PagedList<TransactionDTO>>();
-
             var query = _context.WalletBalance
                 .Where(x => x.UserId == UserId)
                 .Include(x => x.User)
@@ -138,11 +120,8 @@ namespace Optima.Services.Implementation
 
             if (query.Any() is false)
             {
-                response.Data = null;
-                response.Errors.Add(ResponseMessage.ErrorMessage600);
-                response.Status = RequestExecution.Failed;
-                response.ResponseMessage = ResponseMessage.ErrorMessage600;
-                return response;
+                Errors.Add(ResponseMessage.ErrorMessage600);
+                return new BaseResponse<PagedList<TransactionDTO>>(ResponseMessage.ErrorMessage600, Errors);
             }
 
 
@@ -172,7 +151,6 @@ namespace Optima.Services.Implementation
         /// <returns>Task&lt;BaseResponse&lt;PagedList&lt;CreditDebitDTO&gt;&gt;&gt;.</returns>
         public async Task<BaseResponse<PagedList<TransactionDTO>>> GetAllUserCreditDebit(BaseSearchViewModel model)
         {
-
             var query = _context.WalletBalance
                 .Include(x => x.User)
                 .Include(x => x.CreditDebit).ThenInclude(x => x.BankAccount)
@@ -208,20 +186,14 @@ namespace Optima.Services.Implementation
         /// <returns>Task&lt;BaseResponse&lt;Guid&gt;&gt;.</returns>
         private async Task<BaseResponse<Guid>> ValidateUserBankAccountExist(WithdrawDTO model, Guid userId)
         {
-            var result = new BaseResponse<Guid>();
-
             var account = _context.BankAccounts.FirstOrDefault(x => x.Id == model.UserSelectedBankAccountId && x.UserId == userId);
 
             if (account == null)
             {
-                result.ResponseMessage = ResponseMessage.ErrorMessage600;
-                result.Errors.Add(ResponseMessage.ErrorMessage600);
                 _logger.Info("....User account not found - Point: Withdraw");
-                return result;
+                return new BaseResponse<Guid>(ResponseMessage.ErrorMessage600, Errors);
             };
-
-            result.Data = account.Id;
-            return result;
+            return new BaseResponse<Guid>(account.Id);
         }
 
         /// <summary>
@@ -230,23 +202,17 @@ namespace Optima.Services.Implementation
         /// <param name="model">The model.</param>
         /// <param name="UserId">The UserId.</param>
         /// <returns>Task&lt;BaseResponse&lt;WalletBalance&gt;&gt;.</returns>
-        private async Task<BaseResponse<WalletBalance>> ValidateUserAccountBalanceExist(Guid userId)
+        private async Task<BaseResponse<WalletBalance>> ValidateAndReturnUserWallet(Guid userId)
         {
-            var result = new BaseResponse<WalletBalance>();
-
             var userAccountBalance = _context.WalletBalance.FirstOrDefault(x => x.UserId == userId);
 
             if (userAccountBalance == null)
             {
-                result.ResponseMessage = ResponseMessage.ErrorMessage601;
-                result.Errors.Add(ResponseMessage.ErrorMessage601);
-                result.Data = null;
                 _logger.Info("....User account balance not found - Point: Withdraw");
-                return result;
+                return new BaseResponse<WalletBalance>(ResponseMessage.ErrorMessage601, Errors); ;
             };
 
-            result.Data = userAccountBalance;
-            return result;
+            return new BaseResponse<WalletBalance>(userAccountBalance);
         }
 
 
@@ -260,20 +226,16 @@ namespace Optima.Services.Implementation
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
         private async Task<BaseResponse<bool>> Withdraw(WalletBalance model, decimal amount, Guid bankAccountId, Guid UserId) 
         {
-            var result = new BaseResponse<bool>();
-
             if (amount < 500)
             {
-                result.Errors.Add("");
-                result.Data = false;
-                return result;
+                Errors.Add(ResponseMessage.MinAmountError);
+                return new BaseResponse<bool>(ResponseMessage.MinAmountError, Errors);
             }
 
             if (amount > model.Balance)
             {
-                result.Errors.Add("");
-                result.Data = false;
-                return result;
+                Errors.Add(ResponseMessage.InsufficientError);
+                return new BaseResponse<bool>(ResponseMessage.InsufficientError, Errors);
             }
 
             var debit = new CreditDebit
@@ -286,11 +248,14 @@ namespace Optima.Services.Implementation
                 CreatedBy = UserId                
             };
 
+            // GET ACCOUNT TO DEBIT AND DEBIT
+            var userAccountBalance = _context.WalletBalance.FirstOrDefault(x => x.Id == model.Id);
+            userAccountBalance.Balance -= amount;
+
             _context.CreditDebit.Add(debit);
             await _context.SaveChangesAsync();
 
-            result.Data = true;
-            return result;
+            return new BaseResponse<bool>(true);
         }
 
 
@@ -304,30 +269,26 @@ namespace Optima.Services.Implementation
         {
             if (!string.IsNullOrEmpty(model.Keyword) && !string.IsNullOrEmpty(model.Filter))
             {
-                IQueryable<CreditDebit> creditBalancequery;
                 switch (model.Filter)
                 {
                     case "TransactionType":
-                        {                          
-                            creditBalancequery = query.SelectMany(x => x.CreditDebit).Where(x => x.TransactionType == model.Keyword.Parse<TransactionType>());
-                            return creditBalancequery;
+                        {
+                            return query.SelectMany(x => x.CreditDebit).Where(x => x.TransactionType == model.Keyword.Parse<TransactionType>());   
                         }
 
                     case "TransactionStatus":
                         {
-                            creditBalancequery = query.SelectMany(x => x.CreditDebit).Where(x => x.TransactionStatus == model.Keyword.Parse<TransactionStatus>());
-                            return creditBalancequery;
+                            return query.SelectMany(x => x.CreditDebit).Where(x => x.TransactionStatus == model.Keyword.Parse<TransactionStatus>());
                         }
 
                     case "Date":
                         {
-                            creditBalancequery = BuildDateQueryFilter(query.SelectMany(x => x.CreditDebit), model.DateFilter);
-                            return creditBalancequery;
+                            return BuildDateQueryFilter(query.SelectMany(x => x.CreditDebit), model.DateFilter);
                         }
 
                     default:
                         {
-                            break;
+                            return query.SelectMany(x => x.CreditDebit).Where(x => x.TransactionType == model.Keyword.Parse<TransactionType>());
                         }
                 }
             }
@@ -348,7 +309,6 @@ namespace Optima.Services.Implementation
 
             query = query.Where(x => x.CreatedOn.Date >= DateFilter.DateFrom.Value.Date && x.CreatedOn.Date <= DateFilter.DateTo.Value.Date);
             return query;
-
         }
 
     }

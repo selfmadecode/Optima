@@ -49,6 +49,9 @@ namespace Optima.Models.Constant
         public const string CannotDeleteCard = "CANNOT DELETE CARD";
         public const string DeleteCardType = "CARDTYPE DELETED SUCCESSFULLY";
 
+        public const string MinAmountError = "MINIMUM WITHDRAWAL IS 500";
+        public const string InsufficientError = "INSUFFICIENT FUNDS!";
+
 
         public const string ErrorMessage000 = "USER NOT FOUND!";
 
