@@ -82,7 +82,21 @@ namespace Optima.Controllers
                 return HandleError(ex);
             }
         }
-        //
-        // retrieve a user transaction, filter by credit, debit, pending, declined, approved
+        
+        
+        [HttpPut]
+        [ProducesResponseType(typeof(BaseResponse<PagedList<TransactionDTO>>), 200)]
+        public async Task<IActionResult> UpdateDebitStatus([FromBody]UpdateDebitStatus model)
+        {
+            try
+            {
+                return ReturnResponse(await _transactionService.UpdateDebitStatus(model, UserId));
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex);
+            }
+        }
+       
     }
 }

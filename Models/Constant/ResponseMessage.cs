@@ -117,5 +117,9 @@ namespace Optima.Models.Constant
         public const string NotificationNotSent = "FAILED TO SEND THE NOTIFICATION";
 
 
+        public const string CreditDebitNotFound = "CREDIT DEBIT TRANSACTION NOT FOUND";
+        public const string DebitUpdated = "DEBIT TRANSACTION UPDATED SUCCESSFULLY";
+
+
     }
 }

@@ -177,6 +177,57 @@ namespace Optima.Services.Implementation
 
         }
 
+        /// <summary>
+        /// UPDATTE DEBIT TRANSACTION STATUS
+        /// </summary>
+        /// <param name="model">The model</param>
+        /// <param name="UserId">The UserId</param>
+        /// <returns>Task&lt;BaseResponse&lt;UpdateCreditDebitStatus&gt;&gt;.</returns>
+        public async Task<BaseResponse<bool>> UpdateDebitStatus(UpdateDebitStatus model, Guid UserId)
+        {
+            var creditDebit = await _context.CreditDebit.Where(x => x.Id == model.CreditDebitId).Include(x => x.ActionedByUser).FirstOrDefaultAsync();
+
+            if (creditDebit is null)
+            {
+                Errors.Add(ResponseMessage.CreditDebitNotFound);
+                return new BaseResponse<bool>(ResponseMessage.CreditDebitNotFound, Errors);
+            }
+
+            if (creditDebit.TransactionStatus != TransactionStatus.Pending)
+            {
+                var message = $"Debit Transaction has already been actioned by Optima Admin with Name:" +
+                    $" {creditDebit.ActionedByUser.FullName} on {creditDebit.ModifiedOn.Value:ddd, dd MMMM yyyy, hh:mm tt}";
+                Errors.Add(message);
+                return new BaseResponse<bool>(message, Errors);
+            }
+
+            switch (model.CreditDebitStatus)
+            {
+                case CreditDebitStatus.Approved:
+                    {
+                        creditDebit.TransactionStatus = TransactionStatus.Approved;
+                        creditDebit.ActionedByUserId = UserId;
+                        creditDebit.ModifiedOn = DateTime.UtcNow;
+                        break;
+                    } 
+                    
+                case CreditDebitStatus.Declined:
+                    {
+                        var findWallet = await _context.WalletBalance.FirstOrDefaultAsync(x => x.Id == creditDebit.WalletBalanceId);
+                        creditDebit.TransactionStatus = TransactionStatus.Declined;
+                        findWallet.Balance += creditDebit.Amount;
+                        creditDebit.ActionedByUserId = UserId;
+                        creditDebit.ModifiedOn = DateTime.UtcNow;
+                        break;
+                    }
+                   
+                default:
+                    break;
+            }
+
+            await _context.SaveChangesAsync();
+            return new BaseResponse<bool>(true, ResponseMessage.DebitUpdated);
+        }
 
         /// <summary>
         /// VALIDATE USER BANK ACCOUNT
@@ -186,7 +237,7 @@ namespace Optima.Services.Implementation
         /// <returns>Task&lt;BaseResponse&lt;Guid&gt;&gt;.</returns>
         private async Task<BaseResponse<Guid>> ValidateUserBankAccountExist(WithdrawDTO model, Guid userId)
         {
-            var account = _context.BankAccounts.FirstOrDefault(x => x.Id == model.UserSelectedBankAccountId && x.UserId == userId);
+            var account = await _context.BankAccounts.FirstOrDefaultAsync(x => x.Id == model.UserSelectedBankAccountId && x.UserId == userId);
 
             if (account == null)
             {
@@ -204,7 +255,7 @@ namespace Optima.Services.Implementation
         /// <returns>Task&lt;BaseResponse&lt;WalletBalance&gt;&gt;.</returns>
         private async Task<BaseResponse<WalletBalance>> ValidateAndReturnUserWallet(Guid userId)
         {
-            var userAccountBalance = _context.WalletBalance.FirstOrDefault(x => x.UserId == userId);
+            var userAccountBalance = await _context.WalletBalance.FirstOrDefaultAsync(x => x.UserId == userId);
 
             if (userAccountBalance == null)
             {
@@ -311,5 +362,6 @@ namespace Optima.Services.Implementation
             return query;
         }
 
+        
     }
 }
