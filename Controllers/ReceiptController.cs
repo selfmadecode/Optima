@@ -31,9 +31,7 @@ namespace Optima.Controllers
         {
             try
             {
-                var result = await _receiptService.CreateReceipt(model, UserId);
-
-                return ReturnResponse(result);
+                return ReturnResponse(await _receiptService.CreateReceipt(model, UserId));
             }
             catch (Exception ex)
             {
@@ -47,9 +45,7 @@ namespace Optima.Controllers
         {
             try
             {
-                var result = await _receiptService.GetAllReceipt();
-
-                return ReturnResponse(result);
+                return ReturnResponse(await _receiptService.GetAllReceipt());
             }
             catch (Exception ex)
             {
@@ -63,9 +59,7 @@ namespace Optima.Controllers
         {
             try
             {
-                var result = await _receiptService.UpdateReceipt(model);
-
-                return ReturnResponse(result);
+                return ReturnResponse(await _receiptService.UpdateReceipt(model));
             }
             catch (Exception ex)
             {
@@ -79,9 +73,7 @@ namespace Optima.Controllers
         {
             try
             {
-                var result = await _receiptService.DeleteReceipt(id);
-
-                return ReturnResponse(result);
+                return ReturnResponse(await _receiptService.DeleteReceipt(id));
             }
             catch (Exception ex)
             {

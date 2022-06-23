@@ -32,9 +32,7 @@ namespace Optima.Controllers
         {
             try
             {
-                var result = await _userService.UpdateProfile(model, UserId);
-
-                return ReturnResponse(result);
+                return ReturnResponse(await _userService.UpdateProfile(model, UserId));
             }
             catch (Exception ex)
             {
@@ -45,7 +43,7 @@ namespace Optima.Controllers
 
 
         [HttpGet]
-        [ProducesResponseType(typeof(BaseResponse<PagedList<UserDTO>>), 200)] // return the created model
+        [ProducesResponseType(typeof(BaseResponse<PagedList<UserDTO>>), 200)] 
         public async Task<IActionResult> AllUsers([FromQuery] BaseSearchViewModel model)
         {
             try

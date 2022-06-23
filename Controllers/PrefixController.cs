@@ -28,9 +28,7 @@ namespace Optima.Controllers
         {
             try
             {
-                var result = await _prefixService.CreatePrefix(model, UserId);
-
-                return ReturnResponse(result);
+                return ReturnResponse(await _prefixService.CreatePrefix(model, UserId));
             }
             catch (Exception ex)
             {
@@ -44,9 +42,7 @@ namespace Optima.Controllers
         {
             try
             {
-                var result = await _prefixService.GetAllPrefix();
-
-                return ReturnResponse(result);
+                return ReturnResponse(await _prefixService.GetAllPrefix());
             }
             catch (Exception ex)
             {
@@ -60,9 +56,7 @@ namespace Optima.Controllers
         {
             try
             {
-                var result = await _prefixService.UpdatePrefix(model);
-
-                return ReturnResponse(result);
+                return ReturnResponse(await _prefixService.UpdatePrefix(model));
             }
             catch (Exception ex)
             {
@@ -76,9 +70,7 @@ namespace Optima.Controllers
         {
             try
             {
-                var result = await _prefixService.DeletePrefix(id);
-
-                return ReturnResponse(result);
+                return ReturnResponse(await _prefixService.DeletePrefix(id));
             }
             catch (Exception ex)
             {

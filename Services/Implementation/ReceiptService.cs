@@ -1,9 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using log4net;
+using Microsoft.EntityFrameworkCore;
 using Optima.Context;
+using Optima.Models.Constant;
 using Optima.Models.DTO.ReceiptDTOs;
 using Optima.Models.Entities;
 using Optima.Models.Enums;
 using Optima.Services.Interface;
+using Optima.Utilities;
 using Optima.Utilities.Helpers;
 using System;
 using System.Collections.Generic;
@@ -12,12 +15,15 @@ using System.Threading.Tasks;
 
 namespace Optima.Services.Implementation
 {
-    public class ReceiptService : IReceiptService
+    public class ReceiptService : BaseService, IReceiptService
     {
         private readonly ApplicationDbContext _context;
+        private readonly ILog _logger;
+
         public ReceiptService(ApplicationDbContext context)
         {
             _context = context;
+            _logger = LogManager.GetLogger(typeof(ReceiptService));
         }
 
         /// <summary>
@@ -28,17 +34,13 @@ namespace Optima.Services.Implementation
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
         public async Task<BaseResponse<bool>> CreateReceipt(CreateReceiptDTO model, Guid UserId)
         {
-            var response = new BaseResponse<bool>();
 
             var checkReceipt = await _context.Receipts.FirstOrDefaultAsync(x => x.Name.ToLower().Replace(" ", "") == model.Name.ToLower().Replace(" ", ""));
 
             if (!(checkReceipt is null))
             {
-                response.Data = false;
-                response.ResponseMessage = "Receipt Type already Exists";
-                response.Errors = new List<string> { "Receipt Type already Exists" };
-                response.Status = RequestExecution.Failed;
-                return response;
+                Errors.Add(ResponseMessage.ReceiptExist);
+                return new BaseResponse<bool>(ResponseMessage.ReceiptExist, Errors);
             }
 
             var newReceipt = new Receipt
@@ -49,11 +51,9 @@ namespace Optima.Services.Implementation
 
             await _context.AddAsync(newReceipt);
             await _context.SaveChangesAsync();
+            _logger.Info("Successfully Created a Receipt Type... at ExecutionPoint:CreateReceipt");
 
-            response.Data = true;
-            response.ResponseMessage = "Receipt Created Successfully";
-            return response;
-            
+            return new BaseResponse<bool>(true, ResponseMessage.ReceiptCreated);
         }
 
         /// <summary>
@@ -69,30 +69,22 @@ namespace Optima.Services.Implementation
 
             if (checkReceipt is null)
             {
-                response.Data = false;
-                response.ResponseMessage = "Receipt Type doesn't Exists";
-                response.Errors = new List<string> { "Receipt Type doesn't Exists" };
-                response.Status = RequestExecution.Failed;
-                return response;
+                Errors.Add(ResponseMessage.ReceiptNotFound);
+                return new BaseResponse<bool>(ResponseMessage.ReceiptNotFound, Errors);
             }
 
             var _ = await _context.CardTypeDenomination.AnyAsync(x => x.ReceiptId == id);
 
             if (_)
             {
-                response.Data = false;
-                response.ResponseMessage = "You cannot delete the receipt";
-                response.Errors = new List<string> { "You cannot delete the receipt" };
-                response.Status = RequestExecution.Failed;
-                return response;
+                Errors.Add(ResponseMessage.CannotDeleteReceipt);
+                return new BaseResponse<bool>(ResponseMessage.CannotDeleteReceipt, Errors);
             }
 
             _context.Receipts.Remove(checkReceipt);
             await _context.SaveChangesAsync();
 
-            response.Data = true;
-            response.ResponseMessage = "Receipt Type deleted Successfully";
-            return response;
+            return new BaseResponse<bool>(true, ResponseMessage.ReceiptDeleted);
         }
 
         /// <summary>
@@ -105,7 +97,8 @@ namespace Optima.Services.Implementation
 
             var receiptsDTO = receipts.Select(x => (ReceiptDTO)x).ToList();
 
-            return new BaseResponse<List<ReceiptDTO>> { Data = receiptsDTO, TotalCount = receiptsDTO.Count, ResponseMessage = $"Found {receiptsDTO.Count} Receipt Type(s)." };
+            return new BaseResponse<List<ReceiptDTO>> 
+            { Data = receiptsDTO, TotalCount = receiptsDTO.Count, ResponseMessage = $"FOUND {receiptsDTO.Count} RECEIPT TYPE(s)." };
         }
 
 
@@ -122,23 +115,18 @@ namespace Optima.Services.Implementation
 
             if (checkReceipt is null)
             {
-                response.Data = false;
-                response.ResponseMessage = "Receipt Type doesn't Exists";
-                response.Errors = new List<string> { "Receipt Type doesn't Exists" };
-                response.Status = RequestExecution.Failed;
-                return response;
+                Errors.Add(ResponseMessage.ReceiptNotFound);
+                return new BaseResponse<bool>(ResponseMessage.ReceiptNotFound, Errors);
             }
+
             if (model.Name.Replace(" ", "").ToLower() != checkReceipt.Name.Replace(" ", "").ToLower())
             {
                 var checkExistingReceipts = await _context.Receipts.AnyAsync(x => x.Name.ToLower().Replace(" ", "") == model.Name.ToLower().Replace(" ", ""));
 
                 if (checkExistingReceipts)
                 {
-                    response.Data = false;
-                    response.ResponseMessage = "Receipt Type already Exists.";
-                    response.Errors.Add("Receipt Type already Exists.");
-                    response.Status = RequestExecution.Failed;
-                    return response;
+                    Errors.Add(ResponseMessage.ReceiptExist);
+                    return new BaseResponse<bool>(ResponseMessage.ReceiptExist, Errors);
                 }
             }
 
@@ -148,10 +136,7 @@ namespace Optima.Services.Implementation
             _context.Receipts.Update(checkReceipt);
             await _context.SaveChangesAsync();
 
-            response.Data = true;
-            response.ResponseMessage = "Receipt Type Updated Successfully";
-            return response;
-
+            return new BaseResponse<bool>(true, ResponseMessage.ReceiptUpdated);
         }
     }
 }

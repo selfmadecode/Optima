@@ -1,12 +1,15 @@
 ﻿using CorePush.Google;
+using log4net;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Optima.Context;
+using Optima.Models.Constant;
 using Optima.Models.DTO.NotificationDTO;
 using Optima.Models.Entities;
 using Optima.Models.Enums;
 using Optima.Services.Interface;
+using Optima.Utilities;
 using Optima.Utilities.Helpers;
 using System;
 using System.Collections.Generic;
@@ -18,7 +21,7 @@ using static Optima.Models.DTO.NotificationDTO.GoogleNotification;
 
 namespace Optima.Services.Implementation
 {
-    public class PushNotificationService : IPushNotificationService
+    public class PushNotificationService : BaseService, IPushNotificationService
     {
         /// <summary>
         /// The FMC notif setting
@@ -32,6 +35,8 @@ namespace Optima.Services.Implementation
         /// The device repo
         /// </summary>
         private readonly ApplicationDbContext _context;
+
+        private ILog _logger;
         
 
         public PushNotificationService(ApplicationDbContext context, IOptions<FcmNotification> fmcNotifSetting, UserManager<ApplicationUser> userManager)
@@ -39,6 +44,7 @@ namespace Optima.Services.Implementation
             _context = context;
             _fmcNotifSetting = fmcNotifSetting.Value;
             _userManager = userManager;
+            _logger = LogManager.GetLogger(typeof(PushNotificationService));
            
         }
 
@@ -52,23 +58,15 @@ namespace Optima.Services.Implementation
         {
             var tokens = await _context.UserDevices.Where(x => x.UserId == userId && x.Token == deviceToken).ToListAsync();
             if (!tokens.Any())
-                return new BaseResponse<string>
-                {
-                    ResponseMessage = "The Token doesn't exists for this User",
-                    Errors = new List<string> { "The Token doesn't exists for this user"},
-                    Status = RequestExecution.Failed,
-                };
-
+            {
+                Errors.Add(ResponseMessage.DeviceTokenNotFound);
+                return new BaseResponse<string>(ResponseMessage.DeviceTokenNotFound, Errors);
+            }
+               
             _context.UserDevices.RemoveRange(tokens);
             await _context.SaveChangesAsync();
-
-            /* foreach (var token in tokens)
-             {
-                 _context.UserDevices.Remove(token);
-                 await _unitOfWork.SaveChangesAsync();
-             }*/
-
-            return new BaseResponse<string> { Data = "Success", ResponseMessage = "Successfully Deleted the User device token", Status = RequestExecution.Successful };
+            _logger.Info("Successfully Deleted a User Device Token");
+            return new BaseResponse<string>(ResponseMessage.SuccessMessage000, ResponseMessage.DeviceTokenDeleted);
         }
 
         /// <summary>
@@ -78,46 +76,45 @@ namespace Optima.Services.Implementation
         /// <returns>Task&lt;ResultModel&lt;System.String&gt;&gt;.</returns>
         public async Task<BaseResponse<string>> RegisterForPush(DeviceDTO model)
         {
-            var result = new BaseResponse<string>();
 
             var user = await _userManager.FindByIdAsync(model.UserId.ToString());
 
             if (user is null)
             {
-                result.ResponseMessage = "User doesn't exists";
-                result.Errors = new List<string> { "User doesn't exists" };
-                result.Status = RequestExecution.Failed;
-                return result;
+                Errors.Add(ResponseMessage.ErrorMessage000);
+                return new BaseResponse<string>(ResponseMessage.ErrorMessage000, Errors);
             };
 
            
-            var deviceExist = _context.UserDevices.FirstOrDefault(x => x.Token == model.Token);
+            var deviceTokens = _context.UserDevices.Where(x => x.Token == model.Token).ToList();
 
-            if (deviceExist != null)
+            foreach (var deviceToken in deviceTokens)
             {
-                deviceExist.UserId = user.Id;
-                _context.Update(deviceExist);
-                await _context.SaveChangesAsync();
+                if (deviceToken != null)
+                {
+                    deviceToken.UserId = user.Id;
+                    _context.Update(deviceToken);
+                    await _context.SaveChangesAsync();
+                    _logger.Info("Updated a User device token... at Execution:RegisterForPush");
 
-                result.Data = "Sucesss";
-                result.ResponseMessage = "Success";
-                result.Status = RequestExecution.Successful;
-                return result;
-
+                }
             }
 
-            var newDevice = new UserDevice
+            if (!deviceTokens.Any())
             {
-                Token = model.Token,
-                UserId = model.UserId,
-                CreatedOn = DateTime.UtcNow,
-            };
+                var newDevice = new UserDevice
+                {
+                    Token = model.Token,
+                    UserId = model.UserId,
+                    CreatedOn = DateTime.UtcNow,
+                };
 
-            _context.UserDevices.Add(newDevice);
-            await _context.SaveChangesAsync();
+                _context.UserDevices.Add(newDevice);
+                await _context.SaveChangesAsync();
+                _logger.Info("Added a User Device Token... at Execution:RegisterForPush");
+            }
 
-            result.Data = "ADDED SUCCESSFULLY!";
-            return result;
+            return new BaseResponse<string>(ResponseMessage.SuccessMessage000, ResponseMessage.DeviceTokenCreated);
         }
 
         /// <summary>
@@ -164,13 +161,13 @@ namespace Optima.Services.Implementation
             if (response.IsSuccess)
             {
                 response.IsSuccess = true;
-                response.Message = "Notification sent successfully";
+                response.Message = ResponseMessage.NotificationSent;
                 return response;
             }
             else
             {
                 response.IsSuccess = false;
-                response.Message = "Failed to send Notification";
+                response.Message = ResponseMessage.NotificationNotSent;
                 return response;
             }
         }
@@ -223,13 +220,15 @@ namespace Optima.Services.Implementation
             if (fcmSendResponse.IsSuccess())
             {
                 response.IsSuccess = true;
-                response.Message = "Notification sent successfully";
+                response.Message = ResponseMessage.NotificationSent;
+                _logger.Info("Sent Push Notification.. at Execution:SendPushNotification");
                 return response;
             }
             else
             {
                 response.IsSuccess = false;
                 response.Message = fcmSendResponse.Results[0].Error;
+                _logger.Info("Failed to Send Push Notification.. at Execution:SendPushNotification");
                 return response;
             }
 

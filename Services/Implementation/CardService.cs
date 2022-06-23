@@ -1,8 +1,6 @@
 ﻿using AzureRays.Shared.ViewModels;
 using log4net;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Optima.Context;
 using Optima.Models.Constant;
 using Optima.Models.DTO.CardDTO;
@@ -23,16 +21,14 @@ namespace Optima.Services.Implementation
     public class CardService : BaseService, ICardService
     {
         private readonly ApplicationDbContext _dbContext;
-        private readonly IConfiguration _configuration;
         private readonly ICloudinaryServices _cloudinaryServices;
         private readonly ILog _logger;
 
 
-        public CardService(ApplicationDbContext dbContext, IConfiguration configuration,
+        public CardService(ApplicationDbContext dbContext,
             ICloudinaryServices cloudinaryServices)
         {
             _dbContext = dbContext;
-            _configuration = configuration;
             _cloudinaryServices = cloudinaryServices;
             _logger = LogManager.GetLogger(typeof(ICardService));
         }
@@ -67,20 +63,22 @@ namespace Optima.Services.Implementation
                 {
                     Errors.Add(ResponseMessage.CardExist);
                     return new BaseResponse<CreatedCardDTO>(ResponseMessage.CardExist, Errors);
-                }                               
+                }
 
                 //Upload to Cloudinary
+                _logger.Info("Uploading Image to Cloudinary... at ExecutionPoint:CreateCard");
                 var (uploadedFile, hasUploadError, responseMessage) = 
                     await _cloudinaryServices.UploadImage(model.Logo);
                 //Set this Property to delete uploaded cloudinary file if an exception occur
                 uploadedFileToDelete = uploadedFile;
+                _logger.Info("Successfully Uploaded to Cloudinary... at ExecutionPoint:CreateCard");
 
                 // if error occured while uploading image to cloudinary
-                if(hasUploadError == true)
+                /*if(hasUploadError == true)
                 {
                     Errors.Add(ResponseMessage.ErrorMessage999);
                     return new BaseResponse<CreatedCardDTO>(ResponseMessage.ErrorMessage999, Errors);
-                }
+                }*/
 
                 var newCard = new Card()
                 {
@@ -96,10 +94,9 @@ namespace Optima.Services.Implementation
 
                 await _dbContext.Cards.AddAsync(newCard);
 
-                _logger.Info("About to save Card and CardsType...");
+                _logger.Info("About to save Card and CardsType... at ExecutionPoint:CreateCard");
                 await _dbContext.SaveChangesAsync();
-
-                _logger.Info("Saved Card and CardsType...");
+                _logger.Info("Saved Card and CardsType... at ExecutionPoint:CreateCard");
 
                 var data = new CreatedCardDTO { Id = newCard.Id, Name = newCard.Name };
 
@@ -131,6 +128,7 @@ namespace Optima.Services.Implementation
 
             if (card is null)
             {
+                Errors.Add(ResponseMessage.CardNotFound);
                 return new BaseResponse<bool>(ResponseMessage.CardNotFound, Errors);
             }
 
@@ -160,43 +158,17 @@ namespace Optima.Services.Implementation
                 return new BaseResponse<bool>(ResponseMessage.CardTypeDenominationNotFound, Errors);
             }
 
-            CreateNormalCardTypeDenomination(model.CardConfigDTO, UserId);
-            #region
-
-            ////Add CardType Denomination
-            //var cardTypeDenominations = new List<CardTypeDenomination>();
-            //foreach (var cardConfig in model.CardConfigDTO)
-            //{
-
-            //    cardTypeDenominations.Add(new CardTypeDenomination
-            //    {
-            //        CardTypeId = cardConfig.CardTypeId,
-            //        DenominationId = cardConfig.DenominationId,
-            //        Rate = cardConfig.Rate,
-            //        CreatedBy = UserId,
-            //    });
-
-            //}
-
-
-            //_dbContext.CardTypeDenomination.AddRange(cardTypeDenominations);
-
-            ////Update CardTypes Status
-            //var cardTypes = await _dbContext.CardTypes.Where(x => model.CardConfigDTO.Select(x => x.CardTypeId).Contains(x.Id)).ToListAsync();
-
-            //foreach (var cardType in cardTypes)
-            //{
-            //    cardType.CardStatus = CardStatus.Approved;
-            //}
-
-
-            //await _dbContext.SaveChangesAsync();
-
-            #endregion
-
+            await CreateNormalCardTypeDenomination(model.CardConfigDTO, UserId);
+           
             return new BaseResponse<bool>(true, ResponseMessage.CardConfigSuccess);
         }
 
+        /// <summary>
+        /// CREATE NORMAL CARD TYPE DENOMINATION
+        /// </summary>
+        /// <param name="CardConfigDTO">The model.</param>
+        /// <param name="UserId">The UserId.</param>
+        /// <returns>System.Threadings.Tasks.Task</returns>
         private async Task CreateNormalCardTypeDenomination(List<CardConfigDTO> CardConfigDTO, Guid UserId)
         {
             var cardTypeDenominations = new List<CardTypeDenomination>();
@@ -221,12 +193,9 @@ namespace Optima.Services.Implementation
 
             cardTypes.ForEach(x => x.CardStatus = CardStatus.Approved);
 
-            //foreach (var cardType in cardTypes)
-            //{
-            //    cardType.CardStatus = CardStatus.Approved;
-            //}
-
+            _logger.Info("About to Save CardType Denomination For NormalCard Config... at ExecutionPoint:ConfigureNormalCard");
             await _dbContext.SaveChangesAsync();
+            _logger.Info("Successfully Saved CardType Denomination For NormalCard Config... at ExecutionPoint:ConfigureNormalCard");
         }
 
 
@@ -287,6 +256,12 @@ namespace Optima.Services.Implementation
             return new BaseResponse<bool>(true, ResponseMessage.CardConfigSuccess);
         }
 
+        /// <summary>
+        /// CONFIGURE CREATE RECEIPT CARD TYPE
+        /// </summary>
+        /// <param name="ReceiptTypeCardConfigDTO">The model.</param>
+        /// <param name="UserId">The UserId.</param>
+        /// <returns>System.Threading.Tasks.Task</returns>
         private async Task CreateReceiptTypeDenomination(List<ReceiptTypeCardConfigDTO> ReceiptTypeCardConfigDTO, Guid UserId)
         {
             //Add CardType Denomination
@@ -308,13 +283,11 @@ namespace Optima.Services.Implementation
             //Update CardTypes Status
             var cardTypes = await _dbContext.CardTypes.Where(x => ReceiptTypeCardConfigDTO.Select(x => x.CardTypeId).Contains(x.Id)).ToListAsync();
 
-            foreach (var cardType in cardTypes)
-            {
-                cardType.CardStatus = CardStatus.Approved;
-            }
+            cardTypes.ForEach(x => x.CardStatus = CardStatus.Approved);
 
-
+            _logger.Info("About to Save CardType Denomination For Create Receipt ype Card Config... at ExecutionPoint:ConfigureReceiptTypeCard");
             await _dbContext.SaveChangesAsync();
+            _logger.Info("Successfully Saved CardType Denomination For Create Receipt Type Card Config... at ExecutionPoint:ConfigureReceiptTypeCard");
         }
 
 
@@ -380,6 +353,12 @@ namespace Optima.Services.Implementation
             return new BaseResponse<bool>(true, ResponseMessage.CardConfigSuccess);
         }
 
+        /// <summary>
+        /// CONFIGURE CREATE VISA CARD TYPE
+        /// </summary>
+        /// <param name="VisaCardConfigDTO">The model.</param>
+        /// <param name="UserId">The UserId.</param>
+        /// <returns>Systems.Threadings.Tasks.Task</returns>
         private async Task CreateVisaDenomination(List<VisaCardConfigDTO> VisaCardConfigDTO, Guid UserId)
         {
             //Add CardType Denomination
@@ -403,12 +382,11 @@ namespace Optima.Services.Implementation
             //Update CardTypes Status
             var cardTypes = await _dbContext.CardTypes.Where(x => VisaCardConfigDTO.Select(x => x.CardTypeId).Contains(x.Id)).ToListAsync();
 
-            foreach (var cardType in cardTypes)
-            {
-                cardType.CardStatus = CardStatus.Approved;
-            }
+            cardTypes.ForEach(x => x.CardStatus = CardStatus.Approved);
 
+            _logger.Info("About to Save CardType Denomination For Create Visa Card Type Config... at ExecutionPoint:ConfigureVisaCard");
             await _dbContext.SaveChangesAsync();
+            _logger.Info("Successfully Saved CardType Denomination For Create Visa Card Type Config... at ExecutionPoint:ConfigureVisaCard");
         }
 
         /// <summary>
@@ -418,7 +396,6 @@ namespace Optima.Services.Implementation
         /// <returns>Task&lt;BaseResponse&lt;CardDTO&gt;&gt;.</returns>
         public async Task<BaseResponse<CardDTO>> GetCard(Guid id)
         {
-            //var response = new BaseResponse<CardDTO>();
 
             var card = await _dbContext.Cards.Where(x => x.Id == id)
                 .Include(x => x.CardType).ThenInclude(x => x.Country)
@@ -430,7 +407,7 @@ namespace Optima.Services.Implementation
             if (card is null)
             {                
                 Errors.Add(ResponseMessage.CardNotFound);
-                return new BaseResponse<CardDTO>(null, Errors);
+                return new BaseResponse<CardDTO>(ResponseMessage.CardNotFound, Errors);
             }
 
             var cardTypesDTO = card.CardType.OrderByDescending(x => x.CreatedOn).Select(x => (CardTypeDTO)x).ToList();
@@ -438,7 +415,7 @@ namespace Optima.Services.Implementation
             CardDTO cardDto = card;
             cardDto.CardTypeDTOs = cardTypesDTO;
 
-            return new BaseResponse<CardDTO>(cardDto);
+            return new BaseResponse<CardDTO>(cardDto, ResponseMessage.SuccessMessage000);
         }
 
 
@@ -464,7 +441,7 @@ namespace Optima.Services.Implementation
 
             var data = new PagedList<CardDTO>(cardsDto, model.PageIndex, model.PageSize, pagedCards.TotalItemCount);
 
-            return new BaseResponse<PagedList<CardDTO>> { Data = data, TotalCount = data.TotalItemCount, ResponseMessage = $"Found {cardsDto.Count} Card(s)." };
+            return new BaseResponse<PagedList<CardDTO>> { Data = data, TotalCount = data.TotalItemCount, ResponseMessage = $"FOUND {cardsDto.Count} CARD(s)." };
 
         }
 
@@ -496,7 +473,7 @@ namespace Optima.Services.Implementation
 
             var data = new PagedList<CardDTO>(cardsDto, model.PageIndex, model.PageSize, pagedCards.TotalItemCount);
 
-            return new BaseResponse<PagedList<CardDTO>> { Data = data, TotalCount = data.TotalItemCount, ResponseMessage = $"Found {cardsDto.Count} Card(s)." };
+            return new BaseResponse<PagedList<CardDTO>> { Data = data, TotalCount = data.TotalItemCount, ResponseMessage = $"FOUND {cardsDto.Count} CARD(s)." };
         }
 
 
@@ -529,7 +506,7 @@ namespace Optima.Services.Implementation
 
             var data = new PagedList<CardDTO>(cardsDto, model.PageIndex, model.PageSize, pagedCards.TotalItemCount);
 
-            return new BaseResponse<PagedList<CardDTO>> { Data = data, TotalCount = data.TotalItemCount, ResponseMessage = $"Found {cardsDto.Count} Card(s)." };
+            return new BaseResponse<PagedList<CardDTO>> { Data = data, TotalCount = data.TotalItemCount, ResponseMessage = $"FOUND {cardsDto.Count} CARD(s)." };
         }
 
 
@@ -544,8 +521,7 @@ namespace Optima.Services.Implementation
             var uploadedFileToDelete = string.Empty;
 
             try
-            {
-                //var response = new BaseResponse<bool>();
+            {   
                 
                 var card = await FindCard(model.Id);
 
@@ -590,23 +566,31 @@ namespace Optima.Services.Implementation
                 if (!(model.Logo is null) && !(card.LogoUrl is null))
                 {
 
+                    _logger.Info("Preparing to Delete Image From Cloudinary... at ExecutionPoint:UpdateCard");
                     var fullPath = GenerateDeleteUploadedPath(card.LogoUrl);
                     await _cloudinaryServices.DeleteImage(fullPath);
+                    _logger.Info("Successfully Deleted Image From Cloudinary... at ExecutionPoint:UpdateCard");
 
+                    _logger.Info("Uploading Image to Cloudinary... at ExecutionPoint:UpdateCard");
                     var (uploadedFile, hasUploadError, responseMessage) = await _cloudinaryServices.UploadImage(model.Logo);
+                    _logger.Info("Successfully Uploaded to Cloudinary... at ExecutionPoint:UpdateCard");
 
                     card.LogoUrl = uploadedFile;
                 }
 
                 if (!(model.Logo is null) && (card.LogoUrl is null))
                 {
+                    _logger.Info("Uploading Image to Cloudinary... at ExecutionPoint:UpdateCard");
                     var (uploadedFile, hasUploadError, responseMessage) = await _cloudinaryServices.UploadImage(model.Logo);
+                    _logger.Info("Successfully Uploaded to Cloudinary... at ExecutionPoint:UpdateCard");
 
                     card.LogoUrl = uploadedFile;
                 }
 
+                _logger.Info("About To Update Card... at Execution:UpdateCard");
                 await _dbContext.SaveChangesAsync();
-                
+                _logger.Info("Successfully Updated Card... at Execution:UpdateCard");
+
                 return new BaseResponse<bool>(true, ResponseMessage.CardUpdate);
 
             }
@@ -680,6 +664,13 @@ namespace Optima.Services.Implementation
 
             return new BaseResponse<bool>(true, ResponseMessage.CardUpdate);
         }
+
+        /// <summary>
+        /// UPDATE VISA CARD
+        /// </summary>
+        /// <param name="VisaCardUpdateConfigDTO">The VisaCardUpdateConfigDTO.</param>
+        /// <param name="UserId">The UserId.</param>
+        /// <returns>System.Threading.Tasks.Task</returns>
         private async Task UpdateVisa(List<VisaCardUpdateConfigDTO> VisaCardUpdateConfigDTO, Guid UserId)
         {
             var newCardTypeDenomination = new List<CardTypeDenomination>();
@@ -717,7 +708,10 @@ namespace Optima.Services.Implementation
             }
 
             await _dbContext.CardTypeDenomination.AddRangeAsync(newCardTypeDenomination);
+
+            _logger.Info("About to Save CardType Denomination For Update Visa Card Type Config... at ExecutionPoint:UpdateVisa");
             await _dbContext.SaveChangesAsync();
+            _logger.Info("Successfully Saved CardType Denomination For Update Visa Card Type Config... at ExecutionPoint:UpdateVisa");
         }
 
         /// <summary>
@@ -779,6 +773,12 @@ namespace Optima.Services.Implementation
             return new BaseResponse<bool>(true, ResponseMessage.CardUpdate);
         }
 
+        /// <summary>
+        /// UPDATE VISA CARD
+        /// </summary>
+        /// <param name="ReceiptTypeUpdateCardConfigDTO">The ReceiptTypeUpdateCardConfigDTO.</param>
+        /// <param name="UserId">The UserId.</param>
+        /// <returns>System.Threading.Tasks.Task</returns>
         private async Task UpdateReceiptType(List<ReceiptTypeUpdateConfigDTO> ReceiptTypeUpdateCardConfigDTO, Guid UserId)
         {
             var newCardTypeDenomination = new List<CardTypeDenomination>();
@@ -816,7 +816,10 @@ namespace Optima.Services.Implementation
             }
 
             await _dbContext.CardTypeDenomination.AddRangeAsync(newCardTypeDenomination);
+
+            _logger.Info("About to Save CardType Denomination For Update Receipt Card Type Config... at ExecutionPoint:UpdateReceiptType");
             await _dbContext.SaveChangesAsync();
+            _logger.Info("Successfully Saved CardType Denomination For Update Receipt Card Type Config... at ExecutionPoint:UpdateReceiptType");
         }
 
 
@@ -869,6 +872,12 @@ namespace Optima.Services.Implementation
             return new BaseResponse<bool>(true, ResponseMessage.CardUpdate);
         }
 
+        /// <summary>
+        /// UPDATE NORMAL CARD
+        /// </summary>
+        /// <param name="UpdateCardConfigDTO">The UpdateCardConfigDTO.</param>
+        /// <param name="UserId">The UserId.</param>
+        /// <returns>System.Threading.Tasks.Task</returns>
         private async Task UpdateNormalCard(List<UpdateCardConfigDTO> UpdateCardConfigDTO, Guid UserId)
         {
             var newCardTypeDenomination = new List<CardTypeDenomination>();
@@ -904,7 +913,9 @@ namespace Optima.Services.Implementation
             }
 
             await _dbContext.CardTypeDenomination.AddRangeAsync(newCardTypeDenomination);
+            _logger.Info("About to Save CardType Denomination For Update Normal Card Type Config... at ExecutionPoint:UpdateNormalCard");
             await _dbContext.SaveChangesAsync();
+            _logger.Info("Successfully Saved CardType Denomination For Update Normal Card Type Config... at ExecutionPoint:UpdateNormalCard");
         }
 
 
@@ -1121,7 +1132,7 @@ namespace Optima.Services.Implementation
                 var countryCardType = cardTypes.Where(x => CountryIds.Contains(x.CountryId)).ToList();
 
                 // CHECK THE COUNTRIES RETURNED FOR THE CARDTYPE AGAINST THE NUMBER SENT
-                // IF THE COUNTRRIES RETURNED IS 2 AND THE COUNTRYIDs IS NOT EQUAL, THEN ONE ID IS WRONG
+                // IF THE COUNTRIES RETURNED IS 2 AND THE COUNTRYIDs IS NOT EQUAL, THEN ONE ID IS WRONG
                 if (countryCardType.Count != CountryIds.Count())
                 {
                     Errors.Add(ResponseMessage.CardCountryTypeNotFound);
@@ -1162,48 +1173,13 @@ namespace Optima.Services.Implementation
 
 
         /// <summary>
-        /// VALIDATE FILE
-        /// </summary>
-        /// <param name="id">The Id.</param>
-        /// <returns>Task&lt;Card&gt;.</returns>
-        //private BaseResponse<bool> ValidateFile(IFormFile file)
-        //{
-        //    var response = new BaseResponse<bool>();
-
-        //    if (!(file is null))
-        //    {
-        //        if (file.Length > 1024 * 1024)
-        //        {
-        //            response.ResponseMessage = "Logo file size must not exceed 1Mb";
-        //            response.Errors.Add("Logo file size must not exceed 1Mb");
-        //            response.Status = RequestExecution.Failed;
-        //            return response;
-        //        }
-
-        //        var error = ValidateFileTypeHelper.ValidateFile(new[] { "jpg", "png", "jpeg" }, file.FileName);
-
-        //        if (!error)
-        //        {
-        //            response.ResponseMessage = "Logo file type must be .jpg or .png or .jpeg";
-        //            response.Errors.Add("Logo file type must be .jpg or .png or .jpeg");
-        //            response.Status = RequestExecution.Failed;
-        //            return response;
-        //        }
-
-        //    }
-
-        //    return response;
-        //}
-
-
-        /// <summary>
         /// GENERATE DELETE UPLOADED PATH
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>BaseResponse&lt;bool&gt;.</returns>
         private string GenerateDeleteUploadedPath(string value)
         {
-            //Delete Image From Cloudinary
+            //Split Image Url From Cloudinary
             var splittedLogoUrl = value.Split("/");
 
             //get the cloudinary PublicId

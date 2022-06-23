@@ -80,5 +80,42 @@ namespace Optima.Models.Constant
         public const string SuccessMessage000 = "SUCCESSFUL";
         public const string FailureMessage000 = "FAILED";
 
+
+        public const string CardSaleCreation = "SUCCESSFULLY CREATED YOUR GIFT CARD FOR SALE";
+
+        public const string UserUpdate = "SUCCESSFULLY UPDATED YOUR INFORMATION";
+
+
+
+        public const string VisaPrefixExist = "VISA PREFIX ALREADY EXIST";
+        public const string VisaPrefixCreation = "VISA PREFIX CREATED SUCCESSFULLY";
+        public const string VisaPrefixNotFound = "VISA PREFIX DOESN'T EXIST";
+        public const string CannotDeleteVisaPrefix = "CANNOT DELETE VISA PREFIX";
+        public const string DeleteVisaPrefix = "VISA PREFIX DELETED SUCCCESSFULLY";
+
+
+        public const string UserCardTransactionNotFound = "CARD TRANSACTION DOESN'T EXISTS FOR THIS USER";
+        public const string CardTransactionNotFound = "CARD TRANSACTION NOT FOUND";
+        public const string CardSoldNotFound = "CARD SOLD NOT FOUND";
+        public const string CardCodesNotFound = "CARD CODE(s) DOESN'T EXISTS FOR THIS CARD TRANSACTION";
+        public const string CardCodeUpdate = "SUCCESSFULLY UPDATED THE CARD CODES";
+        public const string CardTransactionUpdate = "SUCCESSFULLY UPDATED THE CARD TRANSACTION";
+
+
+        public const string ReceiptExist = "RECEIPT TYPE ALREADY EXIST";
+        public const string ReceiptCreated = "SUCCESSFULLY CREATED THE RECEIPT TYPE";
+        public const string ReceiptNotFound = "RECEIPT TYPE NOT FOUND";
+        public const string ReceiptDeleted = "RECEIPT TYPE DELETED SUCCESSFULLY";
+        public const string ReceiptUpdated = "RECEIPT TYPE UPDATED SUCCESSFULLY";
+        public const string CannotDeleteReceipt = "CANNOT DELETE RECEIPT TYPE";
+
+        public const string DeviceTokenNotFound = "DEVICE TOKEN DOESN'T EXISTS FOR THIS USER";
+        public const string DeviceTokenDeleted = "SUCCESSFULLY DELETED THE DEVICE TOKEN";
+        public const string DeviceTokenCreated = "SUCCESSFULLY CREATED THE DEVICE TOKEN";
+        public const string DeviceTokenUpdated = "SUCCESSFULLY UPDATED THE USER DEVICE TOKEN";
+        public const string NotificationSent = "NOTIFICATION SENT SUCCESSFULLY";
+        public const string NotificationNotSent = "FAILED TO SEND THE NOTIFICATION";
+
+
     }
 }

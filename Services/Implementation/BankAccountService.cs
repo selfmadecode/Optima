@@ -4,7 +4,6 @@ using Optima.Context;
 using Optima.Models.Constant;
 using Optima.Models.DTO.BankAccountDTOs;
 using Optima.Models.Entities;
-using Optima.Models.Enums;
 using Optima.Services.Interface;
 using Optima.Utilities;
 using Optima.Utilities.Helpers;
@@ -50,7 +49,7 @@ namespace Optima.Services.Implementation
 
             if (!(checkBankInfo is null))
             {
-                var message = $"AccountNumber: {checkBankInfo.AccountNumber} with AccountName: {checkBankInfo.BankName} already Exists";
+                var message = $"ACCOUNT NUMBER: {checkBankInfo.AccountNumber} WITH ACCOUNT NAME: {checkBankInfo.BankName} ALREADY EXISTS";
                 Errors.Add( message);
                 return new BaseResponse<bool>(message, Errors);
             }
@@ -62,6 +61,13 @@ namespace Optima.Services.Implementation
 
             return new BaseResponse<bool>(true, ResponseMessage.BankAccountCreated);
         }
+
+        /// <summary>
+        /// CREATES THE BANK ACCOUNT
+        /// </summary>
+        /// <param name="UserId">The UserId</param>
+        /// <param name="model">The Model</param>
+        /// <returns>BankAccount</returns>
         private BankAccount CreateAccount(Guid UserId, CreateBankAccountDTO model)
         {
             return new BankAccount
@@ -166,7 +172,7 @@ namespace Optima.Services.Implementation
 
             _context.BankAccounts.Update(bankAccount);
             await _context.SaveChangesAsync();
-
+            _logger.Info("Successfully Updated a User Bank Account");
             return new BaseResponse<bool>(true, ResponseMessage.BankAccountUpdated);
         }
 

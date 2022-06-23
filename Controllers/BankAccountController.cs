@@ -31,9 +31,7 @@ namespace Optima.Controllers
         {
             try
             {
-                var result = await _bankAccountService.CreateBankAccount(model, UserId);
-
-                return ReturnResponse(result);
+                return ReturnResponse(await _bankAccountService.CreateBankAccount(model, UserId));
             }
             catch (Exception ex)
             {
@@ -48,9 +46,7 @@ namespace Optima.Controllers
         {
             try
             {
-                var result = await _bankAccountService.GetBankAccount(id, UserId);
-
-                return ReturnResponse(result);
+               return ReturnResponse(await _bankAccountService.GetBankAccount(id, UserId));
             }
             catch (Exception ex)
             {
@@ -66,9 +62,7 @@ namespace Optima.Controllers
         {
             try
             {
-                var result = await _bankAccountService.GetUserBankAccounts(userId);
-
-                return ReturnResponse(result);
+                return ReturnResponse(await _bankAccountService.GetUserBankAccounts(userId));
             }
             catch (Exception ex)
             {
@@ -84,9 +78,7 @@ namespace Optima.Controllers
         {
             try
             {
-                var result = await _bankAccountService.UpdateBankAccount(model, UserId); 
-
-                return ReturnResponse(result);
+                return ReturnResponse(await _bankAccountService.UpdateBankAccount(model, UserId));
             }
             catch (Exception ex)
             {
@@ -101,9 +93,7 @@ namespace Optima.Controllers
         {
             try
             {
-                var result = await _bankAccountService.DeleteBankAccount(id, UserId); 
-
-                return ReturnResponse(result);
+                return ReturnResponse(await _bankAccountService.DeleteBankAccount(id, UserId));
             }
             catch (Exception ex)
             {

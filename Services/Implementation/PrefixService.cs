@@ -1,10 +1,13 @@
 ﻿
+using log4net;
 using Microsoft.EntityFrameworkCore;
 using Optima.Context;
+using Optima.Models.Constant;
 using Optima.Models.DTO.PrefixDTOs;
 using Optima.Models.Entities;
 using Optima.Models.Enums;
 using Optima.Services.Interface;
+using Optima.Utilities;
 using Optima.Utilities.Helpers;
 using System;
 using System.Collections.Generic;
@@ -13,13 +16,23 @@ using System.Threading.Tasks;
 
 namespace Optima.Services.Implementation
 {
-    public class PrefixService : IPrefixService
+    public class PrefixService : BaseService, IPrefixService
     {
+        /// <summary>
+        ///  The Application DbContext
+        /// </summary>
         private readonly ApplicationDbContext _context;
+        private readonly ILog _logger;
 
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PrefixService" /> class.
+        /// </summary>
+        /// <param name="context">The Application DbContext</param>
         public PrefixService(ApplicationDbContext context)
         {
             _context = context;
+            _logger = LogManager.GetLogger(typeof(PrefixService));
         }
 
         /// <summary>
@@ -30,17 +43,14 @@ namespace Optima.Services.Implementation
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
         public async Task<BaseResponse<bool>> CreatePrefix(CreatePrefixDTO model, Guid UserId)
         {
-            var response = new BaseResponse<bool>();
 
-            var checkPrefix = await _context.VisaPrefixes.FirstOrDefaultAsync(x => x.PrefixNumber.ToLower().Replace(" ", "") == model.PrefixNumber.ToLower().Replace(" ", ""));
+            var checkPrefix = await _context.VisaPrefixes.
+                FirstOrDefaultAsync(x => x.PrefixNumber.ToLower().Replace(" ", "") == model.PrefixNumber.ToLower().Replace(" ", ""));
 
             if (!(checkPrefix is null))
             {
-                response.Data = false;
-                response.ResponseMessage = "Visa Prefix already Exists";
-                response.Errors = new List<string> { "Visa Prefix already Exists" };
-                response.Status = RequestExecution.Error;
-                return response;
+                Errors.Add(ResponseMessage.VisaPrefixExist);
+                return new BaseResponse<bool>(ResponseMessage.VisaPrefixExist, Errors);
             }
 
             var newReceipt = new Prefix
@@ -51,10 +61,9 @@ namespace Optima.Services.Implementation
 
             await _context.VisaPrefixes.AddAsync(newReceipt);
             await _context.SaveChangesAsync();
+            _logger.Info("Successfully Created a Prefix... at ExecutionPoint:CreatePrefix");
 
-            response.Data = true;
-            response.ResponseMessage = "Visa Prefix Created Successfully";
-            return response;
+            return new BaseResponse<bool>(true, ResponseMessage.VisaPrefixCreation);
         }
 
         /// <summary>
@@ -64,36 +73,27 @@ namespace Optima.Services.Implementation
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
         public async Task<BaseResponse<bool>> DeletePrefix(Guid id)
         {
-            var response = new BaseResponse<bool>();
 
             var checkPrefix = await _context.VisaPrefixes.FirstOrDefaultAsync(x => x.Id == id);
 
             if (checkPrefix is null)
             {
-                response.Data = false;
-                response.ResponseMessage = "Visa Prefix doesn't Exists";
-                response.Errors = new List<string> { "Visa Prefix doesn't Exists" };
-                response.Status = RequestExecution.Error;
-                return response;
+                Errors.Add(ResponseMessage.VisaPrefixNotFound);
+                return new BaseResponse<bool>(ResponseMessage.VisaPrefixNotFound, Errors);
             }
 
             var _ = await _context.CardTypeDenomination.AnyAsync(x => x.PrefixId == id);
 
             if (_)
             {
-                response.Data = false;
-                response.ResponseMessage = "You cannot delete the Visa Prefix";
-                response.Errors = new List<string> { "You cannot delete the Visa Prefix" };
-                response.Status = RequestExecution.Error;
-                return response;
+                Errors.Add(ResponseMessage.CannotDeleteVisaPrefix);
+                return new BaseResponse<bool>(ResponseMessage.CannotDeleteVisaPrefix, Errors);
             }
 
             _context.VisaPrefixes.Remove(checkPrefix);
             await _context.SaveChangesAsync();
 
-            response.Data = true;
-            response.ResponseMessage = "Visa Prefix deleted Successfully";
-            return response;
+            return new BaseResponse<bool>(true, ResponseMessage.DeleteVisaPrefix);
         }
 
         /// <summary>
@@ -106,7 +106,8 @@ namespace Optima.Services.Implementation
 
             var visaPrefixsDTO = visaPrefixs.Select(x => (PrefixDTO)x).ToList();
 
-            return new BaseResponse<List<PrefixDTO>> { Data = visaPrefixsDTO, TotalCount = visaPrefixsDTO.Count, ResponseMessage = $"Found {visaPrefixsDTO.Count} Receipt Type(s)." };
+            return new BaseResponse<List<PrefixDTO>> 
+            { Data = visaPrefixsDTO, TotalCount = visaPrefixsDTO.Count, ResponseMessage = $"FOUND {visaPrefixsDTO.Count} RECEIPT TYPE(s)." };
         }
 
         /// <summary>
@@ -122,23 +123,18 @@ namespace Optima.Services.Implementation
 
             if (checkPrefix is null)
             {
-                response.Data = false;
-                response.ResponseMessage = "Visa Prefix doesn't Exists";
-                response.Errors = new List<string> { "Visa Prefix doesn't Exists" };
-                response.Status = RequestExecution.Failed;
-                return response;
+                Errors.Add(ResponseMessage.VisaPrefixNotFound);
+                return new BaseResponse<bool>(ResponseMessage.VisaPrefixNotFound, Errors);
             }
+
             if (model.PrefixNumber.Replace(" ", "").ToLower() != checkPrefix.PrefixNumber.Replace(" ", "").ToLower())
             {
                 var checkExistingReceipts = await _context.Receipts.AnyAsync(x => x.Name.ToLower().Replace(" ", "") == model.PrefixNumber.ToLower().Replace(" ", ""));
 
                 if (checkExistingReceipts)
                 {
-                    response.Data = false;
-                    response.ResponseMessage = "Visa Prefix already Exists";
-                    response.Errors = new List<string> { "Visa Prefix already Exists" };
-                    response.Status = RequestExecution.Error;
-                    return response;
+                    Errors.Add(ResponseMessage.VisaPrefixExist);
+                    return new BaseResponse<bool>(ResponseMessage.VisaPrefixExist, Errors);
                 }
             }
             
@@ -147,10 +143,8 @@ namespace Optima.Services.Implementation
 
             _context.VisaPrefixes.Update(checkPrefix);
             await _context.SaveChangesAsync();
-
-            response.Data = true;
-            response.ResponseMessage = "Visa Prefix Updated Successfully";
-            return response;
+            _logger.Info("Successfully Updated Prefix");
+            return new BaseResponse<bool>(true, ResponseMessage.DeleteVisaPrefix);
         }
     }
 }
