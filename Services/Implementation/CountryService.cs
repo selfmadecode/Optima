@@ -18,7 +18,7 @@ using System.Threading.Tasks;
 
 namespace Optima.Services.Implementation
 {
-    public class CountryService : ICountryService
+    public class CountryService : BaseService, ICountryService
     {
         private readonly ApplicationDbContext _context;
         private readonly IConfiguration _configuration;
@@ -43,31 +43,23 @@ namespace Optima.Services.Implementation
         {
             var uploadedFileToDelete = string.Empty;
 
+            var result = ValidateFile(model.Logo);
+
+            if (result.Errors.Any())
+            {
+                return new BaseResponse<bool>(result.ResponseMessage, result.Errors);
+            }
+
             try
             {
-                var response = new BaseResponse<bool>();
-
                 var checkCountry = await _context.Countries
                     .FirstOrDefaultAsync(x => x.Name.Replace(" ", "").ToLower() == model.CountryName.Replace(" ", "").ToLower());
+                
                 if (!(checkCountry is null))
                 {
-                    response.Data = false;
-                    response.ResponseMessage = "Country already Exists.";
-                    response.Errors.Add("Country already Exists.");
-                    response.Status = RequestExecution.Failed;
-                    return response;
-                }
-
-                var result = ValidateFile(model.Logo);
-
-                if (result.Errors.Any())
-                {
-                    response.ResponseMessage = result.ResponseMessage;
-                    response.Errors = result.Errors;
-                    response.Status = RequestExecution.Failed;
-                    return response;
-                }
-
+                    Errors.Add("Country already Exists.");
+                    return new BaseResponse<bool>("Country already Exists.", Errors);
+                }                
 
                 //Upload to Cloudinary
                 var (uploadedFile, hasUploadError, responseMessage) = await _cloudinaryServices.UploadImage(model.Logo);
@@ -84,11 +76,7 @@ namespace Optima.Services.Implementation
                 _context.Countries.Add(newCountry);
                 await _context.SaveChangesAsync();
 
-                response.Data = true;
-                response.Status = RequestExecution.Successful;
-                response.ResponseMessage = $"Successfully Created the Country.";
-                return response;
-
+                return new BaseResponse<bool>(true, "Successfully Created the Country.");
             }
             catch (Exception ex)
             {
@@ -96,8 +84,7 @@ namespace Optima.Services.Implementation
                 _logger.Error(ex.Message, ex);
 
                 return new BaseResponse<bool>();
-            }
-           
+            }           
         }
 
         /// <summary>
@@ -107,39 +94,26 @@ namespace Optima.Services.Implementation
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
         public async Task<BaseResponse<bool>> DeleteCountry(Guid id)
         {
-            var response = new BaseResponse<bool>();
-
             var country = await _context.Countries.FirstOrDefaultAsync(x => x.Id == id);
 
             if (country is null)
             {
-                response.Data = false;
-                response.ResponseMessage = "Country doesn't Exists.";
-                response.Errors.Add("Country doesn't Exists.");
-                response.Status = RequestExecution.Failed;
-                return response;
+                return new BaseResponse<bool>("Country doesn't Exists.", Errors);
             }
 
             var _ = await _context.CardTypes.AnyAsync(x => x.CountryId == id);
-            if (_)
-            {
-                response.Data = false;
-                response.ResponseMessage = "You cannot delete this country.";
-                response.Errors = new List<string> { "You cannot delete this country." };
-                response.Status = RequestExecution.Failed;
-                return response;
-            }
+
+            if (_)                            
+                return new BaseResponse<bool>("You cannot delete this country.", Errors);
+            
 
             _context.Remove(country);
             await _context.SaveChangesAsync();
 
             var fullPath = GenerateDeleteUploadedPath(country.LogoUrl);
-            _cloudinaryServices.DeleteImage(fullPath);
+            await _cloudinaryServices.DeleteImage(fullPath);
 
-            response.Data = true;
-            response.ResponseMessage = "Successfully deleted the Country";
-            response.Status = RequestExecution.Successful;
-            return response;
+            return new BaseResponse<bool>(true, "Successfully deleted the Country");
         }
 
         /// <summary>
@@ -180,27 +154,16 @@ namespace Optima.Services.Implementation
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
         public async Task<BaseResponse<CountryDTO>> GetCountry(Guid id) 
         {
-            var response = new BaseResponse<CountryDTO>();
-
             var country = await _context.Countries.FirstOrDefaultAsync(x => x.Id == id);
 
             if (country is null)
             {
-                response.Data = null;
-                response.ResponseMessage = "Country doesn't Exists.";
-                response.Errors.Add("Country doesn't Exists.");
-                response.Status = RequestExecution.Failed;
-                return response;
+                return new BaseResponse<CountryDTO>("Country doesn't Exists.", Errors);
             }
 
             CountryDTO countryDTO = country;
 
-
-            response.Data = countryDTO;
-            response.ResponseMessage = "Successfully Found the Country.";
-            response.Status = RequestExecution.Successful;
-            return response;
-
+            return new BaseResponse<CountryDTO>(countryDTO);
         }
 
         /// <summary>
@@ -214,27 +177,20 @@ namespace Optima.Services.Implementation
 
             try
             {
-                var response = new BaseResponse<bool>();
+                //var response = new BaseResponse<bool>();
 
                 var result = ValidateFile(model.Logo);
 
                 if (result.Errors.Any())
                 {
-                    response.ResponseMessage = result.ResponseMessage;
-                    response.Errors = result.Errors;
-                    response.Status = RequestExecution.Failed;
-                    return response;
+                    return new BaseResponse<bool>(result.ResponseMessage, result.Errors);
                 }
 
                 var country = await _context.Countries.FirstOrDefaultAsync(x => x.Id == model.Id);
 
                 if (country is null)
                 {
-                    response.Data = false;
-                    response.ResponseMessage = "Country doesn't Exists.";
-                    response.Errors.Add("Country doesn't Exists.");
-                    response.Status = RequestExecution.Failed;
-                    return response;
+                    return new BaseResponse<bool>("Country doesn't Exists.", Errors);
                 }
 
                 if (model.Name.Replace(" ", "").ToLower() != country.Name.Replace(" ", "").ToLower())
@@ -243,11 +199,8 @@ namespace Optima.Services.Implementation
 
                     if (checkExistingCountries)
                     {
-                        response.Data = false;
-                        response.ResponseMessage = "Country already Exists.";
-                        response.Errors.Add("Country already Exists.");
-                        response.Status = RequestExecution.Failed;
-                        return response;
+                        Errors.Add("Country already Exists.");
+                        return new BaseResponse<bool>("Country already Exists.", Errors);
                     }
                 }
 
@@ -285,12 +238,9 @@ namespace Optima.Services.Implementation
                 _context.Countries.Update(country);
 
 
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync();                             
 
-                response.Data = true;
-                response.ResponseMessage = "Country Updated Successfully";
-                response.Status = RequestExecution.Successful;
-                return response;
+                return new BaseResponse<bool>("Country Updated Successfully");
             }
             catch (Exception ex)
             {
