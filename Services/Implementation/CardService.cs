@@ -53,7 +53,7 @@ namespace Optima.Services.Implementation
 
                 if (countryValidation.Errors.Any())
                 {
-                    return new BaseResponse<CreatedCardDTO>(ResponseMessage.CardCreationFailure, countryValidation.Errors);
+                    return new BaseResponse<CreatedCardDTO>(countryValidation.ResponseMessage, countryValidation.Errors);
                 }
 
                 var card = _dbContext.Cards
@@ -68,17 +68,22 @@ namespace Optima.Services.Implementation
                 //Upload to Cloudinary
                 _logger.Info("Uploading Image to Cloudinary... at ExecutionPoint:CreateCard");
                 var (uploadedFile, hasUploadError, responseMessage) = 
-                    await _cloudinaryServices.UploadImage(model.Logo);
+                    _cloudinaryServices.UploadImage(model.Logo).Result;
+
                 //Set this Property to delete uploaded cloudinary file if an exception occur
                 uploadedFileToDelete = uploadedFile;
-                _logger.Info("Successfully Uploaded to Cloudinary... at ExecutionPoint:CreateCard");
 
                 // if error occured while uploading image to cloudinary
-                /*if(hasUploadError == true)
+                if (hasUploadError == true)
                 {
+                    _logger.Info("Error uploading file to Cloudinary... at ExecutionPoint:CreateCard");
+
                     Errors.Add(ResponseMessage.ErrorMessage999);
                     return new BaseResponse<CreatedCardDTO>(ResponseMessage.ErrorMessage999, Errors);
-                }*/
+                }
+
+                _logger.Info("Successfully Uploaded to Cloudinary... at ExecutionPoint:CreateCard");
+
 
                 var newCard = new Card()
                 {
@@ -299,8 +304,6 @@ namespace Optima.Services.Implementation
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
         public async Task<BaseResponse<bool>> ConfigureVisaCard(ConfigureVisaCardDTO model, Guid UserId)
         {
-            var response = new BaseResponse<bool>();
-
             var card = await FindCard(model.CardId);
 
             if (card is null)
@@ -1080,8 +1083,7 @@ namespace Optima.Services.Implementation
                 .Where(x => countryIds.Contains(x.Id))
                 .ToListAsync().Result.Select(x => x.Id);
 
-
-            if (countryIds.Count != countries.Distinct().Count())
+            if (countryIds.Count != countries.Count())
             {
                 Errors.Add(ResponseMessage.CountryNotDistinct);
                 return new BaseResponse<ValidateCountryDTO>(ResponseMessage.CountryNotDistinct, Errors);
@@ -1107,6 +1109,12 @@ namespace Optima.Services.Implementation
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
         private async Task<BaseResponse<bool>> ValidateCardConfig(Guid CardId, List<Guid> CountryIds, List<Guid> CardTypeIds)
         {
+            if (CountryIds == null || CountryIds == null || CardTypeIds == null)
+            {
+                Errors.Add("DATA CANNOT BE NULL");
+                return new BaseResponse<bool>("DATA CANNOT BE NULL", Errors);
+            }
+
             var card = await _dbContext.Cards
                 .Include(x => x.CardType)
                 .Where(x => x.Id == CardId)
@@ -1115,30 +1123,23 @@ namespace Optima.Services.Implementation
             // RETURNS THE CARD TYPES FOR THIS CARD WHERE THE ID EXISTS FOR THE SPECIFIED CARD
             var cardTypes = card.CardType.Where(x => CardTypeIds.Contains(x.Id)).ToList();
 
-            if (CountryIds != null && CardTypeIds != null)
+            // IF THE COUNT OF CARDTYPE RETURNED IS NOT EQUAL TO THE CARDTYPEIDs RETURNED
+            // THEN ONE ID IS WRONG
+            if (cardTypes.Count != CardTypeIds.Count())
             {
-                // IF THE COUNT OF CARDTYPE RETURNED IS NOT EQUAL TO THE CARDTYPEIDs RETURNED
-                // THEN ONE ID IS WRONG
-                if (cardTypes.Count != CardTypeIds.Count())
-                {
-                    Errors.Add(ResponseMessage.CardTypeNotFound);
-                    return new BaseResponse<bool>(ResponseMessage.CardTypeNotFound, Errors);
-                }
+                Errors.Add(ResponseMessage.CardTypeNotFound);
+                return new BaseResponse<bool>(ResponseMessage.CardTypeNotFound, Errors);
             }
 
 
-            if (CardTypeIds != null && CountryIds != null)
+            var countryCardType = cardTypes.Where(x => CountryIds.Contains(x.CountryId)).ToList();
+
+            // CHECK THE COUNTRIES RETURNED FOR THE CARDTYPE AGAINST THE NUMBER SENT
+            // IF THE COUNTRIES RETURNED IS 2 AND THE COUNTRYIDs IS NOT EQUAL, THEN ONE ID IS WRONG
+            if (countryCardType.Count != CountryIds.Distinct().Count())
             {
-                var countryCardType = cardTypes.Where(x => CountryIds.Contains(x.CountryId)).ToList();
-
-                // CHECK THE COUNTRIES RETURNED FOR THE CARDTYPE AGAINST THE NUMBER SENT
-                // IF THE COUNTRIES RETURNED IS 2 AND THE COUNTRYIDs IS NOT EQUAL, THEN ONE ID IS WRONG
-                if (countryCardType.Count != CountryIds.Count())
-                {
-                    Errors.Add(ResponseMessage.CardCountryTypeNotFound);
-                    return new BaseResponse<bool>(ResponseMessage.CardCountryTypeNotFound, Errors);
-
-                }
+                Errors.Add(ResponseMessage.CardCountryTypeNotFound);
+                return new BaseResponse<bool>(ResponseMessage.CardCountryTypeNotFound, Errors);
             }
 
             return new BaseResponse<bool>();

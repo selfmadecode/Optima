@@ -43,7 +43,7 @@ namespace Optima.Models.Constant
         public const string CardCreation = "GIFT CARD CREATED SUCCESSFULLY";
         public const string CardUpdate = "GIFT CARD UPDATED SUCCESSFULLY";
         public const string CardNotFound = "GIFT CARD NOT FOUND";
-        public const string CardTypeNotFound = "CARDTYPE NOT FOUND FOR THIS CARD";
+        public const string CardTypeNotFound = "ONE OR MORE CARDTYPE NOT FOUND FOR THIS CARD";
         public const string CardCountryTypeNotFound = "SAME COUNTRY SELECTED FOR THIS CARDTYPE OR COUNTRY NOT FOUND";
         public const string CardTypeConfigured = "CARDTYPE HAS ALREADY BEEN CONFIGURED";
         public const string CardTypeDenominationNotFound = "DENOMINATION(s) DOES NOT EXIST";
