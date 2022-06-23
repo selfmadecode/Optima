@@ -22,7 +22,6 @@ namespace Optima.Models.Constant
 
         public const string RefreshTokenFailure = "USER NOT FOUND";
 
-
         public const string TermsAndConditionUpdate = "TERMS AND CONDITION UPDATED SUCCESSFULLY";
         public const string AcceptedTermsAndCondition = "TERMS ACCEPTED SUCCESSFULLY";
 
@@ -32,9 +31,13 @@ namespace Optima.Models.Constant
         public const string BankAccountDeleted = "BANK ACCOUNT DELETED SUCCESSFULLY";
         public const string BankAccountUpdated = "BANK ACCOUNT UPDATED SUCCESSFULLY";
 
-        public const string CardCreationFailure = "GIFT CARD CREATION FAILED";
         public const string CountryNotFound = "COUNTRY NOT FOUND";
+        public const string CountryCreated = "COUNTRY CREATED SUCCESSFULLY";
         public const string CountryNotDistinct = "SAME COUNTRY SELECTED MORE THAN ONCE OR COUNTRY NOT FOUND";
+        public const string CountryAlreadyExist = "COUNTRY ALREADY EXIST";
+        public const string CountryDoesNotExist = "COUNTRY DOES NOT EXIST";
+        public const string CountryCannotBeDeleted = "COUNTRY CANNOT BE DELETED";
+        public const string CountryDeleted = "COUNTRY DELETED SUCCESSFULLY";
 
         public const string CardExist = "GIFT CARD WITH SAME NAME ALREADY EXIST";
         public const string CardCreation = "GIFT CARD CREATED SUCCESSFULLY";
@@ -48,6 +51,8 @@ namespace Optima.Models.Constant
         public const string CardReceiptNotFound = "RECEIPT DOES NOT FOUND";
         public const string CannotDeleteCard = "CANNOT DELETE CARD";
         public const string DeleteCardType = "CARDTYPE DELETED SUCCESSFULLY";
+        public const string CardCreationFailure = "GIFT CARD CREATION FAILED";
+
 
         public const string MinAmountError = "MINIMUM WITHDRAWAL IS 500";
         public const string InsufficientError = "INSUFFICIENT FUNDS!";

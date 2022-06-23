@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Optima.Context;
+using Optima.Models.Constant;
 using Optima.Models.DTO.CountryDTOs;
 using Optima.Models.Entities;
 using Optima.Models.Enums;
@@ -57,8 +58,8 @@ namespace Optima.Services.Implementation
                 
                 if (!(checkCountry is null))
                 {
-                    Errors.Add("Country already Exists.");
-                    return new BaseResponse<bool>("Country already Exists.", Errors);
+                    Errors.Add(ResponseMessage.CountryAlreadyExist);
+                    return new BaseResponse<bool>(ResponseMessage.CountryAlreadyExist, Errors);
                 }                
 
                 //Upload to Cloudinary
@@ -76,7 +77,7 @@ namespace Optima.Services.Implementation
                 _context.Countries.Add(newCountry);
                 await _context.SaveChangesAsync();
 
-                return new BaseResponse<bool>(true, "Successfully Created the Country.");
+                return new BaseResponse<bool>(true, ResponseMessage.CountryCreated);
             }
             catch (Exception ex)
             {
@@ -98,13 +99,13 @@ namespace Optima.Services.Implementation
 
             if (country is null)
             {
-                return new BaseResponse<bool>("Country doesn't Exists.", Errors);
+                return new BaseResponse<bool>(ResponseMessage.CountryDoesNotExist, Errors);
             }
 
             var _ = await _context.CardTypes.AnyAsync(x => x.CountryId == id);
 
             if (_)                            
-                return new BaseResponse<bool>("You cannot delete this country.", Errors);
+                return new BaseResponse<bool>(ResponseMessage.CountryCannotBeDeleted, Errors);
             
 
             _context.Remove(country);
@@ -113,7 +114,7 @@ namespace Optima.Services.Implementation
             var fullPath = GenerateDeleteUploadedPath(country.LogoUrl);
             await _cloudinaryServices.DeleteImage(fullPath);
 
-            return new BaseResponse<bool>(true, "Successfully deleted the Country");
+            return new BaseResponse<bool>(true, ResponseMessage.CountryDeleted);
         }
 
         /// <summary>
@@ -158,7 +159,7 @@ namespace Optima.Services.Implementation
 
             if (country is null)
             {
-                return new BaseResponse<CountryDTO>("Country doesn't Exists.", Errors);
+                return new BaseResponse<CountryDTO>(ResponseMessage.CountryNotFound, Errors);
             }
 
             CountryDTO countryDTO = country;
@@ -177,8 +178,6 @@ namespace Optima.Services.Implementation
 
             try
             {
-                //var response = new BaseResponse<bool>();
-
                 var result = ValidateFile(model.Logo);
 
                 if (result.Errors.Any())
@@ -190,7 +189,7 @@ namespace Optima.Services.Implementation
 
                 if (country is null)
                 {
-                    return new BaseResponse<bool>("Country doesn't Exists.", Errors);
+                    return new BaseResponse<bool>(ResponseMessage.CountryNotFound, Errors);
                 }
 
                 if (model.Name.Replace(" ", "").ToLower() != country.Name.Replace(" ", "").ToLower())
@@ -199,8 +198,8 @@ namespace Optima.Services.Implementation
 
                     if (checkExistingCountries)
                     {
-                        Errors.Add("Country already Exists.");
-                        return new BaseResponse<bool>("Country already Exists.", Errors);
+                        Errors.Add(ResponseMessage.CountryAlreadyExist);
+                        return new BaseResponse<bool>(ResponseMessage.CountryAlreadyExist, Errors);
                     }
                 }
 
