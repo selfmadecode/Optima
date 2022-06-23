@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -14,6 +15,7 @@ using Optima.Models.DTO.NotificationDTO;
 using Optima.Models.Entities;
 using Optima.Services.Implementation;
 using Optima.Services.Interface;
+using Optima.Utilities.Policy;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -195,6 +197,11 @@ namespace Optima
 
             services.Configure<EmailLinkDTO>(options =>
              Configuration.GetSection(nameof(EmailLinkDTO)).Bind(options));
+
+
+            // Setup PolicyBase Authprization
+            services.AddSingleton<IAuthorizationPolicyProvider, AuthorizationPolicyProvider>();
+            services.AddSingleton<IAuthorizationHandler, ActionRequirementHandler>();
         }
     }
 }
