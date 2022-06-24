@@ -9,7 +9,6 @@ namespace Optima.Models.Enums
     public enum CardStatus
     {
          [Description("Pending")]Pending = 1,
-         [Description("Approved")] Active,
-         [Description("Disabled")] Disabled
+         [Description("Approved")] Active
     }
 }

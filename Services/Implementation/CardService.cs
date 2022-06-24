@@ -89,7 +89,8 @@ namespace Optima.Services.Implementation
                 {
                     Name = model.Name,
                     LogoUrl = uploadedFile,
-                    CreatedBy = UserId
+                    CreatedBy = UserId,
+                    IsActive = true
                 };
 
                 // Created E-Code and Physical Card for selected countries
