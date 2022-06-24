@@ -72,7 +72,7 @@ namespace Optima.Controllers
         }
 
 
-        [HttpPut]
+        [HttpPut("{UserId:guid}")]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
         public async Task<IActionResult> Update([FromBody]UpdateBankAccountDTO model, Guid UserId) 
         {

@@ -199,7 +199,7 @@ namespace Optima
              Configuration.GetSection(nameof(EmailLinkDTO)).Bind(options));
 
 
-            // Setup PolicyBase Authprization
+            // Setup PolicyBase Authorization
             services.AddSingleton<IAuthorizationPolicyProvider, AuthorizationPolicyProvider>();
             services.AddSingleton<IAuthorizationHandler, ActionRequirementHandler>();
         }

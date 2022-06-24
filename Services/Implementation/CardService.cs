@@ -196,7 +196,7 @@ namespace Optima.Services.Implementation
             var cardTypes = await _dbContext.CardTypes
                 .Where(x => CardConfigDTO.Select(x => x.CardTypeId).Contains(x.Id)).ToListAsync();
 
-            cardTypes.ForEach(x => x.CardStatus = CardStatus.Approved);
+            cardTypes.ForEach(x => x.CardStatus = CardStatus.Active);
 
             _logger.Info("About to Save CardType Denomination For NormalCard Config... at ExecutionPoint:ConfigureNormalCard");
             await _dbContext.SaveChangesAsync();
@@ -288,7 +288,7 @@ namespace Optima.Services.Implementation
             //Update CardTypes Status
             var cardTypes = await _dbContext.CardTypes.Where(x => ReceiptTypeCardConfigDTO.Select(x => x.CardTypeId).Contains(x.Id)).ToListAsync();
 
-            cardTypes.ForEach(x => x.CardStatus = CardStatus.Approved);
+            cardTypes.ForEach(x => x.CardStatus = CardStatus.Active);
 
             _logger.Info("About to Save CardType Denomination For Create Receipt ype Card Config... at ExecutionPoint:ConfigureReceiptTypeCard");
             await _dbContext.SaveChangesAsync();
@@ -385,7 +385,7 @@ namespace Optima.Services.Implementation
             //Update CardTypes Status
             var cardTypes = await _dbContext.CardTypes.Where(x => VisaCardConfigDTO.Select(x => x.CardTypeId).Contains(x.Id)).ToListAsync();
 
-            cardTypes.ForEach(x => x.CardStatus = CardStatus.Approved);
+            cardTypes.ForEach(x => x.CardStatus = CardStatus.Active);
 
             _logger.Info("About to Save CardType Denomination For Create Visa Card Type Config... at ExecutionPoint:ConfigureVisaCard");
             await _dbContext.SaveChangesAsync();
@@ -488,7 +488,7 @@ namespace Optima.Services.Implementation
         public async Task<BaseResponse<PagedList<CardDTO>>> GetAllApprovedCardConfig(BaseSearchViewModel model)
         {
             var cardTypes = await _dbContext.CardType
-                .Where(x => x.CardStatus == CardStatus.Approved)
+                .Where(x => x.CardStatus == CardStatus.Active)
                 .Include(x => x.Country)
                 .Include(x => x.CardTypeDenomination).ThenInclude(x => x.Prefix)
                 .Include(x => x.CardTypeDenomination).ThenInclude(x => x.Receipt)
@@ -705,7 +705,7 @@ namespace Optima.Services.Implementation
 
                     //Update CardType 
                     var cardType = await _dbContext.CardType.FirstOrDefaultAsync(x => x.Id == visaCardUpdateConfigDTO.CardTypeId);
-                    cardType.CardStatus = CardStatus.Approved;
+                    cardType.CardStatus = CardStatus.Active;
                 }
 
             }
@@ -813,7 +813,7 @@ namespace Optima.Services.Implementation
 
                     //Update CardType 
                     var cardType = await _dbContext.CardType.FirstOrDefaultAsync(x => x.Id == receiptTypeUpdateConfigDTO.CardTypeId);
-                    cardType.CardStatus = CardStatus.Approved;
+                    cardType.CardStatus = CardStatus.Active;
                 }
 
             }
@@ -910,7 +910,7 @@ namespace Optima.Services.Implementation
 
                     //Update CardType 
                     var cardType = await _dbContext.CardType.FirstOrDefaultAsync(x => x.Id == updateNormalCardConfigDTO.CardTypeId);
-                    cardType.CardStatus = CardStatus.Approved;
+                    cardType.CardStatus = CardStatus.Active;
                 }
 
             }
