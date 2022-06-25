@@ -3,6 +3,7 @@ using log4net;
 using Microsoft.EntityFrameworkCore;
 using Optima.Context;
 using Optima.Models.Constant;
+using Optima.Models.DTO.NotificationDTO;
 using Optima.Models.DTO.TransactionDTO;
 using Optima.Models.Entities;
 using Optima.Models.Enums;
@@ -20,12 +21,16 @@ namespace Optima.Services.Implementation
     public class TransactionService : BaseService, ITransactionService
     {
         private readonly ApplicationDbContext _context;
+        private readonly INotificationService _notificationService;
+        private readonly IPushNotificationService _pushNotificationService;
         private readonly ILog _logger;
 
 
-        public TransactionService(ApplicationDbContext context)
+        public TransactionService(ApplicationDbContext context, INotificationService notificationService, IPushNotificationService pushNotificationService)
         {
             _context = context;
+            _notificationService = notificationService;
+            _pushNotificationService = pushNotificationService;
             _logger = LogManager.GetLogger(typeof(TransactionService));
         }
 
@@ -36,7 +41,6 @@ namespace Optima.Services.Implementation
         /// <returns>Task&lt;BaseResponse&lt;BalanceInquiryDTO&gt;&gt;.</returns>
         public async Task<BaseResponse<BalanceInquiryDTO>> GetUserAccountBalance(Guid userId)
         {
-           // var result = new BaseResponse<BalanceInquiryDTO>();
 
             var account = await _context.WalletBalance.Include(x => x.User).FirstOrDefaultAsync(x => x.UserId == userId);
 
@@ -201,6 +205,8 @@ namespace Optima.Services.Implementation
                 return new BaseResponse<bool>(message, Errors);
             }
 
+            var findWallet = await _context.WalletBalance.FirstOrDefaultAsync(x => x.Id == creditDebit.WalletBalanceId);
+
             switch (model.CreditDebitStatus)
             {
                 case CreditDebitStatus.Approved:
@@ -208,16 +214,23 @@ namespace Optima.Services.Implementation
                         creditDebit.TransactionStatus = TransactionStatus.Approved;
                         creditDebit.ActionedByUserId = UserId;
                         creditDebit.ModifiedOn = DateTime.UtcNow;
+                        //SEND NOTIFICATIONS
+                        var data = SendPushNotification(new List<Guid> { findWallet.UserId}, "Approved");
+                        await _pushNotificationService.SendPushNotification(data);
+                        await SaveNotification(new List<Guid> { findWallet.UserId }, "Approved");
                         break;
                     } 
                     
                 case CreditDebitStatus.Declined:
                     {
-                        var findWallet = await _context.WalletBalance.FirstOrDefaultAsync(x => x.Id == creditDebit.WalletBalanceId);
                         creditDebit.TransactionStatus = TransactionStatus.Declined;
                         findWallet.Balance += creditDebit.Amount;
                         creditDebit.ActionedByUserId = UserId;
                         creditDebit.ModifiedOn = DateTime.UtcNow;
+                        //SEND NOTIFICATIONS
+                        var data = SendPushNotification(new List<Guid> { findWallet.UserId }, "Declined");
+                        await _pushNotificationService.SendPushNotification(data);
+                        await SaveNotification(new List<Guid> { findWallet.UserId }, "Declined");
                         break;
                     }
                    
@@ -272,7 +285,7 @@ namespace Optima.Services.Implementation
         /// </summary>
         /// <param name="model">The model.</param>
         /// <param name="amount">The amount.</param>
-        /// <param name="BankAccountId">the bankaccountId</param>
+        /// <param name="bankAccountId">the bankaccountId</param>
         /// <param name="UserId">the UserId</param>
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
         private async Task<BaseResponse<bool>> Withdraw(WalletBalance model, decimal amount, Guid bankAccountId, Guid UserId) 
@@ -362,6 +375,41 @@ namespace Optima.Services.Implementation
             return query;
         }
 
-        
+        /// <summary>
+        /// Sends the push notification.
+        /// </summary>
+        /// <param name="userIds">The user ids.</param>
+        /// <param name="transactionStatus">Name of the company.</param>
+        /// <returns>SendPushNotificationDTO.</returns>
+        private SendPushNotificationDTO SendPushNotification(List<Guid> userIds, string transactionStatus)
+        {
+            return new SendPushNotificationDTO
+            {
+                Title = "Debit Notification",
+                Message = $"Optima Admin has {transactionStatus} your Debit Transaction Request",
+                UserIds = userIds
+            };
+        }
+
+        /// <summary>
+        /// SAVE USER NOTIFICATION
+        /// </summary>
+        /// <param name="userIds">the userIds</param
+        /// <param name="transactionStatus">the transactionStatus</param>
+        /// <returns></returns>
+        private async Task SaveNotification(List<Guid> userIds, string transactionStatus)
+        {
+            foreach (var userId in userIds)
+            {
+                var data = new CreateNotificationDTO
+                {
+                    Type = transactionStatus is "Approved" ? NotificationType.Approved_Transaction : NotificationType.Declined_Transaction,
+                    Message = $"Optima Admin has {transactionStatus} your Debit Transaction Request",
+                };
+
+                await _notificationService.CreateNotificationForUser(data, userId);
+            };
+        }
+
     }
 }

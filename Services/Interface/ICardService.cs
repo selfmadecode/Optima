@@ -24,5 +24,8 @@ namespace Optima.Services.Interface
         Task<BaseResponse<bool>> UpdateReceiptCard(UpdateReceiptTypeConfigDTO model, Guid UserId);
         Task<BaseResponse<bool>> UpdateNormalCard(UpdateNormalCardConfigDTO model, Guid UserId);
         Task<BaseResponse<bool>> DeleteCardType(DeleteCardTypeDTO model);
+        Task<BaseResponse<bool>> CardStatusUpdate(UpdateCardStatusDTO model, Guid UserId);
+        Task<BaseResponse<PagedList<CardDTO>>> AllActiveCards(BaseSearchViewModel model);
+        Task<BaseResponse<PagedList<CardDTO>>> AllInActiveCards(BaseSearchViewModel model); 
     }
 }

@@ -25,6 +25,7 @@ namespace Optima.Controllers
             _cardService = cardService;
         }
 
+
         [HttpPost]
         //[Authorize]// ONLY Card Admin can create card
         [ProducesResponseType(typeof(BaseResponse<CreatedCardDTO>), 200)] 
@@ -37,6 +38,48 @@ namespace Optima.Controllers
             catch (Exception ex)
             {
                 return HandleError(ex); ;
+            }
+        } 
+        
+        [HttpGet]
+        [ProducesResponseType(typeof(BaseResponse<PagedList<CardDTO>>), 200)]
+        public async Task<IActionResult> AllActiveCards([FromQuery]BaseSearchViewModel model)
+        {
+            try
+            {
+                return ReturnResponse(await _cardService.AllActiveCards(model)); 
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex);
+            }
+        }
+
+        [HttpGet]
+        [ProducesResponseType(typeof(BaseResponse<PagedList<CardDTO>>), 200)]
+        public async Task<IActionResult> AllInActiveCards([FromQuery] BaseSearchViewModel model)
+        {
+            try
+            {
+                return ReturnResponse(await _cardService.AllInActiveCards(model));
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex);
+            }
+        }
+
+        [HttpPut]
+        [ProducesResponseType(typeof(BaseResponse<bool>), 200)] 
+        public async Task<IActionResult> UpdateCardStatus([FromBody]UpdateCardStatusDTO model)
+        {
+            try
+            {
+                return ReturnResponse(await _cardService.CardStatusUpdate(model, UserId)); 
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex);
             }
         }
 
@@ -52,10 +95,8 @@ namespace Optima.Controllers
             {
                 return HandleError(ex);
             }
-        }
-          
+        }       
         
-
         [HttpPost]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)] 
         public async Task<IActionResult> ReceiptType([FromBody] ConfigureReceiptTypeCardDTO model)
