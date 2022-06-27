@@ -29,7 +29,7 @@ namespace Optima.Models.DTO.UserDTOs
                    EmailAddress = model.Email,
                    FullName = model.FullName,
                    PhoneNumber = model.PhoneNumber,
-                   IsActive = model.IsAccountLocked is false ? true : false,
+                   IsActive = model.EmailConfirmed,
                    ProfilePicture = model.ProfilePicture,
                    UserType = model.UserType.GetDescription(),
                    CreatedOn = model.CreationTime,

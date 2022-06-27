@@ -38,6 +38,59 @@ namespace Optima.Services.Implementation
             _cloudinaryServices = cloudinaryServices;
         }
 
+        /// <summary>
+        /// GET ALL ACTIVE USERS
+        /// </summary>
+        /// <param name="model">The model.</param>
+        /// <returns>Task&lt;BaseResponse&lt;CardDTO&gt;&gt;.</returns>
+        public async Task<BaseResponse<PagedList<UserDTO>>> ActiveUsers(BaseSearchViewModel model)
+        {
+            var query = _userManager.Users.Where(x => x.EmailConfirmed)
+                .OrderByDescending(x => x.CreationTime)
+                .AsQueryable();
+
+            var users = await EntityFilter(query, model).ToPagedListAsync(model.PageIndex, model.PageSize);
+
+            var usersDTO = users.Select(x => (UserDTO)x).ToList();
+            var data = new PagedList<UserDTO>(usersDTO, model.PageIndex, model.PageSize, users.TotalItemCount);
+            return new BaseResponse<PagedList<UserDTO>> { Data = data, TotalCount = data.TotalItemCount, ResponseMessage = $"Found {usersDTO.Count} Users" };
+        }
+
+        /// <summary>
+        /// GET ALL DISABLED USERS
+        /// </summary>
+        /// <param name="model">The model.</param>
+        /// <returns>Task&lt;BaseResponse&lt;CardDTO&gt;&gt;.</returns>
+        public async Task<BaseResponse<PagedList<UserDTO>>> DisabledUsers(BaseSearchViewModel model)
+        {
+            var query = _userManager.Users.Where(x => x.IsAccountLocked)
+                .OrderByDescending(x => x.CreationTime)
+                .AsQueryable();
+
+            var users = await EntityFilter(query, model).ToPagedListAsync(model.PageIndex, model.PageSize);
+
+            var usersDTO = users.Select(x => (UserDTO)x).ToList();
+            var data = new PagedList<UserDTO>(usersDTO, model.PageIndex, model.PageSize, users.TotalItemCount);
+            return new BaseResponse<PagedList<UserDTO>> { Data = data, TotalCount = data.TotalItemCount, ResponseMessage = $"Found {usersDTO.Count} Users" };
+        }
+
+        /// <summary>
+        /// GET ALL INACTIVE USERS
+        /// </summary>
+        /// <param name="model">The model.</param>
+        /// <returns>Task&lt;BaseResponse&lt;CardDTO&gt;&gt;.</returns>
+        public async Task<BaseResponse<PagedList<UserDTO>>> InActiveUsers(BaseSearchViewModel model) 
+        {
+            var query = _userManager.Users.Where(x => !x.EmailConfirmed)
+                .OrderByDescending(x => x.CreationTime)
+                .AsQueryable();
+
+            var users = await EntityFilter(query, model).ToPagedListAsync(model.PageIndex, model.PageSize);
+
+            var usersDTO = users.Select(x => (UserDTO)x).ToList();
+            var data = new PagedList<UserDTO>(usersDTO, model.PageIndex, model.PageSize, users.TotalItemCount);
+            return new BaseResponse<PagedList<UserDTO>> { Data = data, TotalCount = data.TotalItemCount, ResponseMessage = $"Found {usersDTO.Count} Users" };
+        }
 
         /// <summary>
         /// GET A USER
@@ -268,7 +321,6 @@ namespace Optima.Services.Implementation
                 .Where(x => x.UserId == userId)
                 .OrderByDescending(x => x.CreatedOn)
                 .ToListAsync();
-        
-        
+      
     }
 }

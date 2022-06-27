@@ -14,7 +14,7 @@ namespace Optima.Services.Interface
 
         Task<BaseResponse<bool>> CreateNotificationForAdmin(CreateAdminNotificationDTO model);
         Task<BaseResponse<List<GetNotificationDTO>>> GetUserUnReadNotification(Guid userId);
-        Task<BaseResponse<List<GetNotificationDTO>>> GetAdminNotification(Guid UserId);
+        Task<BaseResponse<List<GetNotificationDTO>>> GetAdminNotification();
 
         Task<BaseResponse<Guid>> ReadNotification(Guid NotificationId);
         Task<BaseResponse<int>> GetUserUnreadNotificationCount(Guid UserId);

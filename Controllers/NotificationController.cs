@@ -89,7 +89,7 @@ namespace Optima.Controllers
         {
             try
             {
-                return ReturnResponse(await _notificationService.GetAdminNotification(UserId));
+                return ReturnResponse(await _notificationService.GetAdminNotification());
             }
             catch (Exception ex)
             {
