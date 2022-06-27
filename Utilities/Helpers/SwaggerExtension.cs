@@ -14,6 +14,7 @@ namespace Optima.Utilities.Helpers
             app.UseSwagger().UseSwaggerUI(c =>
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "Optima API v1");
+                //c.RoutePrefix = string.Empty;
                 c.DisplayRequestDuration();
                 c.DefaultModelsExpandDepth(-1);
                 c.DocExpansion(DocExpansion.None);

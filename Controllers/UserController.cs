@@ -28,7 +28,7 @@ namespace Optima.Controllers
 
         [HttpPut]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
-        public async Task<IActionResult> UpdateProfile([FromForm] UpdateUserDTO model)
+        public async Task<IActionResult> Profile([FromForm] UpdateUserDTO model)
         {
             try
             {
@@ -44,7 +44,7 @@ namespace Optima.Controllers
 
         [HttpGet]
         [ProducesResponseType(typeof(BaseResponse<PagedList<UserDTO>>), 200)] 
-        public async Task<IActionResult> AllUsers([FromQuery] BaseSearchViewModel model)
+        public async Task<IActionResult> Users([FromQuery] BaseSearchViewModel model)
         {
             try
             {
@@ -59,25 +59,25 @@ namespace Optima.Controllers
 
         [HttpGet("{userId}")]
         [ProducesResponseType(typeof(BaseResponse<UserDTO>), 200)]
-        public async Task<IActionResult> AUser(Guid userId)   
+        public async Task<IActionResult> Get(Guid userId)   
         {
             try
             {
-                return ReturnResponse(await _userService.AUser(userId));
+                return ReturnResponse(await _userService.UserDetails(userId));
             }
             catch (Exception ex)
             {
-                return HandleError(ex); ;
+                return HandleError(ex);
             }
         }
         
         [HttpGet("{userId}")]
         [ProducesResponseType(typeof(BaseResponse<UserDetailDTO>), 200)] 
-        public async Task<IActionResult> UserDetails(Guid userId)   
+        public async Task<IActionResult> BankAndTransactionDetails(Guid userId)   
         {
             try
             {
-                return ReturnResponse(await _userService.UserDetails(userId));
+                return ReturnResponse(await _userService.GetUserBankAndTransactionDetails(userId));
             }
             catch (Exception ex)
             {

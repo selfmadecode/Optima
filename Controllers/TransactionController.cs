@@ -57,7 +57,7 @@ namespace Optima.Controllers
 
         [HttpGet("{userId}")]
         [ProducesResponseType(typeof(BaseResponse<PagedList<TransactionDTO>>), 200)]
-        public async Task<IActionResult> UserCreditDebit([FromQuery]BaseSearchViewModel model, Guid userId) 
+        public async Task<IActionResult> CreditDebit([FromQuery]BaseSearchViewModel model, Guid userId) 
         {
             try
             {
@@ -86,7 +86,7 @@ namespace Optima.Controllers
         
         [HttpPut]
         [ProducesResponseType(typeof(BaseResponse<PagedList<TransactionDTO>>), 200)]
-        public async Task<IActionResult> UpdateDebitStatus([FromBody]UpdateDebitStatus model)
+        public async Task<IActionResult> Action([FromBody]UpdateDebitStatus model)
         {
             try
             {

@@ -44,7 +44,7 @@ namespace Optima.Services.Implementation
         /// </summary>
         /// <param name="model">The model.</param>
         /// <returns>Task&lt;BaseResponse&lt;CardDTO&gt;&gt;.</returns>
-        public async Task<BaseResponse<UserDTO>> AUser(Guid UserId)
+        public async Task<BaseResponse<UserDTO>> UserDetails(Guid UserId)
         {
 
             var user = await GetUserById(UserId);
@@ -155,7 +155,7 @@ namespace Optima.Services.Implementation
         /// </summary>
         /// <param name="UserId">the UserId</param>
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
-        public async Task<BaseResponse<UserDetailDTO>> UserDetails(Guid UserId)
+        public async Task<BaseResponse<UserDetailDTO>> GetUserBankAndTransactionDetails(Guid UserId)
         {
             var data = new UserDetailDTO();
 

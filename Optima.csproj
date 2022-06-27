@@ -4,6 +4,7 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <UserSecretsId>aspnet-Optima-94D0DFAF-DE16-4E5D-8858-C0E54891521B</UserSecretsId>
     <WebProject_DirectoryAccessLevelKey>0</WebProject_DirectoryAccessLevelKey>
+	  <AspNetCoreHostingModel>OutOfProcess</AspNetCoreHostingModel>
   </PropertyGroup>
 
   <ItemGroup>
@@ -25,8 +26,34 @@
     <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="6.3.1" />
   </ItemGroup>
 
-  <ItemGroup>
+
+	<ItemGroup>
     <Folder Include="error-logs\" />
     <Folder Include="logs\" />
+    <Folder Include="Migrations\" />
+	<Folder Include="Filestore\" />
+	<Folder Include="Filestore\EmailTemplate" />
   </ItemGroup>
+
+
+	<ItemGroup>
+	  <None Update="Filestore\EmailTemplate\AccountBlocked.html">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Filestore\EmailTemplate\AccountConfirmation.html">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Filestore\EmailTemplate\AccountUnBlocked.html">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Filestore\EmailTemplate\Confirm_email.html">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Filestore\EmailTemplate\Reset_password.html">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Filestore\EmailTemplate\Test.html">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	</ItemGroup>
 </Project>

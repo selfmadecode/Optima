@@ -13,8 +13,8 @@ namespace Optima.Services.Interface
     {
         Task<BaseResponse<bool>> UpdateProfile(UpdateUserDTO model, Guid UserId);
         Task<BaseResponse<PagedList<UserDTO>>> AllUsers(BaseSearchViewModel model);
-        Task<BaseResponse<UserDTO>> AUser(Guid UserId);
-        Task<BaseResponse<UserDetailDTO>> UserDetails(Guid UserId);
+        Task<BaseResponse<UserDTO>> UserDetails(Guid UserId);
+        Task<BaseResponse<UserDetailDTO>> GetUserBankAndTransactionDetails(Guid UserId);
 
     }
 }

@@ -39,7 +39,7 @@ namespace Optima.Controllers
 
         [HttpGet]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
-        public async Task<IActionResult> GetFilter([FromQuery] DateRangeQueryType range)
+        public async Task<IActionResult> Performance([FromQuery] DateRangeQueryType range)
         {
             try
             {
