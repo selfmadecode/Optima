@@ -1,12 +1,16 @@
 ﻿using AzureRays.Shared.ViewModels;
 using log4net;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Optima.Context;
 using Optima.Models.Constant;
 using Optima.Models.DTO.CardSaleDTO;
 using Optima.Models.DTO.CardTransactionDTOs;
+using Optima.Models.DTO.NotificationDTO;
+using Optima.Models.DTO.SignalRNotificationDTO;
 using Optima.Models.Entities;
 using Optima.Models.Enums;
 using Optima.Services.Interface;
@@ -23,15 +27,25 @@ namespace Optima.Services.Implementation
     public class CardSaleService : BaseService, ICardSaleService
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly ILog _logger;
         private readonly ICloudinaryServices _cloudinaryServices;
+        private readonly INotificationService _notificationService;
+        private readonly IHubContext<SignalRService, ISignalRService> _signalRNotificationService;
+        private readonly IPushNotificationService _pushNotificationService;
 
 
-        public CardSaleService(ApplicationDbContext context, ICloudinaryServices cloudinaryServices)
+        public CardSaleService(ApplicationDbContext context, ICloudinaryServices cloudinaryServices, 
+            INotificationService notificationService, IHubContext<SignalRService, ISignalRService> signalRNotificationService,
+             UserManager<ApplicationUser> userManager, IPushNotificationService pushNotificationService)
         {
             _context = context;
             _cloudinaryServices = cloudinaryServices;
             _logger = LogManager.GetLogger(typeof(CardSaleService));
+            _notificationService = notificationService;
+            _pushNotificationService = pushNotificationService;
+            _signalRNotificationService = signalRNotificationService;
+            _userManager = userManager;
         }
 
 
@@ -67,6 +81,14 @@ namespace Optima.Services.Implementation
                 _logger.Info("About to Save Card Transaction, Card Sold and Card Transaction Uploaded Files... at ExecutionPoint:CreateCardSales");
                 await _context.SaveChangesAsync();
                 _logger.Info("Successfully Saved Card Transaction, Card Sold and Card Transaction Uploaded Files... at ExecutionPoint:CreateCardSales");
+
+                //SIGNALR NOTIFICATION TO ADMIN
+                var user = await GetUserById(UserId);             
+                var data = CreateCardSaleNotificationDTO(user.FullName, "Card Sale");
+                await _signalRNotificationService.Clients.Users(AdminUsers().Select(x => x.ToString()).ToList()).SendCardSaleNotification(data);
+                
+                //SAVE NOTIFICATION
+                await SaveNotificationForAdmin(AdminUsers(), user.FullName);
 
                 return new BaseResponse<bool>(true, ResponseMessage.CardSaleCreation);
             }
@@ -338,6 +360,11 @@ namespace Optima.Services.Implementation
                     {
                         cardTransaction.TransactionStatus = TransactionStatus.Declined;
                         _context.CardTransactions.Update(cardTransaction);
+                        //PUSH NOTIFICATION
+                        var data = SendPushNotification(new List<Guid> { cardTransaction.ApplicationUserId }, "Declined");
+                        await _pushNotificationService.SendPushNotification(data);
+                        //SAVE NOTIFICATION
+                        await SaveNotificationForUser(new List<Guid> { cardTransaction.ApplicationUserId }, "Declined");
                         break;
                     }
                   
@@ -347,6 +374,11 @@ namespace Optima.Services.Implementation
                         _context.CardTransactions.Update(cardTransactonUpdate);
                         var creditDebit = await CreateCreditDebit(model, cardTransaction, UserId);
                         await _context.CreditDebit.AddAsync(creditDebit);
+                        //PUSH NOTIFICATION
+                        var data = SendPushNotification(new List<Guid> { cardTransaction.ApplicationUserId }, "PartialApproval");
+                        await _pushNotificationService.SendPushNotification(data);
+                        //SAVE NOTIFICATION
+                        await SaveNotificationForUser(new List<Guid> { cardTransaction.ApplicationUserId }, "PartialApproval");
                         break;
                     }
                   
@@ -356,6 +388,11 @@ namespace Optima.Services.Implementation
                         _context.CardTransactions.Update(cardTransactonUpdate);
                         var creditDebit = await CreateCreditDebit(model, cardTransaction, UserId);
                         await _context.CreditDebit.AddAsync(creditDebit);
+                        //PUSH NOTIFICATION
+                        var data = SendPushNotification(new List<Guid> { cardTransaction.ApplicationUserId }, "Approved");
+                        await _pushNotificationService.SendPushNotification(data);
+                        //SAVE NOTIFICATION
+                        await SaveNotificationForUser(new List<Guid> { cardTransaction.ApplicationUserId }, "Approved");
                         break;
                     }
                 default:
@@ -501,6 +538,117 @@ namespace Optima.Services.Implementation
             return creditDebit;
 
         }
-        
+
+        /// <summary>
+        /// SAVE USER NOTIFICATION
+        /// </summary>
+        /// <param name="userIds">the userIds</param
+        /// <param name="name">the name</param>
+        /// <returns></returns>
+        private async Task SaveNotificationForAdmin(List<Guid> userIds, string name)
+        {
+            foreach (var userId in userIds)
+            {
+                var data = new CreateAdminNotificationDTO
+                {
+                    Message = $"{name} has made a Card Sale",
+                    Type = NotificationType.Card_Sale,  
+                    UserId = userId,
+                };
+                await _notificationService.CreateNotificationForAdmin(data);
+            };
+        }
+
+        /// <summary>
+        /// GET ADMIN USERS
+        /// </summary>
+        /// <returns>List&lt;Guid&gt;</returns>
+        private List<Guid> AdminUsers() =>
+            _userManager.Users.Where(x => x.UserType != UserTypes.USER).ToListAsync().Result.Select(x => x.Id).ToList();
+
+        /// <summary>
+        /// CREATE CARD SALE NOTIFICATION
+        /// </summary>
+        /// <param name="name">the name</param>
+        /// <param name="message">the message</param>
+        /// <returns>CardSaleNotificationDTO</returns>
+        private CardSaleNotificationDTO CreateCardSaleNotificationDTO(string name, string message)
+        {
+            return new CardSaleNotificationDTO
+            {
+                Name = $"{name} has made a Card Sale",
+                Message = message
+            };
+        }
+
+        /// <summary>
+        /// GET USER BY ID
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns>Task&lt;ApplicationUser&gt;</returns>
+        private async Task<ApplicationUser> GetUserById(Guid id)
+        {
+            return await _context.Users.FirstOrDefaultAsync(x => x.Id == id);
+        }
+
+        /// <summary>
+        /// Sends the push notification.
+        /// </summary>
+        /// <param name="userIds">The user ids.</param>
+        /// <param name="transactionStatus">Name of the company.</param>
+        /// <returns>SendPushNotificationDTO.</returns>
+        private SendPushNotificationDTO SendPushNotification(List<Guid> userIds, string transactionStatus)
+        {
+            return new SendPushNotificationDTO
+            {
+                Title = "Card Transaction",
+                Message = $"Optima Admin has {transactionStatus} your Card Sale Transaction",
+                UserIds = userIds
+            };
+        }
+
+        /// <summary>
+        /// SAVE USER NOTIFICATION
+        /// </summary>
+        /// <param name="userIds">the userIds</param
+        /// <param name="transactionStatus">the transactionStatus</param>
+        /// <returns></returns>
+        private async Task SaveNotificationForUser(List<Guid> userIds, string transactionStatus)
+        {
+            foreach (var userId in userIds)
+            {
+                var data = new CreateNotificationDTO
+                {
+                    Type = GetNotificationStatus(transactionStatus),
+                    Message = $"Optima Admin has {transactionStatus} your Card Sale Transaction",
+                };
+
+                await _notificationService.CreateNotificationForUser(data, userId);
+            };
+        }
+
+        /// <summary>
+        /// GET NOTIFICATION STATUS
+        /// </summary>
+        /// <param name="notificationType">the notificationType</param>
+        /// <returns></returns>
+        private NotificationType GetNotificationStatus(string notificationType)
+        {
+            switch (notificationType)
+            {
+                case "Approved":
+                    return NotificationType.Approved_Transaction;
+                
+                case "PartialApproval":
+                    return NotificationType.Partial_Approved_Transaction; 
+
+                case "Declined":
+                    return NotificationType.Declined_Transaction;
+                  
+                default:
+                    return NotificationType.Nil;
+            }
+
+        }
     }
 }

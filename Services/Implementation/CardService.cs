@@ -34,6 +34,86 @@ namespace Optima.Services.Implementation
         }
 
 
+
+        /// <summary>
+        /// GET ALL ACTIVE CARDS
+        /// </summary>
+        /// <param name="model">The model.</param>
+        /// <returns>Task&lt;BaseResponse&lt;PagedList&lt;CardDTO&gt;&gt;&gt;.</returns>
+        public async Task<BaseResponse<PagedList<CardDTO>>> AllActiveCards(BaseSearchViewModel model)
+        {
+            var cardsQuery = _dbContext.Cards
+                .Where(x => x.IsActive).OrderByDescending(x => x.CreatedOn).AsQueryable();
+
+            var pagedCards = await EntityFilter(cardsQuery, model).ToPagedListAsync(model.PageIndex, model.PageSize);
+
+            var cardsDto = pagedCards.Select(x => (CardDTO)x).ToList();
+
+            var data = new PagedList<CardDTO>(cardsDto, model.PageIndex, model.PageSize, pagedCards.TotalItemCount);
+
+            return new BaseResponse<PagedList<CardDTO>> { Data = data, TotalCount = data.TotalItemCount, ResponseMessage = $"FOUND {cardsDto.Count} CARD(s)." };
+        }
+
+        /// <summary>
+        /// GET ALL IN ACTIVE CARDS
+        /// </summary>
+        /// <param name="model">The model.</param>
+        /// <returns>Task&lt;BaseResponse&lt;PagedList&lt;CardDTO&gt;&gt;&gt;.</returns>
+        public async Task<BaseResponse<PagedList<CardDTO>>> AllInActiveCards(BaseSearchViewModel model)
+        {
+            var cardsQuery = _dbContext.Cards
+                .Where(x => !x.IsActive).OrderByDescending(x => x.CreatedOn).AsQueryable();
+
+            var pagedCards = await EntityFilter(cardsQuery, model).ToPagedListAsync(model.PageIndex, model.PageSize);
+
+            var cardsDto = pagedCards.Select(x => (CardDTO)x).ToList();
+
+            var data = new PagedList<CardDTO>(cardsDto, model.PageIndex, model.PageSize, pagedCards.TotalItemCount);
+
+            return new BaseResponse<PagedList<CardDTO>> { Data = data, TotalCount = data.TotalItemCount, ResponseMessage = $"FOUND {cardsDto.Count} CARD(s)." };
+        }
+
+        /// <summary>
+        /// CARD STATUS UPDATE
+        /// </summary>
+        /// <param name="model">The model.</param>
+        /// <param name="UserId">The UserId.</param>
+        /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
+        public async Task<BaseResponse<bool>> CardStatusUpdate(UpdateCardStatusDTO model, Guid UserId)
+        {
+            var card = await FindCard(model.CardId);
+
+            if (card is null)
+            {
+                Errors.Add(ResponseMessage.CardNotFound);
+                return new BaseResponse<bool>(ResponseMessage.CardNotFound, Errors);
+            }
+
+            switch (model.CardStatus)
+            {
+                case UpdateCardStatus.Activate:
+                    {
+                        card.IsActive = true;
+                        card.ModifiedBy = UserId;
+                        card.ModifiedOn = DateTime.UtcNow;
+                    }
+                    break;
+                case UpdateCardStatus.Deactivate:
+                    {
+                        card.IsActive = false;
+                        card.ModifiedBy = UserId;
+                        card.ModifiedOn = DateTime.UtcNow;
+                    }
+                    break;
+                default:
+                    break;
+            }
+
+            _dbContext.Cards.Update(card);
+            await _dbContext.SaveChangesAsync();
+            return new BaseResponse<bool>(true, ResponseMessage.UpdateCardStatus);
+        }
+
         /// <summary>
         /// CREATE CARD
         /// </summary>
@@ -431,7 +511,7 @@ namespace Optima.Services.Implementation
         public async Task<BaseResponse<PagedList<CardDTO>>> GetAllCard(BaseSearchViewModel model) 
         {
          
-            var cards = _dbContext.Cards
+            var cardsQuery = _dbContext.Cards
                 .Include(x => x.CardType).ThenInclude(x => x.Country)
                 .Include(x => x.CardType).ThenInclude(x => x.CardTypeDenomination).ThenInclude(x => x.Denomination)
                 .Include(x => x.CardType).ThenInclude(x => x.CardTypeDenomination).ThenInclude(x => x.Prefix)
@@ -439,7 +519,7 @@ namespace Optima.Services.Implementation
                 .AsNoTracking()
                 .AsQueryable();
 
-            var pagedCards = await cards.OrderByDescending(x => x.CreatedOn).ToPagedListAsync(model.PageIndex, model.PageSize);
+            var pagedCards = await EntityFilter(cardsQuery, model).OrderByDescending(x => x.CreatedOn).ToPagedListAsync(model.PageIndex, model.PageSize);
 
             var cardsDto = pagedCards.Select(x => (CardDTO)x).ToList();
 
@@ -609,7 +689,7 @@ namespace Optima.Services.Implementation
             
         }
 
-
+       
         /// <summary>
         /// UPDATE VISA CARD
         /// </summary>
@@ -1192,6 +1272,31 @@ namespace Optima.Services.Implementation
             var fullPath = $"Optima/{splittedLogoPublicId[0]}";
 
             return fullPath;
+        }
+
+        /// <summary>
+        /// ENTITY FILTER
+        /// </summary>
+        /// <param name="model">The model.</param>
+        /// <param name="query">The query.</param>
+        /// <returns>Task&lt;Card&gt;.</returns>
+        private IQueryable<Card> EntityFilter(IQueryable<Card> query, BaseSearchViewModel model)
+        {
+            if (!string.IsNullOrEmpty(model.Keyword) && !string.IsNullOrEmpty(model.Filter))
+            {
+                switch (model.Filter)
+                {
+                    case "CardName":
+                        {
+                            return query.Where(x => x.Name.ToLower().Contains(model.Keyword.ToLower()));
+                        }
+
+                    default:
+                        break;                   
+                }
+            }
+
+            return query;
         }
     }
 }

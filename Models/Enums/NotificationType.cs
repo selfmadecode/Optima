@@ -9,6 +9,9 @@ namespace Optima.Models.Enums
     {
         Approved_Transaction = 1,
         Declined_Transaction,
-        New_Card
+        Partial_Approved_Transaction,
+        New_Card,
+        Card_Sale,
+        Nil
     }
 }

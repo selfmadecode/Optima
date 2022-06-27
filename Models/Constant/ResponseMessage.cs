@@ -52,6 +52,7 @@ namespace Optima.Models.Constant
         public const string CannotDeleteCard = "CANNOT DELETE CARD";
         public const string DeleteCardType = "CARDTYPE DELETED SUCCESSFULLY";
         public const string CardCreationFailure = "GIFT CARD CREATION FAILED";
+        public const string UpdateCardStatus = "CARD STATUS UPDATED SUCCESSFULLY";
 
 
         public const string MinAmountError = "MINIMUM WITHDRAWAL IS 500";

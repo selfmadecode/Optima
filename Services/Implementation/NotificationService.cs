@@ -43,7 +43,8 @@ namespace Optima.Services.Implementation
                     Message = model.Message,
                     IsAdminNotification = true,
                     IsRead = false,
-                    NotificationType = model.Type
+                    NotificationType = model.Type,
+                    UserId = model.UserId                 
                 };
 
                 var status = _context.Notifications.Add(notification);
@@ -104,10 +105,10 @@ namespace Optima.Services.Implementation
         /// RETURNS ALL UNREAD NOTIFICATION FOR AN ADMIN
         /// </summary>
         /// <returns></returns>
-        public async Task<BaseResponse<List<GetNotificationDTO>>> GetAdminNotification()
+        public async Task<BaseResponse<List<GetNotificationDTO>>> GetAdminNotification(Guid UserId)
         {
-            var notifications = _context.Notifications.Where(x => x.IsAdminNotification == true && x.IsRead == false)
-                .OrderBy(x => x.CreatedOn);
+            var notifications = _context.Notifications.Where(x => x.UserId == UserId && x.IsAdminNotification == true && x.IsRead == false)
+                .OrderByDescending(x => x.CreatedOn);
 
             var data = await notifications.Select(x => new GetNotificationDTO
             {
@@ -129,7 +130,7 @@ namespace Optima.Services.Implementation
         public async Task<BaseResponse<List<GetNotificationDTO>>> GetUserUnReadNotification(Guid userId)
         {
             var notifications = _context.Notifications.Where(x => x.UserId == userId && x.IsRead == false)
-                .OrderBy(x => x.CreatedOn);
+                .OrderByDescending(x => x.CreatedOn);
 
             var data = await notifications.Select(x => new GetNotificationDTO
             {

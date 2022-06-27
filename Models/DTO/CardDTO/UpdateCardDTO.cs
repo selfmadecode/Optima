@@ -50,4 +50,16 @@ namespace Optima.Models.DTO.CardDTO
 
         public Guid CardTypeId { get; set; }
     }
+
+    public class UpdateCardStatusDTO 
+    {
+        public Guid CardId  { get; set; }
+        public UpdateCardStatus CardStatus { get; set; } 
+    }
+
+    public enum UpdateCardStatus
+    {
+        Activate = 1,
+        Deactivate
+    }
 }
