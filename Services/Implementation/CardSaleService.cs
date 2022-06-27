@@ -88,7 +88,7 @@ namespace Optima.Services.Implementation
                 await _signalRNotificationService.Clients.Users(AdminUsers().Select(x => x.ToString()).ToList()).SendCardSaleNotification(data);
                 
                 //SAVE NOTIFICATION
-                await SaveNotificationForAdmin(AdminUsers(), user.FullName);
+                await SaveNotificationForAdmin(user.FullName);
 
                 return new BaseResponse<bool>(true, ResponseMessage.CardSaleCreation);
             }
@@ -545,18 +545,14 @@ namespace Optima.Services.Implementation
         /// <param name="userIds">the userIds</param
         /// <param name="name">the name</param>
         /// <returns></returns>
-        private async Task SaveNotificationForAdmin(List<Guid> userIds, string name)
-        {
-            foreach (var userId in userIds)
+        private async Task SaveNotificationForAdmin(string name)
+        {        
+            var data = new CreateAdminNotificationDTO
             {
-                var data = new CreateAdminNotificationDTO
-                {
-                    Message = $"{name} has made a Card Sale",
-                    Type = NotificationType.Card_Sale,  
-                    UserId = userId,
-                };
-                await _notificationService.CreateNotificationForAdmin(data);
+                Message = $"{name} has made a Card Sale",
+                Type = NotificationType.Card_Sale,  
             };
+            await _notificationService.CreateNotificationForAdmin(data);            
         }
 
         /// <summary>

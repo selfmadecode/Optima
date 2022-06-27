@@ -214,9 +214,10 @@ namespace Optima.Services.Implementation
                         creditDebit.TransactionStatus = TransactionStatus.Approved;
                         creditDebit.ActionedByUserId = UserId;
                         creditDebit.ModifiedOn = DateTime.UtcNow;
-                        //SEND NOTIFICATIONS
+                        //SEND PUSH NOTIFICATIONS
                         var data = SendPushNotification(new List<Guid> { findWallet.UserId}, "Approved");
                         await _pushNotificationService.SendPushNotification(data);
+                        //SAVE NOTIFICATION
                         await SaveNotification(new List<Guid> { findWallet.UserId }, "Approved");
                         break;
                     } 
@@ -230,6 +231,7 @@ namespace Optima.Services.Implementation
                         //SEND NOTIFICATIONS
                         var data = SendPushNotification(new List<Guid> { findWallet.UserId }, "Declined");
                         await _pushNotificationService.SendPushNotification(data);
+                        //SAVE NOTIFICATIONS
                         await SaveNotification(new List<Guid> { findWallet.UserId }, "Declined");
                         break;
                     }
