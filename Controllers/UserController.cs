@@ -26,6 +26,48 @@ namespace Optima.Controllers
         }
 
 
+        [HttpGet]
+        [ProducesResponseType(typeof(BaseResponse<PagedList<UserDTO>>), 200)]
+        public async Task<IActionResult> Active([FromQuery] BaseSearchViewModel model)
+        {
+            try
+            {
+                return ReturnResponse(await _userService.ActiveUsers(model));
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex); ;
+            }
+        }
+
+        [HttpGet]
+        [ProducesResponseType(typeof(BaseResponse<PagedList<UserDTO>>), 200)]
+        public async Task<IActionResult> InActive([FromQuery] BaseSearchViewModel model)
+        {
+            try
+            {
+                return ReturnResponse(await _userService.InActiveUsers(model));
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex); ;
+            }
+        }
+
+        [HttpGet]
+        [ProducesResponseType(typeof(BaseResponse<PagedList<UserDTO>>), 200)]
+        public async Task<IActionResult> Disabled([FromQuery] BaseSearchViewModel model)
+        {
+            try
+            {
+                return ReturnResponse(await _userService.DisabledUsers(model));
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex); ;
+            }
+        }
+
         [HttpPut]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
         public async Task<IActionResult> UpdateProfile([FromForm] UpdateUserDTO model)
