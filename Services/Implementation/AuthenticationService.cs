@@ -33,7 +33,7 @@ namespace Optima.Services.Implementation
         
         private readonly SignInManager<ApplicationUser> _signInManager;
         
-        private readonly RoleManager<ApplicationUserRole> _roleManager;
+        private readonly RoleManager<ApplicationRole> _roleManager;
         
         private readonly IEmailService _emailService;
 
@@ -43,7 +43,7 @@ namespace Optima.Services.Implementation
 
 
         public AuthenticationService(IConfiguration configuration, ApplicationDbContext context,
-            UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, RoleManager<ApplicationUserRole> roleManager,
+            UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, RoleManager<ApplicationRole> roleManager,
             IEmailService emailService, IEncrypt encrypt)
         {
             _context = context;
@@ -56,9 +56,14 @@ namespace Optima.Services.Implementation
             _logger = LogManager.GetLogger(typeof(AuthenticationService));
 
         }
-        
-        public (string, DateTime) CreateJwtTokenAsync(ApplicationUser user, IList<string> userRoles)
+        private async Task claim(ApplicationUser user)
         {
+            var principal = await _signInManager.CreateUserPrincipalAsync(user);
+            var identity = (ClaimsIdentity)principal.Identity;
+        }
+        public (string, DateTime) CreateJwtTokenAsync(ApplicationUser user, IList<string> userRoles)
+        {            
+
             var key = Encoding.ASCII.GetBytes(_configuration["JWT:Secret"]);
 
             var userClaims = BuildUserClaims(user, userRoles).Result;            
@@ -409,7 +414,10 @@ namespace Optima.Services.Implementation
                 // TODO: GET USER PERMISSIONS
 
                 var userRoles = await _userManager.GetRolesAsync(user);
-                                
+
+                await claim(user);
+
+
                 var (token, expiration) = CreateJwtTokenAsync(user, userRoles);
 
                 await UpdateUserLastLogin(user.Email, CurrentDateTime);

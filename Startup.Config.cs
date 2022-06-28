@@ -94,7 +94,7 @@ namespace Optima
 
         public void AddIdentityProvider(IServiceCollection services)
         {
-            services.AddIdentity<ApplicationUser, ApplicationUserRole>(options =>
+            services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
             {
                 options.Password.RequiredLength = 6;
                 options.Password.RequireNonAlphanumeric = true;

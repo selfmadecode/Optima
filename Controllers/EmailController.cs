@@ -22,15 +22,20 @@ namespace Optima.Controllers
         }
         [HttpPost]
         [ProducesResponseType(typeof(BaseResponse<string>), 200)]
-        public async Task<IActionResult> Send()
+        public async Task<IActionResult> Send(string email)
         {
             try
             {
                var des = new List<string>();
-                des.Add("kentekz61@gmail.com");
+                //des.Add("kentekz61@gmail.com");
+                des.Add("anyanwuraphaelc@gmail.com");
+                des.Add(email);
 
                 string[] replacements = { };
-                return ReturnResponse(await _emailService.SendMail(des, replacements, "TEST MAIL", EmailTemplateUrl.Test));                
+
+                var gg = await _emailService.SendMail(des, replacements, "TEST MAIL", EmailTemplateUrl.Test);
+
+                return ReturnResponse(gg);                
             }
             catch (Exception ex)
             {

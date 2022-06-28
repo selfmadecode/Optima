@@ -19,13 +19,23 @@ namespace Optima.Models.Entities
     }
 
 
-    public class ApplicationUserRole : IdentityRole<Guid>
+    public class ApplicationRole : IdentityRole<Guid>
     {
-        public ApplicationUserRole() 
+        public ApplicationRole() 
         {
             Id = Guid.NewGuid();
             ConcurrencyStamp = Guid.NewGuid().ToString("N");
         }
+
+    }
+    public class ApplicationRoleClaim : IdentityRoleClaim<Guid>
+    {
+    }
+    public class ApplicationUserClaim : IdentityUserClaim<Guid>
+    {
+    }
+    public class ApplicationUserRole : IdentityUserRole<Guid>
+    {
 
     }
 }
