@@ -34,6 +34,7 @@ namespace Optima
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddCors();
             ConfigureEntityFrameworkDbContext(services);
             ConfigureSwagger(services);
             AddIdentityProvider(services);
@@ -57,7 +58,14 @@ namespace Optima
 
             app.UseAuthentication();
             app.UseAuthorization();
-
+            app.UseCors(x =>
+            {
+                x.WithOrigins(Configuration["AllowedCorsOrigin"]
+                .Split(",", StringSplitOptions.RemoveEmptyEntries))
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+            });
+           
             // ADD SWAGGER TO PIPELINE
             app.UseCustomSwagger();
             
