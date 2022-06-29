@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace Optima.Controllers
 {
-    [Route("api/[controller]/[action]")]
+    [Route("api/[controller]")]
     [ApiController]
     [Authorize]
     public class BankAccountController : BaseController
@@ -40,7 +40,8 @@ namespace Optima.Controllers
            
         }
 
-        [HttpGet("{id}")]
+        [HttpGet]
+        [Route("{id:Guid}")]
         [ProducesResponseType(typeof(BaseResponse<BankAccountDTO>), 200)]
         public async Task<IActionResult> Get(Guid id)
         {
@@ -55,7 +56,8 @@ namespace Optima.Controllers
 
         }
 
-        [HttpGet("{userId}")]
+        [HttpGet]
+        [Route("User/{userId:Guid}")]
         [ProducesResponseType(typeof(BaseResponse<List<BankAccountDTO>>), 200)]
 
         public async Task<IActionResult> GetUserBankAccount(Guid userId)
@@ -72,13 +74,14 @@ namespace Optima.Controllers
         }
 
 
-        [HttpPut("{UserId:guid}")]
+        [HttpPut]
+        [Route("{userId:Guid}")]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
-        public async Task<IActionResult> Update([FromBody]UpdateBankAccountDTO model, Guid UserId) 
+        public async Task<IActionResult> Update([FromBody]UpdateBankAccountDTO model, Guid userId) 
         {
             try
             {
-                return ReturnResponse(await _bankAccountService.UpdateBankAccount(model, UserId));
+                return ReturnResponse(await _bankAccountService.UpdateBankAccount(model, userId));
             }
             catch (Exception ex)
             {
@@ -87,7 +90,8 @@ namespace Optima.Controllers
 
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete]
+        [Route("{id:Guid}")]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
         public async Task<IActionResult> Delete(Guid id) 
         {
