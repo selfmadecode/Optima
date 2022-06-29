@@ -8,8 +8,6 @@ namespace Optima.Models.DTO.CardSaleDTO
 {
     public class UpdateSellCardDTO
     {
-        [Required]
-        public Guid TransactionId { get; set; }
         public List<UpdateCardSoldDTO> UpdateCardSoldDTOs { get; set; } = new List<UpdateCardSoldDTO>();
 
     }

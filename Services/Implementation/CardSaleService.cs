@@ -261,10 +261,10 @@ namespace Optima.Services.Implementation
         /// <param name="model">The model.</param>
         /// <param name="UserId">The UserId.</param>
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
-        public async Task<BaseResponse<bool>> UpdateCardSales(UpdateSellCardDTO model, Guid UserId)
+        public async Task<BaseResponse<bool>> UpdateCardSales(Guid transactionId, UpdateSellCardDTO model, Guid UserId)
         {
 
-            var cardTransaction = await FindCardTransaction(model.TransactionId);
+            var cardTransaction = await FindCardTransaction(transactionId);
                 
             if (cardTransaction is null)
             {
@@ -334,10 +334,10 @@ namespace Optima.Services.Implementation
         /// <param name="model">The model.</param>
         /// <param name="UserId">The UserId.</param>
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
-        public async Task<BaseResponse<bool>> UpdateCardTransactionStatus(UpdateCardTransactionStatusDTO model, Guid UserId)
+        public async Task<BaseResponse<bool>> UpdateCardTransactionStatus(Guid transactionId, UpdateCardTransactionStatusDTO model, Guid UserId)
         {
 
-            var cardTransaction = await FindCardTransaction(model.TransactionId);
+            var cardTransaction = await FindCardTransaction(transactionId);
 
             if (cardTransaction is null)
             {

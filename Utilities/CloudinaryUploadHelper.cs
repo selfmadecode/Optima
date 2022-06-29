@@ -25,8 +25,7 @@ namespace Optima.Services.Implementation
         {
             _logger = LogManager.GetLogger(typeof(CloudinaryUploadHelper));
             _cloudinaryAccount = cloudinaryAccount.Value;
-            //_account = SetupCloudinary();
-            _cloudinary = new Cloudinary(SetupCloudinary());
+            _cloudinary = new Cloudinary(_account = SetupCloudinary());
         }
         
         public async Task<(List<string>, bool, string)> UploadVideo(List<IFormFile> filePaths)
@@ -85,7 +84,7 @@ namespace Optima.Services.Implementation
                 ResourceType = ResourceType.Video,
             };
 
-            _cloudinary.Destroy(deletionParams);
+            await _cloudinary.DestroyAsync(deletionParams);
         }
 
         public async Task<(List<string>, bool, string)> UploadImages(List<IFormFile> filePaths)
@@ -174,8 +173,7 @@ namespace Optima.Services.Implementation
                 ResourceType = ResourceType.Image
             };
 
-            _cloudinary.Destroy(deletionParams);
-
+            await _cloudinary.DestroyAsync(deletionParams);
         }
 
         private Account SetupCloudinary()
