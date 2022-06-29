@@ -28,7 +28,7 @@ namespace Optima.Map
             {
                 builder.HasData(new ApplicationUserClaim
                 {
-                    Id = counter++,
+                    Id = ++counter,
                     ClaimValue = permission.ToString(),
                     ClaimType = nameof(Permission),
                     UserId = Defaults.SuperAdminId
@@ -45,7 +45,7 @@ namespace Optima.Map
             {
                 builder.HasData(new ApplicationUserClaim
                 {
-                    Id = counter++,
+                    Id = ++counter,
                     ClaimValue = permission.ToString(),
                     ClaimType = nameof(Permission),
                     UserId = Defaults.AdminId
