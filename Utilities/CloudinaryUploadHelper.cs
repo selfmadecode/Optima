@@ -25,8 +25,7 @@ namespace Optima.Services.Implementation
         {
             _logger = LogManager.GetLogger(typeof(CloudinaryUploadHelper));
             _cloudinaryAccount = cloudinaryAccount.Value;
-            //_account = SetupCloudinary();
-            _cloudinary = new Cloudinary(SetupCloudinary());
+            _cloudinary = new Cloudinary(_account = SetupCloudinary());
         }
         
         public async Task<(List<string>, bool, string)> UploadVideo(List<IFormFile> filePaths)

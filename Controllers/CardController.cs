@@ -10,12 +10,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using static Optima.Utilities.Helpers.PermisionProvider;
 
 namespace Optima.Controllers
 {
-    [Route("api/[controller]/[action]")]
+    [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    [Authorize(Policy = nameof(Permission.CARD))]
     public class CardController : BaseController
     {
         private readonly ICardService _cardService;
@@ -27,7 +28,7 @@ namespace Optima.Controllers
 
 
         [HttpPost]
-        //[Authorize]// ONLY Card Admin can create card
+        [Route("")]
         [ProducesResponseType(typeof(BaseResponse<CreatedCardDTO>), 200)] 
         public async Task<IActionResult> Create([FromForm]CreateCardDTO model)
         {
@@ -42,6 +43,7 @@ namespace Optima.Controllers
         } 
         
         [HttpGet]
+        [Route("Active")]
         [ProducesResponseType(typeof(BaseResponse<PagedList<CardDTO>>), 200)]
         public async Task<IActionResult> AllActiveCards([FromQuery]BaseSearchViewModel model)
         {
@@ -56,6 +58,7 @@ namespace Optima.Controllers
         }
 
         [HttpGet]
+        [Route("Inactive")]
         [ProducesResponseType(typeof(BaseResponse<PagedList<CardDTO>>), 200)]
         public async Task<IActionResult> AllInActiveCards([FromQuery] BaseSearchViewModel model)
         {
@@ -70,12 +73,13 @@ namespace Optima.Controllers
         }
 
         [HttpPut]
+        [Route("Activate-Deactivate/{CardId}")]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)] 
-        public async Task<IActionResult> UpdateCardStatus([FromBody]UpdateCardStatusDTO model)
+        public async Task<IActionResult> UpdateCardStatus(Guid CardId, [FromBody]UpdateCardStatusDTO model)
         {
             try
             {
-                return ReturnResponse(await _cardService.CardStatusUpdate(model, UserId)); 
+                return ReturnResponse(await _cardService.CardStatusUpdate(model, UserId, CardId)); 
             }
             catch (Exception ex)
             {
@@ -84,12 +88,13 @@ namespace Optima.Controllers
         }
 
         [HttpPost]
+        [Route("Configure-Visa/{CardId}")]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)] 
-        public async Task<IActionResult> Visa([FromBody] ConfigureVisaCardDTO model)
+        public async Task<IActionResult> Visa(Guid CardId, [FromBody] ConfigureVisaCardDTO model)
         {
             try
             {
-                return ReturnResponse(await _cardService.ConfigureVisaCard(model, UserId));
+                return ReturnResponse(await _cardService.ConfigureVisaCard(model, UserId, CardId));
             }
             catch (Exception ex)
             {
@@ -98,12 +103,13 @@ namespace Optima.Controllers
         }       
         
         [HttpPost]
+        [Route("Configure-ReceiptType/{CardId}")]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)] 
-        public async Task<IActionResult> ReceiptType([FromBody] ConfigureReceiptTypeCardDTO model)
+        public async Task<IActionResult> ReceiptType(Guid CardId, [FromBody] ConfigureReceiptTypeCardDTO model)
         {
             try
             {
-                return ReturnResponse(await _cardService.ConfigureReceiptTypeCard(model, UserId));
+                return ReturnResponse(await _cardService.ConfigureReceiptTypeCard(model, UserId, CardId));
             }
             catch (Exception ex)
             {
@@ -113,12 +119,13 @@ namespace Optima.Controllers
         }
 
         [HttpPost]
+        [Route("Configure-Normal/{CardId}")]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)] 
-        public async Task<IActionResult> Normal([FromBody] ConfigureNormalCardDTO model)
+        public async Task<IActionResult> Normal(Guid CardId, [FromBody] ConfigureNormalCardDTO model)
         {
             try
             {
-                return ReturnResponse(await _cardService.ConfigureNormalCard(model, UserId));
+                return ReturnResponse(await _cardService.ConfigureNormalCard(model, UserId, CardId));
             }
             catch (Exception ex)
             {
@@ -127,7 +134,8 @@ namespace Optima.Controllers
            
         }
 
-        [HttpGet("{id}")]
+        [HttpGet]
+        [Route("{id}")]
         [ProducesResponseType(typeof(BaseResponse<CardDTO>), 200)] 
         public async Task<IActionResult> Get(Guid id)
         {
@@ -142,6 +150,7 @@ namespace Optima.Controllers
         }
 
         [HttpGet]
+        [Route("")]
         [ProducesResponseType(typeof(BaseResponse<PagedList<CardDTO>>), 200)] 
         public async Task<IActionResult> GetAllCard([FromQuery]BaseSearchViewModel model)
         {
@@ -156,6 +165,7 @@ namespace Optima.Controllers
         }
 
         [HttpGet]
+        [Route("Pending")]
         [ProducesResponseType(typeof(BaseResponse<PagedList<CardDTO>>), 200)] 
         public async Task<IActionResult> GetAllPendingCard([FromQuery] BaseSearchViewModel model) 
         {
@@ -170,6 +180,7 @@ namespace Optima.Controllers
         }
 
         [HttpGet]
+        [Route("Approved")]
         [ProducesResponseType(typeof(BaseResponse<PagedList<CardDTO>>), 200)]
         public async Task<IActionResult> GetAllApprovedCard([FromQuery] BaseSearchViewModel model) 
         {
@@ -184,12 +195,13 @@ namespace Optima.Controllers
         }
 
         [HttpPut]
+        [Route("Add-Countries/{CardId}")]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
-        public async Task<IActionResult> Update([FromForm] UpdateCardDTO model)
+        public async Task<IActionResult> AllCountriesToCard(Guid CardId, [FromForm] UpdateCardDTO model)
         {
             try
             {
-                return ReturnResponse(await _cardService.UpdateCard(model, UserId));
+                return ReturnResponse(await _cardService.UpdateCard(model, UserId, CardId));
             }
             catch (Exception ex)
             {
@@ -198,12 +210,13 @@ namespace Optima.Controllers
         }
 
         [HttpPut]
+        [Route("Update-Normal/{CardId}")]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
-        public async Task<IActionResult> UpdateNormalCard([FromBody] UpdateNormalCardConfigDTO model)
+        public async Task<IActionResult> UpdateNormalCard(Guid CardId, [FromBody] UpdateNormalCardConfigDTO model)
         {
             try
             {
-                return ReturnResponse(await _cardService.UpdateNormalCard(model, UserId));
+                return ReturnResponse(await _cardService.UpdateNormalCard(model, UserId, CardId));
             }
             catch (Exception ex)
             {
@@ -212,12 +225,13 @@ namespace Optima.Controllers
         }
 
         [HttpPut]
+        [Route("Update-ReceiptType{CardId}")]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
-        public async Task<IActionResult> UpdateReceiptCard([FromBody] UpdateReceiptTypeConfigDTO model)
+        public async Task<IActionResult> UpdateReceiptCard(Guid CardId, [FromBody] UpdateReceiptTypeConfigDTO model)
         {
             try
             {
-                return ReturnResponse(await _cardService.UpdateReceiptCard(model, UserId));
+                return ReturnResponse(await _cardService.UpdateReceiptCard(model, UserId, CardId));
             }
             catch (Exception ex)
             {
@@ -226,12 +240,13 @@ namespace Optima.Controllers
         }
 
         [HttpPut]
+        [Route("Update-Visa/{CardId}")]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
-        public async Task<IActionResult> UpdateVisaCard([FromBody] UpdateVisaCardConfigDTO model)
+        public async Task<IActionResult> UpdateVisaCard(Guid CardId, [FromBody] UpdateVisaCardConfigDTO model)
         {
             try
             {
-                return ReturnResponse(await _cardService.UpdateVisaCard(model, UserId));
+                return ReturnResponse(await _cardService.UpdateVisaCard(model, UserId, CardId));
             }
             catch (Exception ex)
             {
@@ -241,12 +256,13 @@ namespace Optima.Controllers
 
 
         [HttpDelete]
+        [Route("CardType/{CardId}")]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
-        public async Task<IActionResult> DeleteCardType([FromBody] DeleteCardTypeDTO model)
+        public async Task<IActionResult> DeleteCardType(Guid CardId, [FromBody] DeleteCardTypeDTO model)
         {
             try
             {
-                return ReturnResponse(await _cardService.DeleteCardType(model));
+                return ReturnResponse(await _cardService.DeleteCardType(model, CardId));
             }
             catch (Exception ex)
             {

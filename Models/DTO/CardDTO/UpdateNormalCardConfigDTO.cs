@@ -8,8 +8,6 @@ namespace Optima.Models.DTO.CardDTO
 {
     public class UpdateNormalCardConfigDTO
     {
-        [Required]
-        public Guid CardId { get; set; }
         public List<UpdateCardConfigDTO> UpdateCardConfigDTO { get; set; } = new List<UpdateCardConfigDTO>();
     }
 

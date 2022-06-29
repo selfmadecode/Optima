@@ -12,8 +12,6 @@ namespace Optima.Models.DTO.CardDTO
 
     public class DeleteCardTypeDTO
     {
-        [Required]
-        public Guid CardId { get; set; }
         public List<Guid> CardTypeIds { get; set; } = new List<Guid>();
     }
 

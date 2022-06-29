@@ -79,9 +79,9 @@ namespace Optima.Services.Implementation
         /// <param name="model">The model.</param>
         /// <param name="UserId">The UserId.</param>
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
-        public async Task<BaseResponse<bool>> CardStatusUpdate(UpdateCardStatusDTO model, Guid UserId)
+        public async Task<BaseResponse<bool>> CardStatusUpdate(UpdateCardStatusDTO model, Guid UserId, Guid CardId)
         {
-            var card = await FindCard(model.CardId);
+            var card = await FindCard(CardId);
 
             if (card is null)
             {
@@ -206,11 +206,11 @@ namespace Optima.Services.Implementation
         /// <param name="model">The model.</param>
         /// <param name="UserId">The UserId.</param>
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
-        public async Task<BaseResponse<bool>> ConfigureNormalCard(ConfigureNormalCardDTO model, Guid UserId)
+        public async Task<BaseResponse<bool>> ConfigureNormalCard(ConfigureNormalCardDTO model, Guid UserId, Guid CardId)
         {
             var response = new BaseResponse<bool>();
 
-            var card = await FindCard(model.CardId);
+            var card = await FindCard(CardId);
 
             if (card is null)
             {
@@ -220,7 +220,7 @@ namespace Optima.Services.Implementation
 
             //Validate Card Config
             var validateCardConfig =
-                await ValidateCardConfig(model.CardId, model.CardConfigDTO.Select(x => x.CountryId).ToList(), model.CardConfigDTO.Select(x => x.CardTypeId).ToList());
+                await ValidateCardConfig(CardId, model.CardConfigDTO.Select(x => x.CountryId).ToList(), model.CardConfigDTO.Select(x => x.CardTypeId).ToList());
 
             if (validateCardConfig.Errors.Any())
                 return new BaseResponse<bool>(validateCardConfig.ResponseMessage, validateCardConfig.Errors);
@@ -291,9 +291,9 @@ namespace Optima.Services.Implementation
         /// <param name="model">The model.</param>
         /// <param name="UserId">The UserId.</param>
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
-        public async Task<BaseResponse<bool>> ConfigureReceiptTypeCard(ConfigureReceiptTypeCardDTO model, Guid UserId)
+        public async Task<BaseResponse<bool>> ConfigureReceiptTypeCard(ConfigureReceiptTypeCardDTO model, Guid UserId, Guid CardId)
         {
-            var card = await FindCard(model.CardId);
+            var card = await FindCard(CardId);
 
             if (card is null)
             {
@@ -303,7 +303,7 @@ namespace Optima.Services.Implementation
 
             //Validate Card Config
             var validateCardConfig =
-                await ValidateCardConfig(model.CardId, model.ReceiptTypeCardConfigDTO.Select(x => x.CountryId).ToList(), model.ReceiptTypeCardConfigDTO.Select(x => x.CardTypeId).ToList());
+                await ValidateCardConfig(CardId, model.ReceiptTypeCardConfigDTO.Select(x => x.CountryId).ToList(), model.ReceiptTypeCardConfigDTO.Select(x => x.CardTypeId).ToList());
 
             if (validateCardConfig.Errors.Any())
             {
@@ -383,9 +383,9 @@ namespace Optima.Services.Implementation
         /// <param name="model">The model.</param>
         /// <param name="UserId">The UserId.</param>
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
-        public async Task<BaseResponse<bool>> ConfigureVisaCard(ConfigureVisaCardDTO model, Guid UserId)
+        public async Task<BaseResponse<bool>> ConfigureVisaCard(ConfigureVisaCardDTO model, Guid UserId, Guid CardId)
         {
-            var card = await FindCard(model.CardId);
+            var card = await FindCard(CardId);
 
             if (card is null)
             {
@@ -396,7 +396,7 @@ namespace Optima.Services.Implementation
 
             //Validate Card Config
             var validateCardConfig = 
-                await ValidateCardConfig(model.CardId, model.VisaCardConfigDTO.Select(x => x.CountryId).ToList(), model.VisaCardConfigDTO.Select(x => x.CardTypeId).ToList());
+                await ValidateCardConfig(CardId, model.VisaCardConfigDTO.Select(x => x.CountryId).ToList(), model.VisaCardConfigDTO.Select(x => x.CardTypeId).ToList());
 
             if (validateCardConfig.Errors.Any())
             {
@@ -600,14 +600,14 @@ namespace Optima.Services.Implementation
         /// <param name="model">The model.</param>
         /// <param name="UserId">The UserId.</param>
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
-        public async Task<BaseResponse<bool>> UpdateCard(UpdateCardDTO model, Guid UserId)
+        public async Task<BaseResponse<bool>> UpdateCard(UpdateCardDTO model, Guid UserId, Guid CardId)
         {
             var uploadedFileToDelete = string.Empty;
 
             try
             {   
                 
-                var card = await FindCard(model.Id);
+                var card = await FindCard(CardId);
 
                 if (card is null)
                 {
@@ -696,11 +696,11 @@ namespace Optima.Services.Implementation
         /// <param name="model">The model.</param>
         /// <param name="UserId">The UserId.</param>
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
-        public async Task<BaseResponse<bool>> UpdateVisaCard(UpdateVisaCardConfigDTO model, Guid UserId)
+        public async Task<BaseResponse<bool>> UpdateVisaCard(UpdateVisaCardConfigDTO model, Guid UserId, Guid CardId)
         {
             var response = new BaseResponse<bool>();
 
-            var card = await FindCard(model.CardId);
+            var card = await FindCard(CardId);
 
             if (card is null)
             {
@@ -710,7 +710,7 @@ namespace Optima.Services.Implementation
 
             //Validate Card Config
             var validateCardConfig =
-                await ValidateCardConfig(model.CardId, model.VisaCardUpdateConfigDTO.Select(x => x.CountryId).ToList(), model.VisaCardUpdateConfigDTO.Select(x => x.CardTypeId).ToList());
+                await ValidateCardConfig(CardId, model.VisaCardUpdateConfigDTO.Select(x => x.CountryId).ToList(), model.VisaCardUpdateConfigDTO.Select(x => x.CardTypeId).ToList());
 
             if (validateCardConfig.Errors.Any())
             {
@@ -804,11 +804,11 @@ namespace Optima.Services.Implementation
         /// <param name="model">The model.</param>
         /// <param name="UserId">The UserId.</param>
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
-        public async Task<BaseResponse<bool>> UpdateReceiptCard(UpdateReceiptTypeConfigDTO model, Guid UserId)
+        public async Task<BaseResponse<bool>> UpdateReceiptCard(UpdateReceiptTypeConfigDTO model, Guid UserId, Guid CardId)
         {
             var response = new BaseResponse<bool>();
 
-            var card = await FindCard(model.CardId);
+            var card = await FindCard(CardId);
 
             if (card is null)
             {
@@ -818,7 +818,7 @@ namespace Optima.Services.Implementation
 
             //Validate Card Config
             var validateCardConfig =
-                await ValidateCardConfig(model.CardId, model.ReceiptTypeUpdateCardConfigDTO.Select(x => x.CountryId).ToList(), model.ReceiptTypeUpdateCardConfigDTO.Select(x => x.CardTypeId).ToList());
+                await ValidateCardConfig(CardId, model.ReceiptTypeUpdateCardConfigDTO.Select(x => x.CountryId).ToList(), model.ReceiptTypeUpdateCardConfigDTO.Select(x => x.CardTypeId).ToList());
 
             if (validateCardConfig.Errors.Any())
             {
@@ -913,11 +913,11 @@ namespace Optima.Services.Implementation
         /// <param name="model">The model.</param>
         /// <param name="UserId">The UserId.</param>
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
-        public async Task<BaseResponse<bool>> UpdateNormalCard(UpdateNormalCardConfigDTO model, Guid UserId)
+        public async Task<BaseResponse<bool>> UpdateNormalCard(UpdateNormalCardConfigDTO model, Guid UserId, Guid CardId)
         {
             var response = new BaseResponse<bool>();
 
-            var card = await FindCard(model.CardId);
+            var card = await FindCard(CardId);
 
             if (card is null)
             {
@@ -927,7 +927,7 @@ namespace Optima.Services.Implementation
 
             //Validate Card Config
             var validateCardConfig =
-                await ValidateCardConfig(model.CardId, model.UpdateCardConfigDTO.Select(x => x.CountryId).ToList(), model.UpdateCardConfigDTO.Select(x => x.CardTypeId).ToList());
+                await ValidateCardConfig(CardId, model.UpdateCardConfigDTO.Select(x => x.CountryId).ToList(), model.UpdateCardConfigDTO.Select(x => x.CardTypeId).ToList());
 
             if (validateCardConfig.Errors.Any())
             {
@@ -1009,9 +1009,9 @@ namespace Optima.Services.Implementation
         /// <param name="model">The model.</param>
         /// <param name="UserId">The UserId.</param>
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
-        public async Task<BaseResponse<bool>> DeleteCardType(DeleteCardTypeDTO model)
+        public async Task<BaseResponse<bool>> DeleteCardType(DeleteCardTypeDTO model, Guid CardId)
         {
-            var card = await FindCard(model.CardId);
+            var card = await FindCard(CardId);
 
             if (card is null)
             {
@@ -1019,7 +1019,7 @@ namespace Optima.Services.Implementation
                 return new BaseResponse<bool>(ResponseMessage.CardNotFound, Errors);
             };
 
-            var validateCardType = ValidateCardTypes(model.CardId, model.CardTypeIds);
+            var validateCardType = ValidateCardTypes(CardId, model.CardTypeIds);
 
             if (validateCardType)
             {

@@ -11,8 +11,6 @@ namespace Optima.Models.DTO.CardDTO
     public class UpdateCardDTO : IValidatableObject
     {
         [Required]
-        public Guid Id { get; set; }
-        [Required]
         public string Name { get; set; }
         public IFormFile Logo { get; set; }
         [Required]
@@ -53,7 +51,6 @@ namespace Optima.Models.DTO.CardDTO
 
     public class UpdateCardStatusDTO 
     {
-        public Guid CardId  { get; set; }
         public UpdateCardStatus CardStatus { get; set; } 
     }
 
