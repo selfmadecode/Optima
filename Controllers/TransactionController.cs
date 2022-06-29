@@ -110,7 +110,7 @@ namespace Optima.Controllers
         /// <returns></returns>
         [HttpPut("{creditDebitId}")]
         [ProducesResponseType(typeof(BaseResponse<PagedList<TransactionDTO>>), 200)]
-        public async Task<IActionResult> Action([FromBody]UpdateDebitStatus model)
+        public async Task<IActionResult> Action(Guid creditDebitId, [FromBody]UpdateDebitStatus model)
         {
             try
             {
