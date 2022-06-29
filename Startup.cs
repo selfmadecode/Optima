@@ -60,8 +60,9 @@ namespace Optima
             app.UseAuthorization();
             app.UseCors(x =>
             {
-                x.WithOrigins(Configuration["AllowedCorsOrigin"]
-                .Split(",", StringSplitOptions.RemoveEmptyEntries))
+                //x.AllowAnyOrigin()
+                x.WithOrigins(Configuration["CORSAllowedOrigins"]
+                .Split(",", StringSplitOptions.RemoveEmptyEntries))                
                 .AllowAnyHeader()
                 .AllowAnyMethod();
             });
