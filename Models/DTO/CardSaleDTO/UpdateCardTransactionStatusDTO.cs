@@ -8,7 +8,6 @@ namespace Optima.Models.DTO.CardSaleDTO
 {
     public class UpdateCardTransactionStatusDTO
     {
-        public Guid TransactionId { get; set; }
         public decimal Amount { get; set; }
         public TransactionStatus TransactionStatus { get; set; } 
     }

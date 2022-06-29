@@ -13,14 +13,13 @@ namespace Optima.Models.DTO.CardSaleDTO
     public class SellCardDTO
     {
         public List<SellerCardTypeDTO> CardTypeDTOs { get; set; } = new List<SellerCardTypeDTO>();
-
     }
 
     public class SellerCardTypeDTO : IValidatableObject
     {
        
         [Required]
-        public Guid CardTypeDenominationId { get; set; } // rate
+        public Guid CardTypeDenominationId { get; set; }
                
         [Required]
         public List<string> CardCodes { get; set; } = new List<string>();

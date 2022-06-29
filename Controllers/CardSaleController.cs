@@ -23,6 +23,11 @@ namespace Optima.Controllers
             _cardSaleService = cardSaleService;
         }
 
+        /// <summary>
+        /// CREATES A CARD FOR SALE; ITS VALIDATES AGAINST THE CONFIGURED CARD TYPE DENOMINATION ID
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
         [HttpPost]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
         //[Authorize(Policy = "CanAdd")]
@@ -39,10 +44,15 @@ namespace Optima.Controllers
 
         }
 
+        /// <summary>
+        /// GET ALL USER CARD SALES
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
         [HttpGet]
         [ProducesResponseType(typeof(BaseResponse<PagedList<CardTransactionDTO>>), 200)]
         //[Authorize(Policy = "CanAdd")]
-        public async Task<IActionResult> GetAll([FromQuery] BaseSearchViewModel model)
+        public async Task<IActionResult> CardSales([FromQuery] BaseSearchViewModel model)
         {
             try
             {
@@ -55,14 +65,20 @@ namespace Optima.Controllers
 
         }
 
-        [HttpPut]
+        /// <summary>
+        /// UPDATE A USER CARD CODES
+        /// </summary>
+        /// <param name="transactionId"></param>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        [HttpPut("{transactionId}")]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
         //[Authorize(Policy = "CanAdd")]
-        public async Task<IActionResult> UpdateCardCode([FromBody] UpdateSellCardDTO model)
+        public async Task<IActionResult> UpdateCardCodes(Guid transactionId, [FromBody] UpdateSellCardDTO model)   
         {
             try
             {
-                return ReturnResponse(await _cardSaleService.UpdateCardSales(model, UserId));
+                return ReturnResponse(await _cardSaleService.UpdateCardSales(transactionId, model, UserId));
             }
             catch (Exception ex)
             {
@@ -71,14 +87,20 @@ namespace Optima.Controllers
 
         }
 
-        [HttpPut]
+        /// <summary>
+        /// ACTION ON A USER CARD SALE (OPTIMA ADMIN) TRANSACTION I.E. APPROVE, DECLINE OR REJECT.
+        /// </summary>
+        /// <param name="transactionId"></param>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        [HttpPut("{transactionId}")]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
         //[Authorize(Policy = "CanAdd")]
-        public async Task<IActionResult> UpdateCardTransactionStatus([FromBody] UpdateCardTransactionStatusDTO model)
+        public async Task<IActionResult> Action(Guid transactionId, [FromBody] UpdateCardTransactionStatusDTO model) 
         {
             try
             {
-                return ReturnResponse(await _cardSaleService.UpdateCardTransactionStatus(model, UserId));
+                return ReturnResponse(await _cardSaleService.UpdateCardTransactionStatus(transactionId, model, UserId));
             }
             catch (Exception ex)
             {
@@ -87,10 +109,16 @@ namespace Optima.Controllers
 
         }
 
+        /// <summary>
+        /// GETS A USER AND HIS CARD SALE TRANSACTIONS
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="userId"></param>
+        /// <returns></returns>
         [HttpGet("{userId}")]
         [ProducesResponseType(typeof(BaseResponse<PagedList<CardTransactionDTO>>), 200)]
         //[Authorize(Policy = "CanAdd")]
-        public async Task<IActionResult> GetUserCardTransactions([FromQuery] BaseSearchViewModel model, Guid userId) 
+        public async Task<IActionResult> CardSaleTransaction([FromQuery] BaseSearchViewModel model, Guid userId)    
         {
             try
             {
@@ -102,7 +130,6 @@ namespace Optima.Controllers
             }
 
         }
-
 
     }
 }

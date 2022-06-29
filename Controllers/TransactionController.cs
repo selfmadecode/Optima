@@ -24,6 +24,11 @@ namespace Optima.Controllers
         {
             _transactionService = transactionService;
         }
+
+        /// <summary>
+        /// GETS A USER BANK ACCOUNT BALANCE
+        /// </summary>
+        /// <returns></returns>
         [HttpGet]
         [ProducesResponseType(typeof(BaseResponse<BalanceInquiryDTO>), 200)]
         public async Task<IActionResult> Balance()
@@ -39,6 +44,11 @@ namespace Optima.Controllers
             }
         }
 
+        /// <summary>
+        /// USER WITHDRAW FROM BANK ACCOUNT
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
         [HttpPost]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
         public async Task<IActionResult> Withdraw(WithdrawDTO model)
@@ -54,7 +64,12 @@ namespace Optima.Controllers
             }
         }
 
-
+        /// <summary>
+        /// GETS A USER CREDIT DEBIT TRANSACTION
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="userId"></param>
+        /// <returns></returns>
         [HttpGet("{userId}")]
         [ProducesResponseType(typeof(BaseResponse<PagedList<TransactionDTO>>), 200)]
         public async Task<IActionResult> CreditDebit([FromQuery]BaseSearchViewModel model, Guid userId) 
@@ -69,9 +84,14 @@ namespace Optima.Controllers
             }
         }
 
+        /// <summary>
+        /// GET ALL USERS CREDIT DEBIT TRANSACTION
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
         [HttpGet]
         [ProducesResponseType(typeof(BaseResponse<PagedList<TransactionDTO>>), 200)]
-        public async Task<IActionResult> AllUserCreditDebit([FromQuery]BaseSearchViewModel model)
+        public async Task<IActionResult> CreditDebit([FromQuery] BaseSearchViewModel model) 
         {
             try
             {
@@ -82,15 +102,19 @@ namespace Optima.Controllers
                 return HandleError(ex);
             }
         }
-        
-        
-        [HttpPut]
+
+        /// <summary>
+        /// UPDATE DEBIT STATUS I.E. APPROVE OR REJECT A USER DEBIT REQUEST
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        [HttpPut("{creditDebitId}")]
         [ProducesResponseType(typeof(BaseResponse<PagedList<TransactionDTO>>), 200)]
         public async Task<IActionResult> Action([FromBody]UpdateDebitStatus model)
         {
             try
             {
-                return ReturnResponse(await _transactionService.UpdateDebitStatus(model, UserId));
+                return ReturnResponse(await _transactionService.UpdateDebitStatus(creditDebitId, model, UserId));
             }
             catch (Exception ex)
             {

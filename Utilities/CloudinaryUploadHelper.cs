@@ -84,7 +84,7 @@ namespace Optima.Services.Implementation
                 ResourceType = ResourceType.Video,
             };
 
-            _cloudinary.Destroy(deletionParams);
+            await _cloudinary.DestroyAsync(deletionParams);
         }
 
         public async Task<(List<string>, bool, string)> UploadImages(List<IFormFile> filePaths)
@@ -173,8 +173,7 @@ namespace Optima.Services.Implementation
                 ResourceType = ResourceType.Image
             };
 
-            _cloudinary.Destroy(deletionParams);
-
+            await _cloudinary.DestroyAsync(deletionParams);
         }
 
         private Account SetupCloudinary()
