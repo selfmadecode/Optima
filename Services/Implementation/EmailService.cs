@@ -5,6 +5,9 @@ using MimeKit;
 using Optima.Models.Config;
 using Optima.Models.DTO;
 using Optima.Services.Interface;
+using Optima.Utilities.Helpers;
+using SendGrid;
+using SendGrid.Helpers.Mail;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -34,10 +37,10 @@ namespace Optima.Services.Implementation
             
         }
 
-        public async Task<bool> SendMail(List<string> recipient, string[] replacements, string subject, string emailTemplatePath)
+        public async Task<BaseResponse<bool>> SendMail(List<string> recipient, string[] replacements, string subject, string emailTemplatePath)
          => await BuildMailBody(recipient, replacements, subject, emailTemplatePath);
 
-        private async Task<bool> BuildMailBody(List<string> destination, string[] replacements, string subject, string templateUrl)
+        private async Task<BaseResponse<bool>> BuildMailBody(List<string> destination, string[] replacements, string subject, string templateUrl)
         {
             var emailTemplatePath = Path.Combine(_env.ContentRootPath, templateUrl);
 
@@ -59,7 +62,7 @@ namespace Optima.Services.Implementation
             var link = $"<a href='{hrefValue}'> Click here to reset password</a>";
             return link;
         }
-        public async Task<bool> SendPasswordResetEmail(string emailAddress, string subject, string passwordResetLink)
+        public async Task<BaseResponse<bool>> SendPasswordResetEmail(string emailAddress, string subject, string passwordResetLink)
         {
 
             string[] replacements = { passwordResetLink };
@@ -96,7 +99,7 @@ namespace Optima.Services.Implementation
             return messageBody;
         }
 
-        private async Task<bool> SendEmail(MailRequest mailRequest)
+        private async Task<BaseResponse<bool>> SendEmail(MailRequest mailRequest)
         {
 
             try
@@ -126,9 +129,7 @@ namespace Optima.Services.Implementation
                         }
                     }
 
-
-                    //DECRYPT SENDGRID APIKEY
-                    var password = _encrypt.Decrypt(_smtpConfigSettings.Password); 
+                    var password = _smtpConfigSettings.Password; 
 
                     mailMessage.Subject = mailRequest.Subject;
                     mailMessage.Priority = MailPriority.High;
@@ -150,19 +151,49 @@ namespace Optima.Services.Implementation
 
                     await smtpClient.SendMailAsync(mailMessage);
 
-                    return true;
+                    return new BaseResponse<bool>(true, "MESSAGE SENT SUCCESSFULLY!...");
                 }
-                return false;
 
+                return new BaseResponse<bool>(false, "Message not Sent!");
             }
-            catch (Exception ex)
+            catch (Exception error)
             {
-                _logger.Error(ex.StackTrace, ex);
-                return false;
+                try
+                {
+                    _logger.Error($"Error sending Email... {error.StackTrace}", error);
+
+                    _logger.Error($"Retrying to send email...");
+
+                    await Retry(_smtpConfigSettings.Password, _smtpConfigSettings.DisplayName, _smtpConfigSettings.Mail, mailRequest.Subject, mailRequest.Body, mailRequest.Body, mailRequest.Recipient);
+
+                    return new BaseResponse<bool>(true, "MESSAGE SENT SUCCESSFULLY!...");
+                }
+                catch (Exception ex)
+                {
+                    _logger.Error($"Error sending Email... {ex.StackTrace}", ex);
+                    return new BaseResponse<bool>(false, "Message not Sent...");
+                }
             }
 
         }
+        private async Task Retry(string apiKey, string displayName, string sender, string subject, string plainTextContent, string htmlContent, List<string> recipients)
+        {
+            var client = new SendGridClient(apiKey);
 
+            var from = new EmailAddress(sender, displayName);
+            var emailRecipients = new List<EmailAddress>();
+
+            foreach (var recipient in recipients)
+            {
+                emailRecipients.Add(new EmailAddress
+                {
+                    Email = recipient
+                });
+            }
+
+            var msg = MailHelper.CreateSingleEmailToMultipleRecipients(from, emailRecipients, subject, plainTextContent, htmlContent);
+            await client.SendEmailAsync(msg);            
+        }
         public string GenerateEmailConfirmationLinkAsync(string token, string email)
         {
             string baseUri = _emailLink.BaseUrl;
@@ -171,13 +202,13 @@ namespace Optima.Services.Implementation
             var link = $"<h5>Click <a href='{hrefValue}'> here</a> to verify your account</h5>";
             return link;
         }
-        public async Task<bool> SendAccountVerificationEmail(string emailAddress, string firstName, string subject, string confirmationLink)
+        public async Task<BaseResponse<bool>> SendAccountVerificationEmail(string emailAddress, string firstName, string subject, string confirmationLink)
         {
 
             string[] replacements = { firstName, confirmationLink };
             return await GenerateMail(emailAddress, replacements, subject, EmailTemplateUrl.AccountVerificationTemplate);
         }
-        private async Task<bool> GenerateMail(string emailAddress, string[] replacements, string subject, string templateUrl)
+        private async Task<BaseResponse<bool>> GenerateMail(string emailAddress, string[] replacements, string subject, string templateUrl)
         {
             var emailTemplatePath = Path.Combine(_env.ContentRootPath, templateUrl);
 
@@ -193,7 +224,7 @@ namespace Optima.Services.Implementation
             return await SendEmail(mail);
         }
 
-        public async Task<bool> SendAccountConfirmationEmail(string email, string name)
+        public async Task<BaseResponse<bool>> SendAccountConfirmationEmail(string email, string name)
         {
             string[] replacements = { name };
             return await GenerateMail(email, replacements, "ACCOUNT CONFIRMATION", EmailTemplateUrl.AccountConfirmationTemplate);

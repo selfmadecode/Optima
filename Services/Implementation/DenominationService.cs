@@ -4,6 +4,7 @@ using Optima.Context;
 using Optima.Models.DTO.DenominationDTOs;
 using Optima.Models.Entities;
 using Optima.Models.Enums;
+using Optima.Utilities;
 using Optima.Utilities.Helpers;
 using System;
 using System.Collections.Generic;
@@ -12,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace Optima.Services.Implementation
 {
-    public class DenominationService : IDenominationService
+    public class DenominationService : BaseService, IDenominationService
     {
         private readonly ApplicationDbContext _context;
 
@@ -32,13 +33,8 @@ namespace Optima.Services.Implementation
 
             if (checkDenomination is true)
             {
-                return new BaseResponse<bool>
-                {
-                    Data = false,
-                    ResponseMessage = $"Amount {model.Amount} already exists.",
-                    Errors = new List<string> { $"Amount {model.Amount} already exists" },
-                    Status = RequestExecution.Failed
-                };
+                Errors.Add($"Amount {model.Amount} already exists");
+                return new BaseResponse<bool>($"Amount {model.Amount} already exists.", Errors);
             }
 
             var newDenomination = new Denomination
@@ -50,12 +46,7 @@ namespace Optima.Services.Implementation
             _context.Add(newDenomination);
             await _context.SaveChangesAsync();
 
-            return new BaseResponse<bool>
-            {
-                Data = true,
-                ResponseMessage = $"Successfully Created the Denomination",
-                Status = RequestExecution.Successful
-            };
+            return new BaseResponse<bool>(true, "Successfully Created the Denomination");
         }
 
         /// <summary>
@@ -65,41 +56,26 @@ namespace Optima.Services.Implementation
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
         public async Task<BaseResponse<bool>> DeleteDenomination(Guid id)
         {
-
             var checkDenomination = await _context.Denominations.FirstOrDefaultAsync(x => x.Id == id);
 
             if (checkDenomination is null)
             {
-                return new BaseResponse<bool>
-                {
-                    Data = false,
-                    ResponseMessage = "Denomination doesn't exists.",
-                    Errors = new List<string> { "Denomination doesn't exists." },
-                    Status = RequestExecution.Failed
-                };
+                Errors.Add("Denomination doesn't exists.");
+                return new BaseResponse<bool>("Denomination doesn't exists.", Errors);
             }
 
             var _ = await _context.CardTypeDenomination.AnyAsync(x => x.PrefixId == id);
 
             if (_)
-                return new BaseResponse<bool>
-                {
-                    Data = false,
-                    ResponseMessage = "Denomination Cannot be deleted.",
-                    Errors = new List<string> { "Denomination Cannot be deleted." },
-                    Status = RequestExecution.Failed
-                };  
-
+            {
+                Errors.Add("Denomination Cannot be deleted.");
+                return new BaseResponse<bool>("Denomination Cannot be deleted.", Errors);
+            }
 
             _context.Denominations.Remove(checkDenomination);
             await _context.SaveChangesAsync();
 
-            return new BaseResponse<bool>
-            {
-                Data = false,
-                ResponseMessage = "Successfully deleted the Denomination.",
-                Status = RequestExecution.Successful
-            };
+            return new BaseResponse<bool>(true, "Successfully deleted the Denomination!");
         }
 
         /// <summary>
@@ -144,7 +120,6 @@ namespace Optima.Services.Implementation
             DenominationDTO rateDTO = checkDenomination;
 
             return new BaseResponse<DenominationDTO> { Data = rateDTO, ResponseMessage = "Successfully Found the Denomination", Status = RequestExecution.Successful };
-
         }
 
         /// <summary>
@@ -190,8 +165,7 @@ namespace Optima.Services.Implementation
         }
 
         private async Task<bool> CheckDenomination(Guid? id, decimal? amount)
-        {
-         
+        {         
             if (amount.HasValue && id is null)
             {
                 var response = await _context.Denominations.FirstOrDefaultAsync(x => x.Amount == amount);
@@ -205,7 +179,5 @@ namespace Optima.Services.Implementation
 
             return false;
         }
-           
-
     }
 }

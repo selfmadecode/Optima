@@ -13,7 +13,7 @@ namespace Optima.Services.Interface
     {
         Task<BaseResponse<bool>> CreateCountry(CreateCountryDTO model, Guid UserId);
         Task<BaseResponse<CountryDTO>> GetCountry(Guid id);
-        Task<BaseResponse<bool>> UpdateCountry(UpdateCountryDTO model, Guid UserId);
+        Task<BaseResponse<bool>> UpdateCountry(UpdateCountryDTO model, Guid UserId, Guid CountryId);
         Task<BaseResponse<bool>> DeleteCountry(Guid id);
         Task<BaseResponse<PagedList<CountryDTO>>> GetAllCountry(BaseSearchViewModel model);
         Task<BaseResponse<List<CountryDTO>>> GetAllCountry();

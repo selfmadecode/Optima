@@ -1,10 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using log4net;
+using Microsoft.EntityFrameworkCore;
 using Optima.Context;
 using Optima.Models.Constant;
 using Optima.Models.DTO.BankAccountDTOs;
 using Optima.Models.Entities;
-using Optima.Models.Enums;
 using Optima.Services.Interface;
+using Optima.Utilities;
 using Optima.Utilities.Helpers;
 using System;
 using System.Collections.Generic;
@@ -13,12 +14,14 @@ using System.Threading.Tasks;
 
 namespace Optima.Services.Implementation
 {
-    public class BankAccountService : IBankAccountService
+    public class BankAccountService : BaseService, IBankAccountService
     {
+        private readonly ILog _logger;
         private readonly ApplicationDbContext _context;
         public BankAccountService(ApplicationDbContext context)
         {
             _context = context;
+            _logger = LogManager.GetLogger(typeof(BankAccountService));
         }
 
         /// <summary>
@@ -29,49 +32,53 @@ namespace Optima.Services.Implementation
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
         public async Task<BaseResponse<bool>> CreateBankAccount(CreateBankAccountDTO model, Guid UserId)
         {
-            var response = new BaseResponse<bool>();
+            var geBanksForUser = await _context.BankAccounts.Where(x => x.UserId == UserId).ToListAsync();
 
-            var getAllBanks = await _context.BankAccounts.Where(x => x.UserId == UserId).ToListAsync();
-
-            if (getAllBanks.Count == 2)
+            if (geBanksForUser.Count == 2)
             {
-                response.Data = false;
-                response.Errors = new List<string> { "You can only have a minimun of 2 Bank Account(s)." };
-                response.Status = RequestExecution.Failed;
-                response.ResponseMessage = "You can only have a minimun of 2 Bank Account(s).";
-                return response;
+                Errors.Add(ResponseMessage.MaxAccountError);
+                return new BaseResponse<bool>(ResponseMessage.MaxAccountError, Errors);
             }
 
             var checkBankInfo = await _context.BankAccounts
-                .Where(x => x.UserId == UserId && x.AccountNumber.Replace(" ", "") == model.AccountNumber.Replace(" ", "")).FirstOrDefaultAsync();
+                .Where(x => x.UserId == UserId 
+                     && x.AccountNumber.Replace(" ", "") == model.AccountNumber.Replace(" ", "")
+                     && x.BankName.ToLower().Replace(" ", "") == model.BankName.ToLower().Replace(" ", "")
+                     && x.IsActive
+                ).FirstOrDefaultAsync();
 
             if (!(checkBankInfo is null))
             {
-                response.Data = false;
-                var message = $"AccountNumber: {checkBankInfo.AccountNumber} with AccountName: {checkBankInfo.BankName} already Exists";
-                response.ResponseMessage = message;
-                response.Errors = new List<string> { message };
-                response.Status = RequestExecution.Failed;
-                return response;
+                var message = $"ACCOUNT NUMBER: {checkBankInfo.AccountNumber} WITH ACCOUNT NAME: {checkBankInfo.BankName} ALREADY EXISTS";
+                Errors.Add( message);
+                return new BaseResponse<bool>(message, Errors);
             }
 
-            var newBankAccount = new BankAccount
+            _context.BankAccounts.Add(CreateAccount(UserId, model));
+            await _context.SaveChangesAsync();
+
+            _logger.Info("Created user Bank Account.....");
+
+            return new BaseResponse<bool>(true, ResponseMessage.BankAccountCreated);
+        }
+
+        /// <summary>
+        /// CREATES THE BANK ACCOUNT
+        /// </summary>
+        /// <param name="UserId">The UserId</param>
+        /// <param name="model">The Model</param>
+        /// <returns>BankAccount</returns>
+        private BankAccount CreateAccount(Guid UserId, CreateBankAccountDTO model)
+        {
+            return new BankAccount
             {
                 AccountName = model.AccountName,
                 BankName = model.BankName,
                 AccountNumber = model.AccountNumber,
                 UserId = UserId,
-                CreatedBy = UserId,
-
+                IsActive = true,
+                CreatedBy = UserId
             };
-           
-            _context.BankAccounts.Add(newBankAccount);
-            await _context.SaveChangesAsync();
-
-            response.Data = true;
-            response.ResponseMessage = $"Successfully Created your Bank Account(s).";
-            return response;
-
         }
 
         /// <summary>
@@ -86,25 +93,14 @@ namespace Optima.Services.Implementation
 
             if (bankAccount is null)
             {
-                return new BaseResponse<bool>
-                {
-                    Data = false,
-                    Errors = new List<string> { "Bank account doesn't exists" },
-                    Status = RequestExecution.Failed,
-                    ResponseMessage = "Bank account doesn't exists"
-                };
+                Errors.Add(ResponseMessage.BankAccountNotFound);
+                return new BaseResponse<bool>(ResponseMessage.BankAccountNotFound, Errors);
             }
 
-            _context.BankAccounts.Remove(bankAccount);
+            bankAccount.IsActive = false;
             await _context.SaveChangesAsync();
 
-            return new BaseResponse<bool>
-            {
-                Data = true,
-                Status = RequestExecution.Successful,
-                ResponseMessage = "Successfully deleted your bank account"
-            };
-
+            return new BaseResponse<bool>(true, ResponseMessage.BankAccountDeleted);            
         }
 
         /// <summary>
@@ -114,31 +110,22 @@ namespace Optima.Services.Implementation
         /// <returns>Task&lt;BaseResponse&lt;List&lt;BankAccountDTO&gt;&gt;&gt;.</returns>
         public async Task<BaseResponse<List<BankAccountDTO>>> GetUserBankAccounts(Guid UserId)
         {
-            var response = new BaseResponse<List<BankAccountDTO>>();
-
             var user = GetUserById(UserId);
             if (user is null)
             {
-                response.Data = null;
-                response.Errors.Add(ResponseMessage.ErrorMessage000);
-                response.Status = RequestExecution.Failed;
-                response.ResponseMessage = ResponseMessage.ErrorMessage000;
-                return response;
+                Errors.Add(ResponseMessage.ErrorMessage000);
+                return new BaseResponse<List<BankAccountDTO>>(ResponseMessage.ErrorMessage000, Errors);
             }
 
-            var bankAccounts = await _context.BankAccounts.Where(x => x.UserId == UserId)
+            var bankAccounts = await _context.BankAccounts
+                .Where(x => x.UserId == UserId && x.IsActive)
                 .OrderByDescending(x => x.CreatedOn)
                 .ToListAsync();
 
             var bankAccountDTOs = bankAccounts.Select(x => (BankAccountDTO)x).ToList();
 
-            return new BaseResponse<List<BankAccountDTO>>
-            {
-                Data = bankAccountDTOs,
-                TotalCount = bankAccountDTOs.Count,
-                ResponseMessage = $"Found {bankAccounts.Count} Bank Account(s)."
-            };
-
+            var message = $"FOUND {bankAccounts.Count} BANK ACCOUNT(S).";
+            return new BaseResponse<List<BankAccountDTO>>(bankAccountDTOs, message);            
         }
 
         /// <summary>
@@ -153,22 +140,13 @@ namespace Optima.Services.Implementation
 
             if (bankAccount is null)
             {
-                return new BaseResponse<BankAccountDTO>
-                {
-                    Data = null,
-                    Errors = new List<string> { "Bank account doesn't exists" },
-                    Status = RequestExecution.Failed,
-                    ResponseMessage = "Bank account doesn't exists"
-                };
+                Errors.Add(ResponseMessage.BankAccountNotFound);
+                return new BaseResponse<BankAccountDTO>(ResponseMessage.BankAccountNotFound, Errors);                
             }
 
             BankAccountDTO bankAccountDTO = bankAccount;
 
-            return new BaseResponse<BankAccountDTO>
-            {
-                Data = bankAccountDTO,
-                ResponseMessage = "Success"
-            };
+            return new BaseResponse<BankAccountDTO>(bankAccount, ResponseMessage.SuccessMessage000);            
         }
 
         /// <summary>
@@ -179,32 +157,23 @@ namespace Optima.Services.Implementation
         /// <returns>Task&lt;BaseResponse&lt;BankAccountDTO&gt;&gt;.</returns>
         public async Task<BaseResponse<bool>> UpdateBankAccount(UpdateBankAccountDTO model, Guid UserId)
         {
-            var bankAccount = await _context.BankAccounts.FirstOrDefaultAsync(x => x.UserId == UserId && x.Id == model.Id);
+            var bankAccount = await _context.BankAccounts
+                .FirstOrDefaultAsync(x => x.UserId == UserId && x.Id == model.Id);
 
             if (bankAccount is null)
             {
-                return new BaseResponse<bool>
-                {
-                    Data = false,
-                    Errors = new List<string> { "Bank account doesn't exists" },
-                    Status = RequestExecution.Failed,
-                    ResponseMessage = "Bank account doesn't exists"
-                };
+                Errors.Add(ResponseMessage.BankAccountNotFound);
+                return new BaseResponse<bool>(ResponseMessage.BankAccountNotFound, Errors);
             }
 
-            bankAccount.AccountName = string.IsNullOrWhiteSpace(model.AccountName) ? bankAccount.AccountName : model.AccountName;
-            bankAccount.AccountNumber = string.IsNullOrWhiteSpace(model.AccountName) ? bankAccount.AccountNumber : model.AccountNumber;
-            bankAccount.BankName = string.IsNullOrWhiteSpace(model.AccountName) ? bankAccount.BankName : model.BankName;
+            bankAccount.AccountName = model.AccountName;
+            bankAccount.AccountNumber = model.AccountNumber;
+            bankAccount.BankName = model.BankName;
 
             _context.BankAccounts.Update(bankAccount);
             await _context.SaveChangesAsync();
-
-            return new BaseResponse<bool>
-            {
-                Data = true,
-                ResponseMessage = "Bank account updated successfully"
-            };
-
+            _logger.Info("Successfully Updated a User Bank Account");
+            return new BaseResponse<bool>(true, ResponseMessage.BankAccountUpdated);
         }
 
         /// <summary>

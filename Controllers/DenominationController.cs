@@ -11,17 +11,15 @@ using System.Threading.Tasks;
 
 namespace Optima.Controllers
 {
-    [Route("api/[controller]/[action]")]
+    [Route("api/[controller]")]
     [ApiController]
     public class DenominationController : BaseController
     {
         private readonly IDenominationService _rateService; 
-        private readonly ILog _logger;
 
         public DenominationController(IDenominationService rateService)
         {
             _rateService = rateService;
-            _logger = LogManager.GetLogger(typeof(DenominationController));
         }
 
         [HttpPost]
@@ -31,13 +29,10 @@ namespace Optima.Controllers
         {
             try
             {
-                var result = await _rateService.CreateDenomination(model, UserId);
-
-                return ReturnResponse(result);
+                return ReturnResponse(await _rateService.CreateDenomination(model, UserId));
             }
             catch (Exception ex)
             {
-                _logger.Error(ex.Message, ex);
                 return HandleError(ex);
             }
 
@@ -49,13 +44,10 @@ namespace Optima.Controllers
         {
             try
             {
-                var result = await _rateService.GetDenomination(id);
-
-                return ReturnResponse(result);
+                return ReturnResponse(await _rateService.GetDenomination(id));
             }
             catch (Exception ex)
             {
-                _logger.Error(ex.Message, ex);
                 return HandleError(ex);
             }
 
@@ -68,13 +60,10 @@ namespace Optima.Controllers
         {
             try
             {
-                var result = await _rateService.GetAllDenominations();
-
-                return ReturnResponse(result);
+                return ReturnResponse(await _rateService.GetAllDenominations());
             }
             catch (Exception ex)
             {
-                _logger.Error(ex.Message, ex);
                 return HandleError(ex);
             }
 
@@ -86,14 +75,11 @@ namespace Optima.Controllers
         {
             try
             {
-                var result = await _rateService.UpdateDenomination(model, UserId);
-
-                return ReturnResponse(result);
+                return ReturnResponse(await _rateService.UpdateDenomination(model, UserId));
             }
             catch (Exception ex)
             {
-                _logger.Error(ex.Message, ex);
-                return HandleError(ex);
+               return HandleError(ex);
             }
 
         }
@@ -105,13 +91,10 @@ namespace Optima.Controllers
         {
             try
             {
-                var result = await _rateService.DeleteDenomination(id);
-
-                return ReturnResponse(result);
+                return ReturnResponse(await _rateService.DeleteDenomination(id));
             }
             catch (Exception ex)
             {
-                _logger.Error(ex.Message, ex);
                 return HandleError(ex);
             }
 

@@ -58,8 +58,26 @@ namespace Optima.Map
                 SecurityStamp = "016020e3-5c50-40b4-9e66-bba56c9f5bf2",
                 UserType = UserTypes.SUPER_ADMIN,
             };
+            var admin = new ApplicationUser
+            {
+                FullName = "Optima Admin",
+                Id = Defaults.AdminId,
+                LastLoginDate = DateTime.Now,
+                Email = Defaults.AdminEmail,
+                EmailConfirmed = true,
+                HasAcceptedTerms = true,
+                NormalizedEmail = Defaults.AdminEmail.ToUpper(),
+                PhoneNumber = Defaults.AdminMobile,
+                UserName = Defaults.AdminEmail,
+                NormalizedUserName = Defaults.AdminEmail.ToUpper(),
+                TwoFactorEnabled = false,
+                PhoneNumberConfirmed = true,
+                PasswordHash = Hasher.HashPassword(null, "optimA_1"),
+                SecurityStamp = "016020e3-5c50-40b4-9e66-bba56c9f5bf2",
+                UserType = UserTypes.ADMIN,
+            };
 
-            builder.HasData(sysUser, superAdmin);
+            builder.HasData(sysUser, superAdmin, admin);
         }
     }
 }

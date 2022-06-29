@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace Optima.Controllers
 {
-    [Route("api/[controller]/[action]")]
+    [Route("api/[controller]")]
     [ApiController]
     [Authorize]
     public class CountryController : BaseController
@@ -33,9 +33,7 @@ namespace Optima.Controllers
         {
             try
             {
-                var result = await _countryService.CreateCountry(model, UserId);
-
-                return ReturnResponse(result);
+                return ReturnResponse(await _countryService.CreateCountry(model, UserId));
             }
             catch (Exception ex)
             {
@@ -44,15 +42,14 @@ namespace Optima.Controllers
 
         }
 
-        [HttpGet("{id}")]
+        [HttpGet]
+        [Route("{id:Guid}")]
         [ProducesResponseType(typeof(BaseResponse<CountryDTO>), 200)]
         public async Task<IActionResult> Get(Guid id)
         {
             try
             {
-                var result = await _countryService.GetCountry(id);
-
-                return ReturnResponse(result);
+               return ReturnResponse(await _countryService.GetCountry(id));
             }
             catch (Exception ex)
             {
@@ -63,14 +60,11 @@ namespace Optima.Controllers
 
         [HttpGet]
         [ProducesResponseType(typeof(BaseResponse<PagedList<CountryDTO>>), 200)]
-
         public async Task<IActionResult> GetAll([FromQuery] BaseSearchViewModel model)
         {
             try
             {
-                var result = await _countryService.GetAllCountry(model);
-
-                return ReturnResponse(result);
+                return ReturnResponse(await _countryService.GetAllCountry(model));
             }
             catch (Exception ex)
             {
@@ -80,13 +74,12 @@ namespace Optima.Controllers
         }
 
         [HttpGet]
+        [Route("No-Pagination")]
         public async Task<IActionResult> GetAllNp() 
         {
             try
             {
-                var result = await _countryService.GetAllCountry();
-
-                return ReturnResponse(result);
+                return ReturnResponse(await _countryService.GetAllCountry());
             }
             catch (Exception ex)
             {
@@ -96,15 +89,14 @@ namespace Optima.Controllers
         }
 
         [HttpPut]
+        [Route("{CountryId:Guid}")]
         [Authorize]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
-        public async Task<IActionResult> Update([FromForm] UpdateCountryDTO model)
+        public async Task<IActionResult> Update(Guid CountryId, [FromForm] UpdateCountryDTO model)
         {
             try
             {
-                var result = await _countryService.UpdateCountry(model, UserId);
-
-                return ReturnResponse(result);
+                return ReturnResponse(await _countryService.UpdateCountry(model, UserId, CountryId));
             }
             catch (Exception ex)
             {
@@ -113,16 +105,15 @@ namespace Optima.Controllers
 
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete]
+        [Route("{id:Guid}")]
         //[Authorize(Policy ="CanDelete")]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
         public async Task<IActionResult> Delete(Guid id)
         {
             try
             {
-                var result = await _countryService.DeleteCountry(id);
-
-                return ReturnResponse(result);
+                return ReturnResponse(await _countryService.DeleteCountry(id));
             }
             catch (Exception ex)
             {

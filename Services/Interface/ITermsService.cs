@@ -9,8 +9,8 @@ namespace Optima.Services.Interface
 {
     public interface ITermsService
     {
-        Task<BaseResponse<bool>> AcceptTermsAndCondition(Guid UserId);
-        Task<BaseResponse<GetRateDTO>> GetTermsAndCondition();
-        Task<BaseResponse<Guid>> UpdateTermsAndCondition(Guid modifiedBy, UpdateTermsDTO model);
+        Task<BaseResponse<bool>> AcceptTermsAndCondition(AcceptTerms model);
+        Task<BaseResponse<GetTermsDTO>> GetTermsAndCondition();
+        Task<BaseResponse<Guid>> UpdateTermsAndCondition(Guid modifiedBy, DateTime currentDateTime, UpdateTermsDTO model);
     }
 }

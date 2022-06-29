@@ -15,6 +15,7 @@ namespace Optima.Services.Interface
         Task<BaseResponse<bool>> Withdraw(WithdrawDTO model, Guid userId);
         Task<BaseResponse<PagedList<TransactionDTO>>> GetUserCreditDebit(BaseSearchViewModel model, Guid UserId);
         Task<BaseResponse<PagedList<TransactionDTO>>> GetAllUserCreditDebit(BaseSearchViewModel model); 
+        Task<BaseResponse<bool>> UpdateDebitStatus(UpdateDebitStatus model, Guid UserId); 
 
     }
 }

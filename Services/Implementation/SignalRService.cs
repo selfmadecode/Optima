@@ -9,6 +9,6 @@ namespace Optima.Services.Implementation
 {
     public class SignalRService : Hub<ISignalRService>
     {
-
+        
     }
 }

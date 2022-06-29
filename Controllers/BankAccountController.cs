@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace Optima.Controllers
 {
-    [Route("api/[controller]/[action]")]
+    [Route("api/[controller]")]
     [ApiController]
     [Authorize]
     public class BankAccountController : BaseController
@@ -31,9 +31,7 @@ namespace Optima.Controllers
         {
             try
             {
-                var result = await _bankAccountService.CreateBankAccount(model, UserId);
-
-                return ReturnResponse(result);
+                return ReturnResponse(await _bankAccountService.CreateBankAccount(model, UserId));
             }
             catch (Exception ex)
             {
@@ -42,15 +40,14 @@ namespace Optima.Controllers
            
         }
 
-        [HttpGet("{id}")]
+        [HttpGet]
+        [Route("{id:Guid}")]
         [ProducesResponseType(typeof(BaseResponse<BankAccountDTO>), 200)]
         public async Task<IActionResult> Get(Guid id)
         {
             try
             {
-                var result = await _bankAccountService.GetBankAccount(id, UserId);
-
-                return ReturnResponse(result);
+               return ReturnResponse(await _bankAccountService.GetBankAccount(id, UserId));
             }
             catch (Exception ex)
             {
@@ -59,16 +56,15 @@ namespace Optima.Controllers
 
         }
 
-        [HttpGet("{userId}")]
+        [HttpGet]
+        [Route("User/{userId:Guid}")]
         [ProducesResponseType(typeof(BaseResponse<List<BankAccountDTO>>), 200)]
 
         public async Task<IActionResult> GetUserBankAccount(Guid userId)
         {
             try
             {
-                var result = await _bankAccountService.GetUserBankAccounts(userId);
-
-                return ReturnResponse(result);
+                return ReturnResponse(await _bankAccountService.GetUserBankAccounts(userId));
             }
             catch (Exception ex)
             {
@@ -79,14 +75,13 @@ namespace Optima.Controllers
 
 
         [HttpPut]
+        [Route("{userId:Guid}")]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
-        public async Task<IActionResult> Update([FromBody]UpdateBankAccountDTO model, Guid UserId) 
+        public async Task<IActionResult> Update([FromBody]UpdateBankAccountDTO model, Guid userId) 
         {
             try
             {
-                var result = await _bankAccountService.UpdateBankAccount(model, UserId); 
-
-                return ReturnResponse(result);
+                return ReturnResponse(await _bankAccountService.UpdateBankAccount(model, userId));
             }
             catch (Exception ex)
             {
@@ -95,15 +90,14 @@ namespace Optima.Controllers
 
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete]
+        [Route("{id:Guid}")]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
         public async Task<IActionResult> Delete(Guid id) 
         {
             try
             {
-                var result = await _bankAccountService.DeleteBankAccount(id, UserId); 
-
-                return ReturnResponse(result);
+                return ReturnResponse(await _bankAccountService.DeleteBankAccount(id, UserId));
             }
             catch (Exception ex)
             {

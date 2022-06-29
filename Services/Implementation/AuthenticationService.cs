@@ -9,6 +9,7 @@ using Optima.Models.DTO.AuthDTO;
 using Optima.Models.Entities;
 using Optima.Models.Enums;
 using Optima.Services.Interface;
+using Optima.Utilities;
 using Optima.Utilities.Helpers;
 using System;
 using System.Collections.Generic;
@@ -21,7 +22,7 @@ using System.Threading.Tasks;
 
 namespace Optima.Services.Implementation
 {
-    public class AuthenticationService : IAuthenticationService
+    public class AuthenticationService : BaseService, IAuthenticationService
     {
         
         private readonly IConfiguration _configuration;
@@ -32,7 +33,7 @@ namespace Optima.Services.Implementation
         
         private readonly SignInManager<ApplicationUser> _signInManager;
         
-        private readonly RoleManager<ApplicationUserRole> _roleManager;
+        private readonly RoleManager<ApplicationRole> _roleManager;
         
         private readonly IEmailService _emailService;
 
@@ -42,7 +43,7 @@ namespace Optima.Services.Implementation
 
 
         public AuthenticationService(IConfiguration configuration, ApplicationDbContext context,
-            UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, RoleManager<ApplicationUserRole> roleManager,
+            UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, RoleManager<ApplicationRole> roleManager,
             IEmailService emailService, IEncrypt encrypt)
         {
             _context = context;
@@ -57,7 +58,8 @@ namespace Optima.Services.Implementation
         }
         
         public (string, DateTime) CreateJwtTokenAsync(ApplicationUser user, IList<string> userRoles)
-        {
+        {            
+
             var key = Encoding.ASCII.GetBytes(_configuration["JWT:Secret"]);
 
             var userClaims = BuildUserClaims(user, userRoles).Result;            
@@ -78,11 +80,10 @@ namespace Optima.Services.Implementation
         public async Task<List<Claim>> BuildUserClaims(ApplicationUser user, IList<string> userRoles)
         {
             IdentityOptions identityOptions = new IdentityOptions();
+            var claims = await _userManager.GetClaimsAsync(user);            
 
             var userClaims = new List<Claim>()
             {
-                //new Claim(identityOptions.ClaimsIdentity.UserIdClaimType, user.Id.ToString()),
-                //new Claim(identityOptions.ClaimsIdentity.UserNameClaimType, user.Email),
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Name, user.FullName.ToString()),
                 new Claim(ClaimTypes.Email, user.Email),
@@ -95,6 +96,12 @@ namespace Optima.Services.Implementation
             {
                 userClaims.Add(new Claim(ClaimTypes.Role, userRole));
             }
+
+            foreach (var claim in claims)
+            {
+                userClaims.Add(new Claim(claim.Type, claim.Value));
+            }
+
             _logger.Info($"Built User claims successfully");
             return userClaims;
         }
@@ -134,9 +141,6 @@ namespace Optima.Services.Implementation
 
         public async Task<BaseResponse<RegisterDTO>> Register(RegisterDTO model)
         {
-
-            var result = new BaseResponse<RegisterDTO>();
-
             var user = new ApplicationUser
             {
                 FullName = model.FullName,
@@ -154,24 +158,29 @@ namespace Optima.Services.Implementation
 
             if (!response.Succeeded)
             {
+                var errors = new List<string>();
+
                 foreach (var error in response.Errors)
                 {
-                    result.Errors.Add(error.Description);
+                    errors.Add(error.Description);
                 }
-                return result;
+
+                return new BaseResponse<RegisterDTO>(ResponseMessage.AccountCreationFailure, errors);
             };
             
             string token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
 
             var emailConfirmationLink = _emailService.GenerateEmailConfirmationLinkAsync(_encrypt.Encrypt(token), user.Email);
 
-            _logger.Info("SENDING CONFIRMATION LINK");
+            _logger.Info("SENDING CONFIRMATION LINK...");
+
             await _emailService.SendAccountVerificationEmail(user.Email, user.FullName, EmailSubject.EmailConfirmation, emailConfirmationLink);
 
             await CreateUserWalletBalance(user.Id);
 
-            result.Data = model;
-            return result;
+            model.Password = "";
+
+            return new BaseResponse<RegisterDTO>(model, ResponseMessage.AccountCreationSuccess);
         }
 
         private async Task CreateUserWalletBalance(Guid UserId)
@@ -183,6 +192,8 @@ namespace Optima.Services.Implementation
 
             _context.WalletBalance.Add(newUserAccountBalance);
             await _context.SaveChangesAsync();
+
+            _logger.Info("CREATED AND SAVED USER WALLET...");
         }
 
         private ClaimsPrincipal GetPrincipalFromToken(string token)
@@ -221,23 +232,17 @@ namespace Optima.Services.Implementation
 
         public async Task<BaseResponse<string>> ConfirmEmail(string token, string email)
         {
-            var result = new BaseResponse<string>();
-
             var user = await _userManager.FindByEmailAsync(email);
 
             if (user == null)
             {
-                result.ResponseMessage = ResponseMessage.ErrorMessage504;
-                result.Errors.Add(ResponseMessage.ErrorMessage504);
-                return result;
+                Errors.Add(ResponseMessage.ErrorMessage504);
+                return new BaseResponse<string>(ResponseMessage.ErrorMessage504, Errors);
             };
 
             if (user.EmailConfirmed == true)
             {
-                result.ResponseMessage = ResponseMessage.ErrorMessage501;
-                result.Errors.Add(ResponseMessage.ErrorMessage501);
-                result.Data = email;
-                return result;
+                return new BaseResponse<string>(email, ResponseMessage.AccountConfirmed);
             }
 
             var response = await _userManager.ConfirmEmailAsync(user, _encrypt.Decrypt(token));
@@ -246,29 +251,25 @@ namespace Optima.Services.Implementation
             {
                 foreach (var error in response.Errors)
                 {
-                    result.Errors.Add(error.Description);
+                    Errors.Add(error.Description);
                 }
-                return result;
+                return new BaseResponse<string>(ResponseMessage.ErrorMessage504, Errors);
             };
 
             await _emailService.SendAccountConfirmationEmail(email, user.FullName);
             _logger.Info("Sending Account confirmation email notification....");
+                        
+            return new BaseResponse<string>(email, ResponseMessage.AccountConfirmed);
+        }
 
-            result.ResponseMessage = ResponseMessage.AccountConfirmed;
-            result.Data = email;
-            return result;
-        }  
-        
         public async Task<BaseResponse<ForgotPasswordDTO>> ForgotPassword(ForgotPasswordDTO model)
         {
-            var result = new BaseResponse<ForgotPasswordDTO>();
-
             var user = await _userManager.FindByEmailAsync(model.EmailAddress);
 
             if (user == null)
             {
-                result.Errors.Add(ResponseMessage.ErrorMessage504);
-                return result;
+                Errors.Add(ResponseMessage.ErrorMessage504);
+                return new BaseResponse<ForgotPasswordDTO>(ResponseMessage.ErrorMessage504, Errors);
             };
 
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
@@ -276,22 +277,17 @@ namespace Optima.Services.Implementation
             var emailConfirmationLink = _emailService.GeneratePasswordResetLinkAsync(_encrypt.Encrypt(token), user.Email);
             await _emailService.SendPasswordResetEmail(user.Email, EmailSubject.PasswordReset, emailConfirmationLink);
 
-            result.ResponseMessage = ResponseMessage.PasswordResetCodeSent;
-            result.Data = model;
-            return result;
+            return new BaseResponse<ForgotPasswordDTO>(model, ResponseMessage.PasswordResetCodeSent);
         }
                 
         public async Task<BaseResponse<ResetPasswordDTO>> ResetPassword(ResetPasswordDTO model)
         {
-            var result = new BaseResponse<ResetPasswordDTO>();
-
             var user = await _userManager.FindByEmailAsync(model.Email);
 
             if (user == null)
             {
-                result.ResponseMessage = ResponseMessage.ErrorMessage504;
-                result.Errors.Add(ResponseMessage.ErrorMessage504);
-                return result;
+                Errors.Add(ResponseMessage.ErrorMessage504);
+                return new BaseResponse<ResetPasswordDTO>(ResponseMessage.ErrorMessage504, Errors);
             };
 
             var decryptedMessage = _encrypt.Decrypt(model.Token);
@@ -302,40 +298,38 @@ namespace Optima.Services.Implementation
             {
                 foreach (var error in resetResult.Errors)
                 {
-                    result.Errors.Add(error.Description);
+                    Errors.Add(error.Description);
                 }
-                return result;
+                return new BaseResponse<ResetPasswordDTO>(ResponseMessage.ErrorMessage999, Errors);
             };
 
-            result.ResponseMessage = ResponseMessage.PasswordChanged;
-            result.Data = new ResetPasswordDTO();
-            return result;
+            return new BaseResponse<ResetPasswordDTO>(new ResetPasswordDTO(), ResponseMessage.PasswordChanged);
         }
 
         public async Task<BaseResponse<JwtResponseDTO>> RefreshToken(string AccessToken, string RefreshToken)
         {
-            var result = new BaseResponse<JwtResponseDTO>();
-
             ClaimsPrincipal claimsPrincipal = GetPrincipalFromToken(AccessToken);
 
-            if (claimsPrincipal == null) return result;
+            if (claimsPrincipal == null)
+            {
+                Errors.Add(ResponseMessage.RefreshTokenFailure);
+                return new BaseResponse<JwtResponseDTO>(ResponseMessage.RefreshTokenFailure, Errors);
+            }
 
             var id = Guid.Parse(claimsPrincipal.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier).Value);      
 
             var user = await GetUserById(id);
             if (user == null)
             {
-                result.ResponseMessage = ResponseMessage.ErrorMessage000;
-                result.Errors.Add(ResponseMessage.ErrorMessage000);
-                return result;
+                Errors.Add(ResponseMessage.ErrorMessage000);
+                return new BaseResponse<JwtResponseDTO>(ResponseMessage.ErrorMessage000, Errors);
             }
 
             var OldToken = await GetRefreshToken(user.Id, RefreshToken);
             if (OldToken == null)
-            {
-                result.ResponseMessage = ResponseMessage.ErrorMessage500;
-                result.Errors.Add(ResponseMessage.ErrorMessage500);
-                return result;
+            {                
+                Errors.Add(ResponseMessage.ErrorMessage500);
+                return new BaseResponse<JwtResponseDTO>(ResponseMessage.ErrorMessage500, Errors);
             }
 
             var userRoles = await _userManager.GetRolesAsync(user);
@@ -363,8 +357,7 @@ namespace Optima.Services.Implementation
                 RefreshToken = refreshToken
             };
 
-            result.Data = data;
-            return result;
+            return new BaseResponse<JwtResponseDTO>(data);
         }
 
         private async Task<RefreshToken> GetRefreshToken(Guid UserId, string refreshToken)
@@ -390,42 +383,43 @@ namespace Optima.Services.Implementation
         }
         public async Task<BaseResponse<JwtResponseDTO>> Login(LoginDTO model, DateTime CurrentDateTime)
         {
-            var result = new BaseResponse<JwtResponseDTO>();
-
             var user = await GetUser(model.EmailAddress);
             if (user == null)
             {
-                result.ResponseMessage = ResponseMessage.ErrorMessage507;
-                result.Errors.Add(ResponseMessage.ErrorMessage507);
-                return result;
+                Errors.Add(ResponseMessage.ErrorMessage507);
+                return new BaseResponse<JwtResponseDTO>(ResponseMessage.ErrorMessage507, Errors);
             };
 
             if (user.IsAccountLocked == true)
             {
-                result.ResponseMessage = ResponseMessage.ErrorMessage503;
-                result.Errors.Add(ResponseMessage.ErrorMessage503);
-                return result;
+                Errors.Add(ResponseMessage.ErrorMessage503);
+                return new BaseResponse<JwtResponseDTO>(ResponseMessage.ErrorMessage503, Errors);
             }
 
             // IF THE USER HASN'T ACCEPTED TERMS AND CONDITION
             if (user.HasAcceptedTerms == false)
             {
-                result.ResponseMessage = ResponseMessage.ErrorMessage509;
-                result.Errors.Add(ResponseMessage.ErrorMessage509);
-                return result;
+                _logger.Info($"{user.Email} has not accepted terms and condition");
+                Errors.Add(ResponseMessage.ErrorMessage509);
+                return new BaseResponse<JwtResponseDTO>(ResponseMessage.ErrorMessage509, Errors);
             }
 
             if (user != null && await _userManager.CheckPasswordAsync(user, model.Password))
             {
                 var response = await _userManager.IsEmailConfirmedAsync(user);
+
                 if (response == false)
                 {
-                    result.Errors.Add(ResponseMessage.ErrorMessage502);
-                    return result;
+                    _logger.Info($"{user.Email} is not yet confirmed");
+                    Errors.Add(ResponseMessage.ErrorMessage502);
+                    return new BaseResponse<JwtResponseDTO>(ResponseMessage.ErrorMessage502, Errors);
                 }
 
+                // TODO: GET USER PERMISSIONS
+                _logger.Info($"Getting user roles: ...{user.Email}");
+
                 var userRoles = await _userManager.GetRolesAsync(user);
-                // GET USER PERMISSION
+
                 var (token, expiration) = CreateJwtTokenAsync(user, userRoles);
 
                 await UpdateUserLastLogin(user.Email, CurrentDateTime);
@@ -441,32 +435,31 @@ namespace Optima.Services.Implementation
                 });
 
                 await SaveChanges();
+                var claims = await _userManager.GetClaimsAsync(user);
 
                 var data = new JwtResponseDTO()
                 {
                     Token = token,
                     Expiration = expiration,
                     Roles = userRoles,
-                    RefreshToken = refreshToken
+                    RefreshToken = refreshToken,
+                    Permissions = claims.Select(x => x.Value).ToList()
                 };
-                result.Data = data;
-                return result;
+
+                return new BaseResponse<JwtResponseDTO>(data);
             }
 
-            result.ResponseMessage = ResponseMessage.ErrorMessage507;
-            result.Errors.Add(ResponseMessage.ErrorMessage507);
-            return result;
+            Errors.Add(ResponseMessage.ErrorMessage507);
+            return new BaseResponse<JwtResponseDTO>(ResponseMessage.ErrorMessage507, Errors);
         }
-                
+
         public async Task<BaseResponse<ChangePasswordDTO>> ChangePassword(ChangePasswordDTO model)
         {
-            var result = new BaseResponse<ChangePasswordDTO>();
-
             var user = await _userManager.FindByEmailAsync(model.EmailAddress);
             if (user == null)
             {
-                result.Errors.Add(ResponseMessage.ErrorMessage504);
-                return result;
+                Errors.Add(ResponseMessage.ErrorMessage504);
+                return new BaseResponse<ChangePasswordDTO>(ResponseMessage.ErrorMessage504, Errors);
             };
 
             var changePassword = await _userManager.ChangePasswordAsync(user, model.OldPassword, model.NewPassword);
@@ -475,14 +468,12 @@ namespace Optima.Services.Implementation
             {
                 foreach (var error in changePassword.Errors)
                 {
-                    result.Errors.Add(error.Description);
-                }
-                return result;
+                    Errors.Add(error.Description);
+                }                
+                return new BaseResponse<ChangePasswordDTO>(ResponseMessage.PasswordChangedFailure, Errors);
             };
 
-            result.ResponseMessage = ResponseMessage.PasswordChanged;
-            result.Data = new ChangePasswordDTO();
-            return result;
+            return new BaseResponse<ChangePasswordDTO>(new ChangePasswordDTO(), ResponseMessage.PasswordChanged);
         }
 
         /// <summary>
@@ -492,20 +483,17 @@ namespace Optima.Services.Implementation
         /// <returns>Task&lt;ResultModel&lt;System.String&gt;&gt;.</returns>
         public async Task<BaseResponse<string>> LockoutUser(string emailAddress)
         {
-            var result = new BaseResponse<string>();
-
             var user = await GetUser(emailAddress);
             if (user == null)
             {
-                result.ResponseMessage = ResponseMessage.ErrorMessage504;
-                result.Errors.Add(ResponseMessage.ErrorMessage504);
-                return result;
+                Errors.Add(ResponseMessage.ErrorMessage504);
+                return new BaseResponse<string>(ResponseMessage.ErrorMessage504, Errors);
             };
 
             if (user.IsAccountLocked == true)
             {
-                result.Errors.Add(ResponseMessage.ErrorMessage505);
-                return result;
+                Errors.Add(ResponseMessage.ErrorMessage505);
+                return new BaseResponse<string>(ResponseMessage.ErrorMessage505, Errors);
             }
 
             user.IsAccountLocked = true;
@@ -514,26 +502,22 @@ namespace Optima.Services.Implementation
             _logger.Info("Sending User blocked email notification....");
             await _emailService.SendAccountBlockedEmail(user.Email, user.FullName);
 
-            result.Data = ResponseMessage.ErrorMessage506;
-            return result;
+            return new BaseResponse<string>(ResponseMessage.ErrorMessage506);
         }
                 
         public async Task<BaseResponse<string>> UnLockUser(string emailAddress)
         {
-            var result = new BaseResponse<string>();
-
             var user = await GetUser(emailAddress);
             if (user == null)
             {
-                result.ResponseMessage = ResponseMessage.ErrorMessage504;
-                result.Errors.Add(ResponseMessage.ErrorMessage504);
-                return result;
+                Errors.Add(ResponseMessage.ErrorMessage504);
+                return new BaseResponse<string>(ResponseMessage.ErrorMessage504, Errors);
             };
 
             if (user.IsAccountLocked == false)
             {
-                result.Errors.Add(ResponseMessage.ErrorMessage508);
-                return result;
+                Errors.Add(ResponseMessage.ErrorMessage508);
+                return new BaseResponse<string>(ResponseMessage.ErrorMessage508, Errors);
             }
 
             user.IsAccountLocked = false;
@@ -542,8 +526,7 @@ namespace Optima.Services.Implementation
             _logger.Info("Sending User unblocked email notification....");
             await _emailService.SendAccountUnBlockedEmail(user.Email, user.FullName);
 
-            result.Data = ResponseMessage.AccountUnlocked;
-            return result;
+            return new BaseResponse<string>(ResponseMessage.AccountUnlocked);
         }
                        
         
@@ -553,6 +536,66 @@ namespace Optima.Services.Implementation
         {
             return await _context.Users.FirstOrDefaultAsync(x => x.Id == id);
         }
-                
+
+        //public async Task<ResultModel<AdminDTO>> CreateAdmin(CreateAdmin model)
+        //{
+        //    var result = new ResultModel<UseAdminDTOrDTO>();
+
+        //    // IF THE ADMIN ROLE EXIST
+        //    if (await _roleManager.RoleExistsAsync(RoleHelpers.SUPER_ADMIN.ToString()))
+        //    {
+
+        //        var role = await _roleManager.FindByIdAsync(model.RoleId.ToString());
+
+        //        if (role == null)
+        //        {
+        //            result.Message = "ROLE NOT FOUND";
+        //            return result;
+        //        }
+
+        //        var user = new ApplicationUser
+        //        {
+        //            UserType = UserTypes.ADMIN,
+        //            FirstName = model.FirstName,
+        //            Email = model.Email,
+        //            DateOfBirth = model.DateOfBirth,
+        //            LastName = model.LastName,
+        //            UserName = model.Email.ToLower(),
+        //            EmailConfirmed = false,
+        //            Activated = true,
+        //            CreatedOnUtc = DateTime.UtcNow,
+        //            PhoneNumber = model.PhoneNumber
+        //        };
+
+        //        var response = await _userManager.CreateAsync(user, Default.Password);
+        //        // AN ERROR OCCURED WHILE CREATING USER
+        //        if (!response.Succeeded)
+        //        {
+        //            foreach (var error in response.Errors)
+        //            {
+        //                result.AddError(error.Description);
+        //            }
+        //            return result;
+        //        };
+
+
+        //        await _userManager.AddToRoleAsync(user, role.Name);
+
+        //        /* var status = await VerifyEmail(new VerifyEmailDTO
+        //         {
+        //             EmailAddress = user.Email,
+        //         });*/
+
+        //        result.Message = "USER CREATED SUCCESSFULLY";
+        //        //Send Invitation Email
+        //        await InviteUser(user.Email);
+        //        return result;
+        //    }
+
+        //    result.AddError("ADMIN ROLE NOT FOUND");
+
+        //    return result;
+        //}
+
     }
 }

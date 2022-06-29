@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -14,6 +15,7 @@ using Optima.Models.DTO.NotificationDTO;
 using Optima.Models.Entities;
 using Optima.Services.Implementation;
 using Optima.Services.Interface;
+using Optima.Utilities.Policy;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -92,7 +94,7 @@ namespace Optima
 
         public void AddIdentityProvider(IServiceCollection services)
         {
-            services.AddIdentity<ApplicationUser, ApplicationUserRole>(options =>
+            services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
             {
                 options.Password.RequiredLength = 6;
                 options.Password.RequireNonAlphanumeric = true;
@@ -184,14 +186,22 @@ namespace Optima
             services.AddScoped<IPrefixService, PrefixService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IDashboardService, DashboardService>();
+            services.AddScoped<ICloudinaryServices, CloudinaryUploadHelper>();
 
 
             services.Configure<SmtpConfigSettings>(Configuration.GetSection("SmtpConfig"));
 
             services.Configure<FcmNotification>(Configuration.GetSection("FcmNotification"));
 
+            services.Configure<CloudinaryAccount>(Configuration.GetSection("Cloudinary"));
+
             services.Configure<EmailLinkDTO>(options =>
              Configuration.GetSection(nameof(EmailLinkDTO)).Bind(options));
+
+
+            // Setup PolicyBase Authorization
+            services.AddSingleton<IAuthorizationPolicyProvider, AuthorizationPolicyProvider>();
+            services.AddSingleton<IAuthorizationHandler, ActionRequirementHandler>();
         }
     }
 }

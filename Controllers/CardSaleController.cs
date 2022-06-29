@@ -1,6 +1,5 @@
 ﻿using AzureRays.Shared.ViewModels;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Optima.Models.DTO.CardSaleDTO;
 using Optima.Models.DTO.CardTransactionDTOs;
@@ -8,8 +7,6 @@ using Optima.Services.Interface;
 using Optima.Utilities.Helpers;
 using Optima.Utilities.Pagination;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace Optima.Controllers
@@ -33,9 +30,7 @@ namespace Optima.Controllers
         {
             try
             {
-                var result = await _cardSaleService.CreateCardSales(model, UserId);
-
-                return ReturnResponse(result);
+                return ReturnResponse(await _cardSaleService.CreateCardSales(model, UserId));
             }
             catch (Exception ex)
             {
@@ -51,9 +46,7 @@ namespace Optima.Controllers
         {
             try
             {
-                var result = await _cardSaleService.GetAllCardSales(model);
-
-                return ReturnResponse(result);
+                return ReturnResponse(await _cardSaleService.GetAllCardSales(model));
             }
             catch (Exception ex)
             {
@@ -69,9 +62,7 @@ namespace Optima.Controllers
         {
             try
             {
-                var result = await _cardSaleService.UpdateCardSales(model, UserId);
-
-                return ReturnResponse(result);
+                return ReturnResponse(await _cardSaleService.UpdateCardSales(model, UserId));
             }
             catch (Exception ex)
             {
@@ -87,9 +78,7 @@ namespace Optima.Controllers
         {
             try
             {
-                var result = await _cardSaleService.UpdateCardTransactionStatus(model, UserId);
-
-                return ReturnResponse(result);
+                return ReturnResponse(await _cardSaleService.UpdateCardTransactionStatus(model, UserId));
             }
             catch (Exception ex)
             {
@@ -105,9 +94,7 @@ namespace Optima.Controllers
         {
             try
             {
-                var result = await _cardSaleService.GetUserCardTransactions(model, userId);
-
-                return ReturnResponse(result);
+                return ReturnResponse(await _cardSaleService.GetUserCardTransactions(model, userId));
             }
             catch (Exception ex)
             {

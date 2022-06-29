@@ -12,8 +12,7 @@ namespace Optima.Models.Entities
         public NotificationType NotificationType { get; set; }
         public bool IsRead { get; set; }
         public virtual ApplicationUser User { get; set; }
-        public Guid UserId { get; set; }
-
+        public Guid? UserId { get; set; }
         public bool IsAdminNotification { get; set; }
     }
 }

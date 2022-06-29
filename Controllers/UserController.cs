@@ -26,15 +26,55 @@ namespace Optima.Controllers
         }
 
 
-        [HttpPut]
-        [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
-        public async Task<IActionResult> UpdateProfile([FromForm] UpdateUserDTO model)
+        [HttpGet]
+        [ProducesResponseType(typeof(BaseResponse<PagedList<UserDTO>>), 200)]
+        public async Task<IActionResult> Active([FromQuery] BaseSearchViewModel model)
         {
             try
             {
-                var result = await _userService.UpdateProfile(model, UserId);
+                return ReturnResponse(await _userService.ActiveUsers(model));
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex); ;
+            }
+        }
 
-                return ReturnResponse(result);
+        [HttpGet]
+        [ProducesResponseType(typeof(BaseResponse<PagedList<UserDTO>>), 200)]
+        public async Task<IActionResult> InActive([FromQuery] BaseSearchViewModel model)
+        {
+            try
+            {
+                return ReturnResponse(await _userService.InActiveUsers(model));
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex); ;
+            }
+        }
+
+        [HttpGet]
+        [ProducesResponseType(typeof(BaseResponse<PagedList<UserDTO>>), 200)]
+        public async Task<IActionResult> Disabled([FromQuery] BaseSearchViewModel model)
+        {
+            try
+            {
+                return ReturnResponse(await _userService.DisabledUsers(model));
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex); ;
+            }
+        }
+
+        [HttpPut]
+        [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
+        public async Task<IActionResult> Profile([FromForm] UpdateUserDTO model)
+        {
+            try
+            {
+                return ReturnResponse(await _userService.UpdateProfile(model, UserId));
             }
             catch (Exception ex)
             {
@@ -45,8 +85,8 @@ namespace Optima.Controllers
 
 
         [HttpGet]
-        [ProducesResponseType(typeof(BaseResponse<PagedList<UserDTO>>), 200)] // return the created model
-        public async Task<IActionResult> AllUsers([FromQuery] BaseSearchViewModel model)
+        [ProducesResponseType(typeof(BaseResponse<PagedList<UserDTO>>), 200)] 
+        public async Task<IActionResult> Users([FromQuery] BaseSearchViewModel model)
         {
             try
             {
@@ -61,25 +101,25 @@ namespace Optima.Controllers
 
         [HttpGet("{userId}")]
         [ProducesResponseType(typeof(BaseResponse<UserDTO>), 200)]
-        public async Task<IActionResult> AUser(Guid userId)   
+        public async Task<IActionResult> Get(Guid userId)   
         {
             try
             {
-                return ReturnResponse(await _userService.AUser(userId));
+                return ReturnResponse(await _userService.UserDetails(userId));
             }
             catch (Exception ex)
             {
-                return HandleError(ex); ;
+                return HandleError(ex);
             }
         }
         
         [HttpGet("{userId}")]
         [ProducesResponseType(typeof(BaseResponse<UserDetailDTO>), 200)] 
-        public async Task<IActionResult> UserDetails(Guid userId)   
+        public async Task<IActionResult> BankAndTransactionDetails(Guid userId)   
         {
             try
             {
-                return ReturnResponse(await _userService.UserDetails(userId));
+                return ReturnResponse(await _userService.GetUserBankAndTransactionDetails(userId));
             }
             catch (Exception ex)
             {

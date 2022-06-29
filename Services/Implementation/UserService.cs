@@ -21,49 +21,96 @@ using System.Threading.Tasks;
 
 namespace Optima.Services.Implementation
 {
-    public class UserService : IUserService
+    public class UserService : BaseService, IUserService
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly IConfiguration _configuration;
         private readonly ILog _logger;
+        private readonly ICloudinaryServices _cloudinaryServices;
 
-        public UserService(ApplicationDbContext context, IConfiguration configuration, UserManager<ApplicationUser> userManager)
+
+        public UserService(ApplicationDbContext context,
+            UserManager<ApplicationUser> userManager, ICloudinaryServices cloudinaryServices)
         {
             _context = context;
-            _configuration = configuration;
             _logger = LogManager.GetLogger(typeof(CountryService));
             _userManager = userManager;
-
+            _cloudinaryServices = cloudinaryServices;
         }
 
+        /// <summary>
+        /// GET ALL ACTIVE USERS
+        /// </summary>
+        /// <param name="model">The model.</param>
+        /// <returns>Task&lt;BaseResponse&lt;CardDTO&gt;&gt;.</returns>
+        public async Task<BaseResponse<PagedList<UserDTO>>> ActiveUsers(BaseSearchViewModel model)
+        {
+            var query = _userManager.Users.Where(x => x.EmailConfirmed)
+                .OrderByDescending(x => x.CreationTime)
+                .AsQueryable();
+
+            var users = await EntityFilter(query, model).ToPagedListAsync(model.PageIndex, model.PageSize);
+
+            var usersDTO = users.Select(x => (UserDTO)x).ToList();
+            var data = new PagedList<UserDTO>(usersDTO, model.PageIndex, model.PageSize, users.TotalItemCount);
+            return new BaseResponse<PagedList<UserDTO>> { Data = data, TotalCount = data.TotalItemCount, ResponseMessage = $"Found {usersDTO.Count} Users" };
+        }
+
+        /// <summary>
+        /// GET ALL DISABLED USERS
+        /// </summary>
+        /// <param name="model">The model.</param>
+        /// <returns>Task&lt;BaseResponse&lt;CardDTO&gt;&gt;.</returns>
+        public async Task<BaseResponse<PagedList<UserDTO>>> DisabledUsers(BaseSearchViewModel model)
+        {
+            var query = _userManager.Users.Where(x => x.IsAccountLocked)
+                .OrderByDescending(x => x.CreationTime)
+                .AsQueryable();
+
+            var users = await EntityFilter(query, model).ToPagedListAsync(model.PageIndex, model.PageSize);
+
+            var usersDTO = users.Select(x => (UserDTO)x).ToList();
+            var data = new PagedList<UserDTO>(usersDTO, model.PageIndex, model.PageSize, users.TotalItemCount);
+            return new BaseResponse<PagedList<UserDTO>> { Data = data, TotalCount = data.TotalItemCount, ResponseMessage = $"Found {usersDTO.Count} Users" };
+        }
+
+        /// <summary>
+        /// GET ALL INACTIVE USERS
+        /// </summary>
+        /// <param name="model">The model.</param>
+        /// <returns>Task&lt;BaseResponse&lt;CardDTO&gt;&gt;.</returns>
+        public async Task<BaseResponse<PagedList<UserDTO>>> InActiveUsers(BaseSearchViewModel model) 
+        {
+            var query = _userManager.Users.Where(x => !x.EmailConfirmed)
+                .OrderByDescending(x => x.CreationTime)
+                .AsQueryable();
+
+            var users = await EntityFilter(query, model).ToPagedListAsync(model.PageIndex, model.PageSize);
+
+            var usersDTO = users.Select(x => (UserDTO)x).ToList();
+            var data = new PagedList<UserDTO>(usersDTO, model.PageIndex, model.PageSize, users.TotalItemCount);
+            return new BaseResponse<PagedList<UserDTO>> { Data = data, TotalCount = data.TotalItemCount, ResponseMessage = $"Found {usersDTO.Count} Users" };
+        }
 
         /// <summary>
         /// GET A USER
         /// </summary>
         /// <param name="model">The model.</param>
         /// <returns>Task&lt;BaseResponse&lt;CardDTO&gt;&gt;.</returns>
-        public async Task<BaseResponse<UserDTO>> AUser(Guid UserId)
+        public async Task<BaseResponse<UserDTO>> UserDetails(Guid UserId)
         {
-            var response = new BaseResponse<UserDTO>();
 
             var user = await GetUserById(UserId);
 
             if (user is null)
             {
-                response.Data = null;
-                response.ResponseMessage = ResponseMessage.ErrorMessage000;
-                response.Errors.Add(ResponseMessage.ErrorMessage000);
-                response.Status = RequestExecution.Failed;
-                return response;
+                Errors.Add(ResponseMessage.ErrorMessage000);
+                return new BaseResponse<UserDTO>(ResponseMessage.ErrorMessage000, Errors);
             }
 
             var userDTO = user;
 
-            response.Data = userDTO;
-            response.ResponseMessage = ResponseMessage.SuccessMessage000;
-            return response;
-
+            return new BaseResponse<UserDTO>(userDTO, ResponseMessage.SuccessMessage000);
         }
 
 
@@ -96,16 +143,12 @@ namespace Optima.Services.Implementation
 
             try
             {
-                var response = new BaseResponse<bool>();
-
                 var user = await _userManager.FindByIdAsync(UserId.ToString());
 
                 if (user is null)
                 {
-                    response.ResponseMessage = ResponseMessage.ErrorMessage000;
-                    response.Errors.Add(ResponseMessage.ErrorMessage000);
-                    response.Status = RequestExecution.Failed;
-                    return response;
+                    Errors.Add(ResponseMessage.ErrorMessage000);
+                    return new BaseResponse<bool>(ResponseMessage.ErrorMessage000, Errors);
                 }
 
 
@@ -113,10 +156,14 @@ namespace Optima.Services.Implementation
                 {
 
                     //Get the Full Asset Path
+                    _logger.Info("Preparing to Delete Image From Cloudnary... at Execution:UpdateProfile");
                     var fullPath = GenerateDeleteUploadedPath(user.ProfilePicture);
-                    CloudinaryUploadHelper.DeleteImage(_configuration, fullPath);
+                    await _cloudinaryServices.DeleteImage(fullPath);
+                    _logger.Info("Successfully Deleted Image From Cloudnary... at Execution:UpdateProfile");
 
-                    var (uploadedFile, hasUploadError, responseMessage) = await CloudinaryUploadHelper.UploadImage(model.ProfilePicture, _configuration);
+                    _logger.Info("Preparing to Upload Image to Cloudinary... at Execution:UpdateProfile");
+                    var (uploadedFile, hasUploadError, responseMessage) = await _cloudinaryServices.UploadImage(model.ProfilePicture);
+                    _logger.Info("Successfully Uploaded Image to Cloudinary... at Execution:UpdateProfile");
 
                     user.ProfilePicture = uploadedFile;
 
@@ -127,9 +174,11 @@ namespace Optima.Services.Implementation
 
                 if (!(model.ProfilePicture is null) && (user.ProfilePicture is null))
                 {
-                    var (uploadedFile, hasUploadError, responseMessage) = await CloudinaryUploadHelper.UploadImage(model.ProfilePicture, _configuration);
+                    _logger.Info("Preparing to Upload Image to Cloudinary... at Execution:UpdateProfile");
+                    var (uploadedFile, hasUploadError, responseMessage) = await _cloudinaryServices.UploadImage(model.ProfilePicture);
+                    _logger.Info("Successfully Uploaded Image to Cloudinary... at Execution:UpdateProfile");
 
-                   user.ProfilePicture = uploadedFile;
+                    user.ProfilePicture = uploadedFile;
 
                     //Set this Property to delete uploaded cloudinary file if an exception occur
                     uploadedFileToDelete = uploadedFile;
@@ -139,16 +188,16 @@ namespace Optima.Services.Implementation
                 await _userManager.UpdateAsync(user);
                 await _context.SaveChangesAsync();
 
-                response.Data = true;
-                response.ResponseMessage = "Successfully Updated your Information";
-                return response;
+                return new BaseResponse<bool>(true, ResponseMessage.UserUpdate);
+
             }
             catch (Exception ex)
             {
-                CloudinaryUploadHelper.DeleteImage(_configuration, GenerateDeleteUploadedPath(uploadedFileToDelete));
+                await _cloudinaryServices.DeleteImage(GenerateDeleteUploadedPath(uploadedFileToDelete));
                 _logger.Error(ex.Message, ex);
 
-                throw;
+                Errors.Add(ResponseMessage.ErrorMessage999);
+                return new BaseResponse<bool>(ResponseMessage.ErrorMessage999, Errors);
             }
 
         }
@@ -159,19 +208,15 @@ namespace Optima.Services.Implementation
         /// </summary>
         /// <param name="UserId">the UserId</param>
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
-        public async Task<BaseResponse<UserDetailDTO>> UserDetails(Guid UserId)
+        public async Task<BaseResponse<UserDetailDTO>> GetUserBankAndTransactionDetails(Guid UserId)
         {
-            var response = new BaseResponse<UserDetailDTO>();
             var data = new UserDetailDTO();
 
             var user = await GetUserById(UserId);
             if (user is null)
             {
-                response.Data = null;
-                response.Errors.Add(ResponseMessage.ErrorMessage000);
-                response.Status = RequestExecution.Failed;
-                response.ResponseMessage = ResponseMessage.ErrorMessage000;
-                return response;
+                Errors.Add(ResponseMessage.ErrorMessage000);
+                return new BaseResponse<UserDetailDTO>(ResponseMessage.ErrorMessage000, Errors);
             }
 
             var users = await _context.Users.Where(x => x.Id == UserId).FirstOrDefaultAsync();
@@ -180,9 +225,7 @@ namespace Optima.Services.Implementation
             data.BankAccountDTOs = GetUserBankAccount(UserId).Result.Select(x => (BankAccountDTO)x).ToList();
             data.CardTransactionDTOs = GetUserCardTransaction(UserId).Result.Select(x => (CardTransactionDTO)x).ToList();
 
-            response.Data = data;
-            response.ResponseMessage = ResponseMessage.SuccessMessage000;
-            return response;
+            return new BaseResponse<UserDetailDTO>(data, ResponseMessage.SuccessMessage000);
         }
 
 
@@ -278,7 +321,6 @@ namespace Optima.Services.Implementation
                 .Where(x => x.UserId == userId)
                 .OrderByDescending(x => x.CreatedOn)
                 .ToListAsync();
-        
-        
+      
     }
 }

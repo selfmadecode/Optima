@@ -9,6 +9,6 @@ namespace Optima.Utilities.Helpers
     {
         public const string oid = nameof(oid);
         public const string LastLoginDate = nameof(LastLoginDate);
-
+        public const string Permission = nameof(Permission);
     }
 }

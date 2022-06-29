@@ -17,12 +17,10 @@ namespace Optima.Controllers
     public class PushNotificationController : BaseController
     {
         private readonly IPushNotificationService _pushNotificationService;
-        private readonly ILog _logger;
 
         public PushNotificationController(IPushNotificationService pushNotificationService)
         {
             _pushNotificationService = pushNotificationService;
-            _logger = LogManager.GetLogger(typeof(PushNotificationController));
         }
 
         [HttpPost]
@@ -31,16 +29,10 @@ namespace Optima.Controllers
         {
             try
             {
-                var result = await _pushNotificationService.RegisterForPush(model);
-
-                if (result.Errors.Any())
-                    return ReturnResponse(result);
-
-                return ReturnResponse(result);
+                return ReturnResponse(await _pushNotificationService.RegisterForPush(model));
             }
             catch (Exception ex)
             {
-                _logger.Error(ex.Message, ex);
                 return HandleError(ex);
             }
 
@@ -52,13 +44,10 @@ namespace Optima.Controllers
         {
             try
             {
-                var result = await _pushNotificationService.TestPushNotification(model);
-
-                return ReturnResponse(result);
+                return ReturnResponse(await _pushNotificationService.TestPushNotification(model));
             }
             catch (Exception ex)
             {
-                _logger.Error(ex.Message, ex);
                 return HandleError(ex);
             }
 
@@ -71,16 +60,10 @@ namespace Optima.Controllers
         {
             try
             {
-                var result = await _pushNotificationService.DeleteDeviceToken(UserId, deviceToken);
-
-                if (result.Errors.Any())
-                    return ReturnResponse(result);
-
-                return ReturnResponse(result);
+                return ReturnResponse(await _pushNotificationService.DeleteDeviceToken(UserId, deviceToken));
             }
             catch (Exception ex)
             {
-                _logger.Error(ex.Message, ex);
                 return HandleError(ex);
             }
 

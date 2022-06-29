@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Optima.Context;
+using Optima.Models.Constant;
 using Optima.Models.DTO.CountryDTOs;
 using Optima.Models.Entities;
 using Optima.Models.Enums;
@@ -18,19 +19,20 @@ using System.Threading.Tasks;
 
 namespace Optima.Services.Implementation
 {
-    public class CountryService : ICountryService
+    public class CountryService : BaseService, ICountryService
     {
         private readonly ApplicationDbContext _context;
         private readonly IConfiguration _configuration;
         private readonly ILog _logger;
+        private readonly ICloudinaryServices _cloudinaryServices;
 
 
-        public CountryService(ApplicationDbContext context, IConfiguration configuration)
+        public CountryService(ApplicationDbContext context, ICloudinaryServices cloudinaryServices, IConfiguration configuration)
         { 
             _context = context;
             _configuration = configuration;
             _logger = LogManager.GetLogger(typeof(CountryService));
-
+            _cloudinaryServices = cloudinaryServices;
         }
 
         /// <summary>
@@ -42,34 +44,26 @@ namespace Optima.Services.Implementation
         {
             var uploadedFileToDelete = string.Empty;
 
+            var result = ValidateFile(model.Logo);
+
+            if (result.Errors.Any())
+            {
+                return new BaseResponse<bool>(result.ResponseMessage, result.Errors);
+            }
+
             try
             {
-                var response = new BaseResponse<bool>();
-
                 var checkCountry = await _context.Countries
                     .FirstOrDefaultAsync(x => x.Name.Replace(" ", "").ToLower() == model.CountryName.Replace(" ", "").ToLower());
+                
                 if (!(checkCountry is null))
                 {
-                    response.Data = false;
-                    response.ResponseMessage = "Country already Exists.";
-                    response.Errors.Add("Country already Exists.");
-                    response.Status = RequestExecution.Failed;
-                    return response;
-                }
-
-                var result = ValidateFile(model.Logo);
-
-                if (result.Errors.Any())
-                {
-                    response.ResponseMessage = result.ResponseMessage;
-                    response.Errors = result.Errors;
-                    response.Status = RequestExecution.Failed;
-                    return response;
-                }
-
+                    Errors.Add(ResponseMessage.CountryAlreadyExist);
+                    return new BaseResponse<bool>(ResponseMessage.CountryAlreadyExist, Errors);
+                }                
 
                 //Upload to Cloudinary
-                var (uploadedFile, hasUploadError, responseMessage) = await CloudinaryUploadHelper.UploadImage(model.Logo, _configuration);
+                var (uploadedFile, hasUploadError, responseMessage) = await _cloudinaryServices.UploadImage(model.Logo);
                 //Set this Property to delete uploaded cloudinary file if an exception occur
                 uploadedFileToDelete = uploadedFile;
 
@@ -83,20 +77,15 @@ namespace Optima.Services.Implementation
                 _context.Countries.Add(newCountry);
                 await _context.SaveChangesAsync();
 
-                response.Data = true;
-                response.Status = RequestExecution.Successful;
-                response.ResponseMessage = $"Successfully Created the Country.";
-                return response;
-
+                return new BaseResponse<bool>(true, ResponseMessage.CountryCreated);
             }
             catch (Exception ex)
             {
-                CloudinaryUploadHelper.DeleteImage(_configuration, GenerateDeleteUploadedPath(uploadedFileToDelete));
+                await _cloudinaryServices.DeleteImage(GenerateDeleteUploadedPath(uploadedFileToDelete));
                 _logger.Error(ex.Message, ex);
 
-                throw;
-            }
-           
+                return new BaseResponse<bool>();
+            }           
         }
 
         /// <summary>
@@ -106,39 +95,26 @@ namespace Optima.Services.Implementation
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
         public async Task<BaseResponse<bool>> DeleteCountry(Guid id)
         {
-            var response = new BaseResponse<bool>();
-
             var country = await _context.Countries.FirstOrDefaultAsync(x => x.Id == id);
 
             if (country is null)
             {
-                response.Data = false;
-                response.ResponseMessage = "Country doesn't Exists.";
-                response.Errors.Add("Country doesn't Exists.");
-                response.Status = RequestExecution.Failed;
-                return response;
+                return new BaseResponse<bool>(ResponseMessage.CountryDoesNotExist, Errors);
             }
 
             var _ = await _context.CardTypes.AnyAsync(x => x.CountryId == id);
-            if (_)
-            {
-                response.Data = false;
-                response.ResponseMessage = "You cannot delete this country.";
-                response.Errors = new List<string> { "You cannot delete this country." };
-                response.Status = RequestExecution.Failed;
-                return response;
-            }
+
+            if (_)                            
+                return new BaseResponse<bool>(ResponseMessage.CountryCannotBeDeleted, Errors);
+            
 
             _context.Remove(country);
             await _context.SaveChangesAsync();
 
             var fullPath = GenerateDeleteUploadedPath(country.LogoUrl);
-            CloudinaryUploadHelper.DeleteImage(_configuration, fullPath);
+            await _cloudinaryServices.DeleteImage(fullPath);
 
-            response.Data = true;
-            response.ResponseMessage = "Successfully deleted the Country";
-            response.Status = RequestExecution.Successful;
-            return response;
+            return new BaseResponse<bool>(true, ResponseMessage.CountryDeleted);
         }
 
         /// <summary>
@@ -179,27 +155,16 @@ namespace Optima.Services.Implementation
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
         public async Task<BaseResponse<CountryDTO>> GetCountry(Guid id) 
         {
-            var response = new BaseResponse<CountryDTO>();
-
             var country = await _context.Countries.FirstOrDefaultAsync(x => x.Id == id);
 
             if (country is null)
             {
-                response.Data = null;
-                response.ResponseMessage = "Country doesn't Exists.";
-                response.Errors.Add("Country doesn't Exists.");
-                response.Status = RequestExecution.Failed;
-                return response;
+                return new BaseResponse<CountryDTO>(ResponseMessage.CountryNotFound, Errors);
             }
 
             CountryDTO countryDTO = country;
 
-
-            response.Data = countryDTO;
-            response.ResponseMessage = "Successfully Found the Country.";
-            response.Status = RequestExecution.Successful;
-            return response;
-
+            return new BaseResponse<CountryDTO>(countryDTO);
         }
 
         /// <summary>
@@ -207,33 +172,24 @@ namespace Optima.Services.Implementation
         /// </summary>
         /// <param name="model">The model.</param>
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
-        public async Task<BaseResponse<bool>> UpdateCountry(UpdateCountryDTO model, Guid UserId) 
+        public async Task<BaseResponse<bool>> UpdateCountry(UpdateCountryDTO model, Guid UserId, Guid CountryId) 
         {
             var uploadedFileToDelete = string.Empty;
 
             try
             {
-                var response = new BaseResponse<bool>();
-
                 var result = ValidateFile(model.Logo);
 
                 if (result.Errors.Any())
                 {
-                    response.ResponseMessage = result.ResponseMessage;
-                    response.Errors = result.Errors;
-                    response.Status = RequestExecution.Failed;
-                    return response;
+                    return new BaseResponse<bool>(result.ResponseMessage, result.Errors);
                 }
 
-                var country = await _context.Countries.FirstOrDefaultAsync(x => x.Id == model.Id);
+                var country = await _context.Countries.FirstOrDefaultAsync(x => x.Id == CountryId);
 
                 if (country is null)
                 {
-                    response.Data = false;
-                    response.ResponseMessage = "Country doesn't Exists.";
-                    response.Errors.Add("Country doesn't Exists.");
-                    response.Status = RequestExecution.Failed;
-                    return response;
+                    return new BaseResponse<bool>(ResponseMessage.CountryNotFound, Errors);
                 }
 
                 if (model.Name.Replace(" ", "").ToLower() != country.Name.Replace(" ", "").ToLower())
@@ -242,11 +198,8 @@ namespace Optima.Services.Implementation
 
                     if (checkExistingCountries)
                     {
-                        response.Data = false;
-                        response.ResponseMessage = "Country already Exists.";
-                        response.Errors.Add("Country already Exists.");
-                        response.Status = RequestExecution.Failed;
-                        return response;
+                        Errors.Add(ResponseMessage.CountryAlreadyExist);
+                        return new BaseResponse<bool>(ResponseMessage.CountryAlreadyExist, Errors);
                     }
                 }
 
@@ -256,9 +209,9 @@ namespace Optima.Services.Implementation
 
                     //Get the Full Asset Path
                     var fullPath = GenerateDeleteUploadedPath(country.LogoUrl);
-                    CloudinaryUploadHelper.DeleteImage(_configuration, fullPath);
+                    await _cloudinaryServices.DeleteImage(fullPath);
 
-                    var (uploadedFile, hasUploadError, responseMessage) = await CloudinaryUploadHelper.UploadImage(model.Logo, _configuration);
+                    var (uploadedFile, hasUploadError, responseMessage) = await _cloudinaryServices.UploadImage(model.Logo);
 
                     country.LogoUrl = uploadedFile;
 
@@ -269,7 +222,7 @@ namespace Optima.Services.Implementation
 
                 if (!(model.Logo is null) && (country.LogoUrl is null))
                 {
-                    var (uploadedFile, hasUploadError, responseMessage) = await CloudinaryUploadHelper.UploadImage(model.Logo, _configuration);
+                    var (uploadedFile, hasUploadError, responseMessage) = await _cloudinaryServices.UploadImage(model.Logo);
 
                     country.LogoUrl = uploadedFile;
 
@@ -284,19 +237,16 @@ namespace Optima.Services.Implementation
                 _context.Countries.Update(country);
 
 
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync();                             
 
-                response.Data = true;
-                response.ResponseMessage = "Country Updated Successfully";
-                response.Status = RequestExecution.Successful;
-                return response;
+                return new BaseResponse<bool>("Country Updated Successfully");
             }
             catch (Exception ex)
             {
-                CloudinaryUploadHelper.DeleteImage(_configuration, GenerateDeleteUploadedPath(uploadedFileToDelete));
+                await _cloudinaryServices.DeleteImage(GenerateDeleteUploadedPath(uploadedFileToDelete));
                 _logger.Error(ex.Message, ex);
 
-                throw;
+                return new BaseResponse<bool>();
             }
            
         }
