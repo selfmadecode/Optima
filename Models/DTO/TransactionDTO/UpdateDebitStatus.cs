@@ -7,7 +7,6 @@ namespace Optima.Models.DTO.TransactionDTO
 {
     public class UpdateDebitStatus
     {
-        public Guid CreditDebitId { get; set; }
         public CreditDebitStatus CreditDebitStatus { get; set; }
     }
 

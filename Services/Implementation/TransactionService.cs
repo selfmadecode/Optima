@@ -187,9 +187,9 @@ namespace Optima.Services.Implementation
         /// <param name="model">The model</param>
         /// <param name="UserId">The UserId</param>
         /// <returns>Task&lt;BaseResponse&lt;UpdateCreditDebitStatus&gt;&gt;.</returns>
-        public async Task<BaseResponse<bool>> UpdateDebitStatus(UpdateDebitStatus model, Guid UserId)
+        public async Task<BaseResponse<bool>> UpdateDebitStatus(Guid creditDebitId, UpdateDebitStatus model, Guid UserId)
         {
-            var creditDebit = await _context.CreditDebit.Where(x => x.Id == model.CreditDebitId).Include(x => x.ActionedByUser).FirstOrDefaultAsync();
+            var creditDebit = await _context.CreditDebit.Where(x => x.Id == creditDebitId).Include(x => x.ActionedByUser).FirstOrDefaultAsync();
 
             if (creditDebit is null)
             {
