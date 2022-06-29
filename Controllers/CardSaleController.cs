@@ -110,7 +110,7 @@ namespace Optima.Controllers
         }
 
         /// <summary>
-        /// GETS A USER AND HIS CARD TRANSACTIONS
+        /// GETS A USER AND HIS CARD SALE TRANSACTIONS
         /// </summary>
         /// <param name="model"></param>
         /// <param name="userId"></param>
@@ -118,7 +118,7 @@ namespace Optima.Controllers
         [HttpGet("{userId}")]
         [ProducesResponseType(typeof(BaseResponse<PagedList<CardTransactionDTO>>), 200)]
         //[Authorize(Policy = "CanAdd")]
-        public async Task<IActionResult> CardTransaction([FromQuery] BaseSearchViewModel model, Guid userId)    
+        public async Task<IActionResult> CardSaleTransaction([FromQuery] BaseSearchViewModel model, Guid userId)    
         {
             try
             {
