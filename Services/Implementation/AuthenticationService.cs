@@ -56,11 +56,7 @@ namespace Optima.Services.Implementation
             _logger = LogManager.GetLogger(typeof(AuthenticationService));
 
         }
-        private async Task claim(ApplicationUser user)
-        {
-            var principal = await _signInManager.CreateUserPrincipalAsync(user);
-            var identity = (ClaimsIdentity)principal.Identity;
-        }
+        
         public (string, DateTime) CreateJwtTokenAsync(ApplicationUser user, IList<string> userRoles)
         {            
 
@@ -84,11 +80,10 @@ namespace Optima.Services.Implementation
         public async Task<List<Claim>> BuildUserClaims(ApplicationUser user, IList<string> userRoles)
         {
             IdentityOptions identityOptions = new IdentityOptions();
+            var claims = await _userManager.GetClaimsAsync(user);            
 
             var userClaims = new List<Claim>()
             {
-                //new Claim(identityOptions.ClaimsIdentity.UserIdClaimType, user.Id.ToString()),
-                //new Claim(identityOptions.ClaimsIdentity.UserNameClaimType, user.Email),
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Name, user.FullName.ToString()),
                 new Claim(ClaimTypes.Email, user.Email),
@@ -101,6 +96,12 @@ namespace Optima.Services.Implementation
             {
                 userClaims.Add(new Claim(ClaimTypes.Role, userRole));
             }
+
+            foreach (var claim in claims)
+            {
+                userClaims.Add(new Claim(claim.Type, claim.Value));
+            }
+
             _logger.Info($"Built User claims successfully");
             return userClaims;
         }
@@ -398,6 +399,7 @@ namespace Optima.Services.Implementation
             // IF THE USER HASN'T ACCEPTED TERMS AND CONDITION
             if (user.HasAcceptedTerms == false)
             {
+                _logger.Info($"{user.Email} has not accepted terms and condition");
                 Errors.Add(ResponseMessage.ErrorMessage509);
                 return new BaseResponse<JwtResponseDTO>(ResponseMessage.ErrorMessage509, Errors);
             }
@@ -408,15 +410,15 @@ namespace Optima.Services.Implementation
 
                 if (response == false)
                 {
+                    _logger.Info($"{user.Email} is not yet confirmed");
                     Errors.Add(ResponseMessage.ErrorMessage502);
                     return new BaseResponse<JwtResponseDTO>(ResponseMessage.ErrorMessage502, Errors);
                 }
+
                 // TODO: GET USER PERMISSIONS
+                _logger.Info($"Getting user roles: ...{user.Email}");
 
                 var userRoles = await _userManager.GetRolesAsync(user);
-
-                await claim(user);
-
 
                 var (token, expiration) = CreateJwtTokenAsync(user, userRoles);
 
@@ -433,13 +435,15 @@ namespace Optima.Services.Implementation
                 });
 
                 await SaveChanges();
+                var claims = await _userManager.GetClaimsAsync(user);
 
                 var data = new JwtResponseDTO()
                 {
                     Token = token,
                     Expiration = expiration,
                     Roles = userRoles,
-                    RefreshToken = refreshToken
+                    RefreshToken = refreshToken,
+                    Permissions = claims.Select(x => x.Value).ToList()
                 };
 
                 return new BaseResponse<JwtResponseDTO>(data);
@@ -532,6 +536,66 @@ namespace Optima.Services.Implementation
         {
             return await _context.Users.FirstOrDefaultAsync(x => x.Id == id);
         }
-                
+
+        //public async Task<ResultModel<AdminDTO>> CreateAdmin(CreateAdmin model)
+        //{
+        //    var result = new ResultModel<UseAdminDTOrDTO>();
+
+        //    // IF THE ADMIN ROLE EXIST
+        //    if (await _roleManager.RoleExistsAsync(RoleHelpers.SUPER_ADMIN.ToString()))
+        //    {
+
+        //        var role = await _roleManager.FindByIdAsync(model.RoleId.ToString());
+
+        //        if (role == null)
+        //        {
+        //            result.Message = "ROLE NOT FOUND";
+        //            return result;
+        //        }
+
+        //        var user = new ApplicationUser
+        //        {
+        //            UserType = UserTypes.ADMIN,
+        //            FirstName = model.FirstName,
+        //            Email = model.Email,
+        //            DateOfBirth = model.DateOfBirth,
+        //            LastName = model.LastName,
+        //            UserName = model.Email.ToLower(),
+        //            EmailConfirmed = false,
+        //            Activated = true,
+        //            CreatedOnUtc = DateTime.UtcNow,
+        //            PhoneNumber = model.PhoneNumber
+        //        };
+
+        //        var response = await _userManager.CreateAsync(user, Default.Password);
+        //        // AN ERROR OCCURED WHILE CREATING USER
+        //        if (!response.Succeeded)
+        //        {
+        //            foreach (var error in response.Errors)
+        //            {
+        //                result.AddError(error.Description);
+        //            }
+        //            return result;
+        //        };
+
+
+        //        await _userManager.AddToRoleAsync(user, role.Name);
+
+        //        /* var status = await VerifyEmail(new VerifyEmailDTO
+        //         {
+        //             EmailAddress = user.Email,
+        //         });*/
+
+        //        result.Message = "USER CREATED SUCCESSFULLY";
+        //        //Send Invitation Email
+        //        await InviteUser(user.Email);
+        //        return result;
+        //    }
+
+        //    result.AddError("ADMIN ROLE NOT FOUND");
+
+        //    return result;
+        //}
+
     }
 }

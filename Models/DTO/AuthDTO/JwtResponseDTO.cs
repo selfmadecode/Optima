@@ -11,6 +11,6 @@ namespace Optima.Models.DTO.AuthDTO
         public string RefreshToken { get; set; }
         public DateTime Expiration { get; set; }
         public IList<string> Roles { get; set; }
-        public string[] Permissions { get; set; }
+        public IList<string> Permissions { get; set; }
     }
 }
