@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace Optima.Controllers
 {
-    [Route("api/[controller]/[action]")]
+    [Route("api/[controller]")]
     [ApiController]
     [Authorize]
     public class ReceiptController : BaseController

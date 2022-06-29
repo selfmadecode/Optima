@@ -172,7 +172,7 @@ namespace Optima.Services.Implementation
         /// </summary>
         /// <param name="model">The model.</param>
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
-        public async Task<BaseResponse<bool>> UpdateCountry(UpdateCountryDTO model, Guid UserId) 
+        public async Task<BaseResponse<bool>> UpdateCountry(UpdateCountryDTO model, Guid UserId, Guid CountryId) 
         {
             var uploadedFileToDelete = string.Empty;
 
@@ -185,7 +185,7 @@ namespace Optima.Services.Implementation
                     return new BaseResponse<bool>(result.ResponseMessage, result.Errors);
                 }
 
-                var country = await _context.Countries.FirstOrDefaultAsync(x => x.Id == model.Id);
+                var country = await _context.Countries.FirstOrDefaultAsync(x => x.Id == CountryId);
 
                 if (country is null)
                 {

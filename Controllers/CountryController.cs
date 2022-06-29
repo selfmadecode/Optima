@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace Optima.Controllers
 {
-    [Route("api/[controller]/[action]")]
+    [Route("api/[controller]")]
     [ApiController]
     [Authorize]
     public class CountryController : BaseController
@@ -42,7 +42,8 @@ namespace Optima.Controllers
 
         }
 
-        [HttpGet("{id}")]
+        [HttpGet]
+        [Route("{id:Guid}")]
         [ProducesResponseType(typeof(BaseResponse<CountryDTO>), 200)]
         public async Task<IActionResult> Get(Guid id)
         {
@@ -59,7 +60,6 @@ namespace Optima.Controllers
 
         [HttpGet]
         [ProducesResponseType(typeof(BaseResponse<PagedList<CountryDTO>>), 200)]
-
         public async Task<IActionResult> GetAll([FromQuery] BaseSearchViewModel model)
         {
             try
@@ -74,6 +74,7 @@ namespace Optima.Controllers
         }
 
         [HttpGet]
+        [Route("No-Pagination")]
         public async Task<IActionResult> GetAllNp() 
         {
             try
@@ -88,13 +89,14 @@ namespace Optima.Controllers
         }
 
         [HttpPut]
+        [Route("{CountryId:Guid}")]
         [Authorize]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
-        public async Task<IActionResult> Update([FromForm] UpdateCountryDTO model)
+        public async Task<IActionResult> Update(Guid CountryId, [FromForm] UpdateCountryDTO model)
         {
             try
             {
-                return ReturnResponse(await _countryService.UpdateCountry(model, UserId));
+                return ReturnResponse(await _countryService.UpdateCountry(model, UserId, CountryId));
             }
             catch (Exception ex)
             {
@@ -103,7 +105,8 @@ namespace Optima.Controllers
 
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete]
+        [Route("{id:Guid}")]
         //[Authorize(Policy ="CanDelete")]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
         public async Task<IActionResult> Delete(Guid id)
