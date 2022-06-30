@@ -14,6 +14,7 @@ namespace Optima.Models.DTO.UserDTOs
         public string FullName { get; set; }
         public string PhoneNumber { get; set; }
         public bool IsActive { get; set; }
+        public bool IsAccountLocked { get; set; }
         public string ProfilePicture { get; set; }
         public string UserType { get; set; }
         public DateTime CreatedOn { get; set; }
@@ -33,7 +34,8 @@ namespace Optima.Models.DTO.UserDTOs
                    ProfilePicture = model.ProfilePicture,
                    UserType = model.UserType.GetDescription(),
                    CreatedOn = model.CreationTime,
-                   LastLoginDate = model.LastLoginDate
+                   LastLoginDate = model.LastLoginDate,
+                   IsAccountLocked = model.IsAccountLocked
                };
         }
     }
