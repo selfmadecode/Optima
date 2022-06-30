@@ -110,7 +110,7 @@ namespace Optima.Services.Implementation
         /// <returns>Task&lt;BaseResponse&lt;List&lt;BankAccountDTO&gt;&gt;&gt;.</returns>
         public async Task<BaseResponse<List<BankAccountDTO>>> GetUserBankAccounts(Guid UserId)
         {
-            var user = GetUserById(UserId);
+            var user = await GetUserById(UserId);
             if (user is null)
             {
                 Errors.Add(ResponseMessage.ErrorMessage000);
