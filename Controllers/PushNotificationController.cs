@@ -56,7 +56,7 @@ namespace Optima.Controllers
         [Authorize]
         [HttpDelete]
         [ProducesResponseType(typeof(BaseResponse<string>), 200)]
-        public async Task<IActionResult> DeleteToken(string deviceToken) 
+        public async Task<IActionResult> DeleteToken([FromQuery] string deviceToken) 
         {
             try
             {
