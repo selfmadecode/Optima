@@ -170,7 +170,8 @@ namespace Optima.Services.Implementation
                     Name = model.Name,
                     LogoUrl = uploadedFile,
                     CreatedBy = UserId,
-                    IsActive = true
+                    IsActive = true,
+                    BaseCardType = model.BaseCardType
                 };
 
                 // Created E-Code and Physical Card for selected countries
@@ -1121,13 +1122,13 @@ namespace Optima.Services.Implementation
         /// <param name="CountryIds">The countryIds.</param>
         /// <param name="UserId">The UserId.</param>
         /// <returns>Task&lt;BaseResponse&lt;ValidateCountryDTO&gt;&gt;.</returns>
-        private List<CardType> CreateCardTypes(List<Guid> CountryIds, Guid UserId)
+        private List<Models.Entities.CardType> CreateCardTypes(List<Guid> CountryIds, Guid UserId)
         {
-            List<CardType> cardTypes = new List<CardType>();
+            List<Models.Entities.CardType> cardTypes = new List<Models.Entities.CardType>();
 
             foreach (var countryId in CountryIds)
             {
-                var newCardEcodeType = new CardType
+                var newCardEcodeType = new Models.Entities.CardType
                 {
                     CountryId = countryId,
                     CardCategory = CardCategory.E_CODE,
@@ -1137,7 +1138,7 @@ namespace Optima.Services.Implementation
 
                 cardTypes.Add(newCardEcodeType);
 
-                var newCardPhysicalType = new CardType
+                var newCardPhysicalType = new Models.Entities.CardType
                 {
                     CountryId = countryId,
                     CardCategory = CardCategory.PHYSICAL,

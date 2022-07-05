@@ -5,8 +5,10 @@ using System.Threading.Tasks;
 
 namespace Optima.Models.Enums
 {
-    public enum ReceiptType
+    public enum BaseCardType
     {
-        //No
+        REGULAR = 1,
+        AMAZON = 2,
+        SPECIAL = 3
     }
 }
