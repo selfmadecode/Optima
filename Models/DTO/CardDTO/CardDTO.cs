@@ -1,5 +1,6 @@
 ﻿using Optima.Models.DTO.CountryDTOs;
 using Optima.Models.Entities;
+using Optima.Models.Enums;
 using Optima.Utilities;
 using System;
 using System.Collections.Generic;
@@ -14,6 +15,7 @@ namespace Optima.Models.DTO.CardDTO
         public string Name { get; set; }
         public bool CardStatus { get; set; }
         public string Logo { get; set; }
+        public BaseCardType BaseCardType { get; set; }
         public DateTime CreatedOn { get; set; }
         public List<CardTypeDTO> CardTypeDTOs { get; set; }
 
@@ -28,7 +30,8 @@ namespace Optima.Models.DTO.CardDTO
                    CardStatus = model.IsActive,
                    Logo = model.LogoUrl,
                    CardTypeDTOs = model.CardType.Select(x => (CardTypeDTO)x).ToList(),
-                   CreatedOn = model.CreatedOn
+                   CreatedOn = model.CreatedOn,
+                   BaseCardType = model.BaseCardType
                };
         }
     }

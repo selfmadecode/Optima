@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Optima.Models.Entities;
+using Optima.Models.Enums;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -12,7 +14,10 @@ namespace Optima.Models.DTO.CardDTO
     {
         [Required]
         public string Name { get; set; }
-       
+
+        [Required]
+        public BaseCardType BaseCardType { get; set; }
+
         [Required]
         public IFormFile Logo { get; set; }
         [Required]
