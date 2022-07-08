@@ -1,6 +1,7 @@
 ﻿using AzureRays.Shared.ViewModels;
 using Microsoft.EntityFrameworkCore;
 using Optima.Context;
+using Optima.Models.Constant;
 using Optima.Models.DTO.DenominationDTOs;
 using Optima.Models.Entities;
 using Optima.Models.Enums;
@@ -23,7 +24,7 @@ namespace Optima.Services.Implementation
         }
 
         /// <summary>
-        /// CREATE RATE
+        /// CREATE DENOMINATION
         /// </summary>
         /// <param name="model">The model.</param>
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
@@ -33,8 +34,8 @@ namespace Optima.Services.Implementation
 
             if (checkDenomination is true)
             {
-                Errors.Add($"Amount {model.Amount} already exists");
-                return new BaseResponse<bool>($"Amount {model.Amount} already exists.", Errors);
+                Errors.Add($"AMOUNT {model.Amount} ALREADY EXISTS.");
+                return new BaseResponse<bool>($"AMOUNT {model.Amount} ALREADY EXISTS.", Errors);
             }
 
             var newDenomination = new Denomination
@@ -46,11 +47,11 @@ namespace Optima.Services.Implementation
             _context.Add(newDenomination);
             await _context.SaveChangesAsync();
 
-            return new BaseResponse<bool>(true, "Successfully Created the Denomination");
+            return new BaseResponse<bool>(true, ResponseMessage.CreateDenomination);
         }
 
         /// <summary>
-        /// DELETE RATE
+        /// DELETE DENOMINATION
         /// </summary>
         /// <param name="id">The id.</param>
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
@@ -60,26 +61,26 @@ namespace Optima.Services.Implementation
 
             if (checkDenomination is null)
             {
-                Errors.Add("Denomination doesn't exists.");
-                return new BaseResponse<bool>("Denomination doesn't exists.", Errors);
+                Errors.Add(ResponseMessage.DenominationNotExists);
+                return new BaseResponse<bool>(ResponseMessage.DenominationNotExists, Errors);
             }
 
             var _ = await _context.CardTypeDenomination.AnyAsync(x => x.PrefixId == id);
 
             if (_)
             {
-                Errors.Add("Denomination Cannot be deleted.");
-                return new BaseResponse<bool>("Denomination Cannot be deleted.", Errors);
+                Errors.Add(ResponseMessage.DenominationCannotBeDeleted);
+                return new BaseResponse<bool>(ResponseMessage.DenominationCannotBeDeleted, Errors);
             }
 
             _context.Denominations.Remove(checkDenomination);
             await _context.SaveChangesAsync();
 
-            return new BaseResponse<bool>(true, "Successfully deleted the Denomination!");
+            return new BaseResponse<bool>(true, ResponseMessage.DeleteDenomination);
         }
 
         /// <summary>
-        /// GET ALL RATES NON-PAGINATED
+        /// GET ALL DENOMINATION NON-PAGINATED
         /// </summary>
         /// <returns>Task&lt;BaseResponse&lt;List&lt;RateDTO&gt;&gt;&gt;.</returns>
         public async Task<BaseResponse<List<DenominationDTO>>> GetAllDenominations()
@@ -88,17 +89,11 @@ namespace Optima.Services.Implementation
 
             var denominationDTO = denomination.Select(x => (DenominationDTO)x).ToList();
 
-            return new BaseResponse<List<DenominationDTO>>
-            {
-                Data = denominationDTO,
-                TotalCount = denominationDTO.Count,
-                Status = RequestExecution.Successful,
-                ResponseMessage = $"Found {denominationDTO.Count} Denomination(s)."
-            };
+            return new BaseResponse<List<DenominationDTO>>(denominationDTO, denomination.Count, $"FOUND {denomination.Count} DENOMINATION(S).");
         }
 
         /// <summary>
-        /// GET RATE    
+        /// GET DENOMINATION    
         /// </summary>
         /// <param name="id">The id.</param>
         /// <returns>Task&lt;BaseResponse&lt;RateDTO&gt;&gt;.</returns>
@@ -108,22 +103,17 @@ namespace Optima.Services.Implementation
 
             if (checkDenomination is null)
             {
-                return new BaseResponse<DenominationDTO>
-                {
-                    Data = null,
-                    ResponseMessage = "Denomination doesn't exists.",
-                    Errors = new List<string> { "Denomination doesn't exists." },
-                    Status = RequestExecution.Failed
-                };
+                Errors.Add(ResponseMessage.DenominationNotExists);
+                return new BaseResponse<DenominationDTO>(ResponseMessage.DenominationNotExists, Errors);
             }
 
             DenominationDTO rateDTO = checkDenomination;
 
-            return new BaseResponse<DenominationDTO> { Data = rateDTO, ResponseMessage = "Successfully Found the Denomination", Status = RequestExecution.Successful };
+            return new BaseResponse<DenominationDTO>(rateDTO, ResponseMessage.CreateDenomination);
         }
 
         /// <summary>
-        /// UPDATE RATE    
+        /// UPDATE DENOMINATION    
         /// </summary>
         /// <param name="model">The id.</param>
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
@@ -133,13 +123,8 @@ namespace Optima.Services.Implementation
 
             if (checkDenomination is null)
             {
-                return new BaseResponse<bool>
-                {
-                    Data = false,
-                    ResponseMessage = "Denomination doesn't exists.",
-                    Errors = new List<string> { "Denomination doesn't exists." },
-                    Status = RequestExecution.Failed
-                };
+                Errors.Add(ResponseMessage.DenominationNotExists);
+                return new BaseResponse<bool>(ResponseMessage.DenominationNotExists, Errors);
             }
 
             var response = await CheckDenomination(checkDenomination.Id, model.Amount);
@@ -156,14 +141,15 @@ namespace Optima.Services.Implementation
            
             await _context.SaveChangesAsync();
 
-            return new BaseResponse<bool>
-            {
-                Data = true,
-                ResponseMessage = "Successfully updated the Denomination",
-                Status = RequestExecution.Successful
-            };
+            return new BaseResponse<bool>(true, ResponseMessage.UpdateDenomination);
         }
 
+        /// <summary>
+        /// VALIDATES DENOMINATION
+        /// </summary>
+        /// <param name="id">The Id</param>
+        /// <param name="amount">The Amount</param>
+        /// <returns></returns>
         private async Task<bool> CheckDenomination(Guid? id, decimal? amount)
         {         
             if (amount.HasValue && id is null)

@@ -121,6 +121,18 @@ namespace Optima.Models.Constant
         public const string CreditDebitNotFound = "CREDIT DEBIT TRANSACTION NOT FOUND";
         public const string DebitUpdated = "DEBIT TRANSACTION UPDATED SUCCESSFULLY";
 
+        public const string CreateFaq = "FAQ CREATED SUCCESSFULLY";
+        public const string UpdateFaq = "FAQ UPDATED SUCCESSFULLY";
+        public const string DeleteFaq = "FAQ DELETED SUCCESSFULLY";
+        public const string FaqNotFound = "FAQ DOESN'T EXISTS";
+
+
+        public const string CreateDenomination = "DENOMINATION CREATED SUCCESSFULLY";
+        public const string UpdateDenomination = "DENOMINATION UPDATED SUCCESSFULLY";
+        public const string DenominationAlreadyExists = "DENOMINATION ALREADY EXISTS";
+        public const string DenominationNotExists = "DENOMINATION DOESN'T EXISTS";
+        public const string DeleteDenomination = "DENOMINATION DELETED SUCCESSFULLY";
+        public const string DenominationCannotBeDeleted = "DENOMINATION CANNOT BE DELETED";
 
     }
 }

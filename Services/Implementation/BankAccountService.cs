@@ -125,7 +125,7 @@ namespace Optima.Services.Implementation
             var bankAccountDTOs = bankAccounts.Select(x => (BankAccountDTO)x).ToList();
 
             var message = $"FOUND {bankAccounts.Count} BANK ACCOUNT(S).";
-            return new BaseResponse<List<BankAccountDTO>>(bankAccountDTOs, message);            
+            return new BaseResponse<List<BankAccountDTO>>(bankAccountDTOs, bankAccounts.Count, message);            
         }
 
         /// <summary>
