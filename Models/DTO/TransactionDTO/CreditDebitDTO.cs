@@ -15,6 +15,7 @@ namespace Optima.Models.DTO.TransactionDTO
         public Guid Id { get; set; }
         public Guid WalletBalanceId { get; set; }
         public decimal Amount { get; set; }
+        public string TransactionReference { get; set; }
         public string TransactionType { get; set; }
         public string TransactionStatus { get; set; }
         public UserDTO ActionByUserDTO { get; set; }
@@ -30,6 +31,7 @@ namespace Optima.Models.DTO.TransactionDTO
                    Id = model.Id,
                    WalletBalanceId = model.WalletBalanceId,
                    Amount = model.Amount,
+                   TransactionReference = model.TransactionReference,
                    TransactionType = model.TransactionType.GetDescription(),
                    TransactionStatus = model.TransactionStatus.GetDescription(),
                    ActionByUserDTO = model.ActionedByUser,
