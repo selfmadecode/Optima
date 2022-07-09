@@ -135,6 +135,7 @@ namespace Optima.Models.Constant
         public const string DenominationCannotBeDeleted = "DENOMINATION CANNOT BE DELETED";
 
         public const string CreatedAdmin = "ADMIN CREATED SUCCESSFULLY";
+        public const string UpdateAdminClaim = "ADMIN PERMMISSION UPDATED";
 
 
     }
