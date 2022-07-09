@@ -105,7 +105,6 @@ namespace Optima
                 options.Lockout.MaxFailedAccessAttempts = 3;
                 options.Password.RequiredUniqueChars = 1;
 
-
             }).AddEntityFrameworkStores<ApplicationDbContext>()       
             .AddDefaultTokenProviders();
 
