@@ -62,22 +62,21 @@ namespace Optima.Services.Implementation
 
             try
             {
+                //VALIDATES THE CONFIGURED CARD TYPE DENOMINATION IDs THE ADMIN CREATES. THE USER SELLS THAT TO THE ADMIN.
                 var checkCardTpeDenominations = await FindCardTypeDenominations(model.CardTypeDTOs.Select(x => x.CardTypeDenominationId).ToList());
 
                 if (checkCardTpeDenominations.Count != model.CardTypeDTOs.Select(x => x.CardTypeDenominationId).Count())
                 {
                     Errors.Add(ResponseMessage.CardTypeDenominationNotFound);
                     return new BaseResponse<bool>(ResponseMessage.CardTypeDenominationNotFound, Errors);
-                }
+                };
 
-                var cardTransactionImages = await UploadTransactionImages(model, UserId);
-                filesToDelete = cardTransactionImages.Select(x => x.LogoUrl).ToList();
-                var (cardTransaction, cardSold) = await CreateCardForSales(model, UserId); 
-
-                cardTransaction.CardSold.AddRange(cardSold);
-                cardTransaction.TransactionUploadededFiles.AddRange(cardTransactionImages);
+                //CREATE CARD FOR SALE
+                var (cardTransaction, filesLogoUrl) = await CreateCardForSales(model, UserId);
+                //SET THE FLES TO DELETE INCASE AN EXCEPTION OCCUR WHILE CREATING THE CARD SALES.
+                filesToDelete = filesLogoUrl;
              
-                await _context.CardTransactions.AddAsync(cardTransaction);
+                await _context.CardTransactions.AddRangeAsync(cardTransaction);
 
                 _logger.Info("About to Save Card Transaction, Card Sold and Card Transaction Uploaded Files... at ExecutionPoint:CreateCardSales");
                 await _context.SaveChangesAsync();
@@ -88,13 +87,14 @@ namespace Optima.Services.Implementation
                 var data = CreateCardSaleNotificationDTO(user.FullName, "Card Sale");
                 await _signalRNotificationService.Clients.Users(AdminUsers().Select(x => x.ToString()).ToList()).SendCardSaleNotification(data);
                 
-                //SAVE NOTIFICATION
+                //SAVE NOTIFICATION TO DB
                 await SaveNotificationForAdmin(user.FullName);
 
                 return new BaseResponse<bool>(true, ResponseMessage.CardSaleCreation);
             }
             catch (Exception ex)
             {
+                //DELETES THE FILES ALREADY UPLOADED TO CLOUDINARY.
                 foreach (var filePath in filesToDelete)
                 {
                     var fullPath = GenerateDeleteUploadedPath(filePath);
@@ -115,47 +115,58 @@ namespace Optima.Services.Implementation
         /// <param name="model">The model</param>
         /// <param name="UserId">The UserId</param>
         /// <returns>
-        /// System.ValueTuple&lt;(CardTransaction, List&lt;CardSold)&gt;.
+        /// System.Value.Tuple&lt;(CardTransaction, List&lt;CardSold)&gt;.
         /// </returns>
-        private async Task<(CardTransaction, List<CardSold>)> CreateCardForSales(SellCardDTO model, Guid UserId)
+        private async Task<(List<CardTransaction>, List<string>)> CreateCardForSales(SellCardDTO model, Guid UserId)
         {
             decimal amount = 0;
 
+            // GET THE CARD TYPE DENOMINATIONS
             var cardTypeDenominations = await _context.CardTypeDenomination
                 .Where(x => model.CardTypeDTOs.Select(x => x.CardTypeDenominationId).Contains(x.Id))
                 .ToListAsync();
 
-            foreach (var sellCardDto in model.CardTypeDTOs)
-            {
-                var aCardTypeDenomination = cardTypeDenominations.FirstOrDefault(x => x.Id == sellCardDto.CardTypeDenominationId);
-                amount += CalculateAmount(aCardTypeDenomination, sellCardDto.CardCodes);
-            }        
-
-            var cardTransaction = new CardTransaction
-            {
-                TransactionStatus = TransactionStatus.Pending,
-                TotalExpectedAmount = amount,
-                ApplicationUserId = UserId,
-                CreatedBy = UserId,
-                TransactionRef = "GenerateRef"
-            };
-
+            var cardTransaction = new List<CardTransaction>();
             var cardSold = new List<CardSold>();
             var cardCodes = new List<CardCodes>();
 
+            //SET THE FILES TO DELETE INCASE AN EXCEPTION OCCUR WHILE CREATING THE CARD SALE.
+            var filesToDelete = new List<string>();
+
+            //LOOP THROUGH EACH OF THE INCOMING CARD SALE MODEL
             foreach (var sellCardDto in model.CardTypeDTOs)
             {
+                //CALCULATES THE TOTAL EXPECTED AMOUNT THE ADMIN WOULD PAY FOR THIS CARD SALE TRANSACTION
+                var aCardTypeDenomination = cardTypeDenominations.FirstOrDefault(x => x.Id == sellCardDto.CardTypeDenominationId);
+                //CALCULATE THE EXPECTED AMOUNT FOR THAT PARTICULAR CARD SALE --> NOTE: SAME WITH CARD SOLD--> AMOUNT PROPERTY.
+                amount = CalculateAmount(aCardTypeDenomination, sellCardDto.CardCodes);
 
+                //SET THE TRANSACTION STATUS TO PENDING I.E. AWAITING APPROVAL FROM THE ADMIN
+                var newcardTransaction = new CardTransaction
+                {
+                    TransactionStatus = TransactionStatus.Pending,
+                    TotalExpectedAmount = amount,
+                    ApplicationUserId = UserId,
+                    CreatedBy = UserId,
+                };
+
+                //UPLOAD FILES TO CLOUDINARY FOR A PARTICULAR CARD SALE
+                var transactionImages = await UploadTransactionImages(sellCardDto.CardImages, UserId);
+                filesToDelete.AddRange(transactionImages.Select(x => x.LogoUrl));
+
+                //CREATES THE CARD SOLD 
                 var newCardSold = new CardSold
                 {
                     CardTypeDenominationId = sellCardDto.CardTypeDenominationId,
+                    //CALCULATE THE EXPECTED AMOUNT FOR THAT PARTICULAR CARD SALE
                     Amount = CalculateAmount(cardTypeDenominations.FirstOrDefault(x => x.Id == sellCardDto.CardTypeDenominationId), sellCardDto.CardCodes),
                     CreatedBy = UserId,
                 };
 
+                //LOOP THROUGH THAT PARTICULAR CARD CODES OF THE CARD SALE MODEL
                 foreach (var cardCode in sellCardDto.CardCodes)
                 {
-
+                    //CREATES THE CARD CODES FOR THE CARD SALE
                     newCardSold.CardCodes.Add(new CardCodes
                     {
                         CardSoldId = newCardSold.Id,
@@ -164,10 +175,12 @@ namespace Optima.Services.Implementation
                     });
                 }
 
-                cardSold.Add(newCardSold);
+                newcardTransaction.CardSold.Add(newCardSold);
+                newcardTransaction.TransactionUploadededFiles.AddRange(transactionImages);
+                cardTransaction.Add(newcardTransaction);
             }
 
-            return (cardTransaction, cardSold);
+            return (cardTransaction, filesToDelete);
         }
 
         /// <summary>
@@ -176,13 +189,13 @@ namespace Optima.Services.Implementation
         /// <param name="model">The model.</param>
         /// <param name="UserId">The UserId.</param>
         /// <returns>Task&lt;List&lt;TransactionUploadFiles&gt;&gt;.</returns>
-        private async Task<List<TransactionUploadFiles>> UploadTransactionImages(SellCardDTO model, Guid UserId)
+        private async Task<List<TransactionUploadFiles>> UploadTransactionImages(List<IFormFile> Files, Guid UserId)
         {
 
             var transactionUploadedFiles = new List<TransactionUploadFiles>();
 
-            _logger.Info($"Uploading {model.CardTypeDTOs.SelectMany(x => x.CardImages).Count()} to Cloudinary... at ExecutionPoint:UploadTransactionImages");
-            foreach (var file in model.CardTypeDTOs.SelectMany(x => x.CardImages).Select(cardImage => cardImage))
+            _logger.Info($"Uploading {Files.Count} Files to Cloudinary... at ExecutionPoint:UploadTransactionImages");
+            foreach (var file in Files)
             {
                 var (uploadedFile, hasUploadError, responseMessage) = await _cloudinaryServices.UploadImage(file);
                 transactionUploadedFiles.Add(new TransactionUploadFiles
@@ -193,7 +206,7 @@ namespace Optima.Services.Implementation
 
             }
 
-            _logger.Info($"Successfully Uploaded {model.CardTypeDTOs.SelectMany(x => x.CardImages).Count()} to Cloudinary... at ExecutionPoint:UploadTransactionImages");
+            _logger.Info($"Successfully Uploaded {Files.Count} Images to Cloudinary... at ExecutionPoint:UploadTransactionImages");
             return transactionUploadedFiles;
         }
 
@@ -258,14 +271,14 @@ namespace Optima.Services.Implementation
         }
 
         /// <summary>
-        /// UPDATE CARD FOR SALES
+        /// UPDATE CARD CODES FOR A CARD SALE TRANSACTION
         /// </summary>
         /// <param name="model">The model.</param>
         /// <param name="UserId">The UserId.</param>
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
         public async Task<BaseResponse<bool>> UpdateCardSales(Guid transactionId, UpdateSellCardDTO model, Guid UserId)
         {
-
+            //VALIDATES THE CARD TRANSACTION ID TO BE UPDATED
             var cardTransaction = await FindCardTransaction(transactionId);
                 
             if (cardTransaction is null)
@@ -274,7 +287,7 @@ namespace Optima.Services.Implementation
                 return new BaseResponse<bool>(ResponseMessage.CardTransactionNotFound, Errors);
             }
 
-            //check card sold
+            //VALIDATES THE CARD SOLD IDs FOR THE CARD SALE TRANSACTION
             var cardSold = cardTransaction.CardSold.Where(x => model.UpdateCardSoldDTOs.Select(x => x.CardSoldId).Contains(x.Id)).ToList();
 
             if (cardSold.Count != model.UpdateCardSoldDTOs.Select(x => x.CardSoldId).Count())
@@ -283,7 +296,7 @@ namespace Optima.Services.Implementation
                 return new BaseResponse<bool>(ResponseMessage.CardSoldNotFound, Errors);
             }
 
-            //Check Card Codes
+            //VALIDATES THE CARD CODES IDs FOR THE CARD TRANSACTION
             var cardCodes = cardTransaction.CardSold.SelectMany(x => x.CardCodes)
                 .Where(x => model.UpdateCardSoldDTOs.SelectMany(x => x.UpdateCardCodeDTOs.Select(x => x.CardCodeId)).Contains(x.Id)).ToList();
 
@@ -293,9 +306,7 @@ namespace Optima.Services.Implementation
                 return new BaseResponse<bool>(ResponseMessage.CardCodesNotFound, Errors);
             }
 
-            var cardCodeIds = model.UpdateCardSoldDTOs.SelectMany(x => x.UpdateCardCodeDTOs).Select(x => x.CardCodeId);
-            var cardSoldCodes = _context.CardCodes.Where(x => cardCodeIds.Contains(x.Id)).ToList();
-
+            //UPDATES THE CARD SALES. THIS UPDATES THE CARD CODES.
             await CardSaleUpdate(model, cardCodes, UserId);
 
             return new BaseResponse<bool>(true, ResponseMessage.CardCodeUpdate);
@@ -310,10 +321,13 @@ namespace Optima.Services.Implementation
         /// <returns>System.Threading.Tasks.Task</returns>
         private async Task CardSaleUpdate(UpdateSellCardDTO model, List<CardCodes> cardCodes, Guid UserId)
         {
+            //LOOP THROUGH THE INCOMING UPDATE SELL CARD MODEL 
             foreach (var UpdateCardSoldDTO in model.UpdateCardSoldDTOs)
             {
+                //LOOP THROUGH THE INCOMING CARD CODES MODEL
                 foreach (var cardCodeDto in UpdateCardSoldDTO.UpdateCardCodeDTOs)
                 {
+                    //TARGETS THE CARD CODE TO BE UPDATED
                     var aCardCodeSold = cardCodes.FirstOrDefault(x => x.Id == cardCodeDto.CardCodeId);
 
                     aCardCodeSold.CardCode = string.IsNullOrWhiteSpace(cardCodeDto.CardCode) ? aCardCodeSold.CardCode : cardCodeDto.CardCode;
@@ -338,7 +352,7 @@ namespace Optima.Services.Implementation
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
         public async Task<BaseResponse<bool>> UpdateCardTransactionStatus(Guid transactionId, UpdateCardTransactionStatusDTO model, Guid UserId)
         {
-
+            //VALIDATES THE CARD TRANSACTION ID
             var cardTransaction = await FindCardTransaction(transactionId);
 
             if (cardTransaction is null)
@@ -347,6 +361,7 @@ namespace Optima.Services.Implementation
                 return new BaseResponse<bool>(ResponseMessage.CardTransactionNotFound, Errors);
             }
 
+            //CHECK IF THE TRANSACTION HAS NOT BEEN ACTED ON BY THE ADMIN
             if (cardTransaction.TransactionStatus != TransactionStatus.Pending)
             {
                 var message = $"Card Transaction has already been actioned by Optima Admin with Name:" +
@@ -362,11 +377,11 @@ namespace Optima.Services.Implementation
                     {
                         cardTransaction.TransactionStatus = TransactionStatus.Declined;
                         _context.CardTransactions.Update(cardTransaction);
-                        //PUSH NOTIFICATION
-                        var data = SendPushNotification(new List<Guid> { cardTransaction.ApplicationUserId }, "Declined");
+                        //SEND PUSH NOTIFICATION
+                        var data = SendPushNotification(new List<Guid> { cardTransaction.ApplicationUserId }, TransactionStatus.Declined.GetDescription());
                         await _pushNotificationService.SendPushNotification(data);
-                        //SAVE NOTIFICATION
-                        await SaveNotificationForUser(new List<Guid> { cardTransaction.ApplicationUserId }, "Declined");
+                        //SAVE NOTIFICATION TO DB
+                        await SaveNotificationForUser(new List<Guid> { cardTransaction.ApplicationUserId }, TransactionStatus.Declined.GetDescription());
                         break;
                     }
                   
@@ -376,11 +391,11 @@ namespace Optima.Services.Implementation
                         _context.CardTransactions.Update(cardTransactonUpdate);
                         var creditDebit = await CreateCreditDebit(model, cardTransaction, UserId);
                         await _context.CreditDebit.AddAsync(creditDebit);
-                        //PUSH NOTIFICATION
-                        var data = SendPushNotification(new List<Guid> { cardTransaction.ApplicationUserId }, "PartialApproval");
+                        //SEND PUSH NOTIFICATION
+                        var data = SendPushNotification(new List<Guid> { cardTransaction.ApplicationUserId }, TransactionStatus.PartialApproval.GetDescription());
                         await _pushNotificationService.SendPushNotification(data);
-                        //SAVE NOTIFICATION
-                        await SaveNotificationForUser(new List<Guid> { cardTransaction.ApplicationUserId }, "PartialApproval");
+                        //SAVE NOTIFICATION TO DB
+                        await SaveNotificationForUser(new List<Guid> { cardTransaction.ApplicationUserId }, TransactionStatus.PartialApproval.GetDescription());
                         break;
                     }
                   
@@ -390,11 +405,11 @@ namespace Optima.Services.Implementation
                         _context.CardTransactions.Update(cardTransactonUpdate);
                         var creditDebit = await CreateCreditDebit(model, cardTransaction, UserId);
                         await _context.CreditDebit.AddAsync(creditDebit);
-                        //PUSH NOTIFICATION
-                        var data = SendPushNotification(new List<Guid> { cardTransaction.ApplicationUserId }, "Approved");
+                        //SEND PUSH NOTIFICATION
+                        var data = SendPushNotification(new List<Guid> { cardTransaction.ApplicationUserId }, TransactionStatus.Approved.GetDescription());
                         await _pushNotificationService.SendPushNotification(data);
-                        //SAVE NOTIFICATION
-                        await SaveNotificationForUser(new List<Guid> { cardTransaction.ApplicationUserId }, "Approved");
+                        //SAVE NOTIFICATION TO DB
+                        await SaveNotificationForUser(new List<Guid> { cardTransaction.ApplicationUserId }, TransactionStatus.Approved.GetDescription());
                         break;
                     }
                 default:
@@ -402,9 +417,9 @@ namespace Optima.Services.Implementation
             }
 
 
-            _logger.Info("About to Update Card Transaction,Debit Credit,UserWallet.. at ExecutionPoint:UpdateCardTransactionStatus");
+            _logger.Info("About to Update Card Transaction, Debit Credit, UserWallet.. at ExecutionPoint:UpdateCardTransactionStatus");
             await _context.SaveChangesAsync();
-            _logger.Info("Successfully Updated Card Transaction,Debit Credit,UserWallet.. at ExecutionPoint:UpdateCardTransactionStatus");
+            _logger.Info("Successfully Updated Card Transaction, Debit Credit, UserWallet.. at ExecutionPoint:UpdateCardTransactionStatus");
 
             return new BaseResponse<bool>(true, ResponseMessage.CardTransactionUpdate);
         }
@@ -478,7 +493,7 @@ namespace Optima.Services.Implementation
         /// <returns>CardTransaction</returns>
         private CardTransaction UpdateUserTransaction(UpdateCardTransactionStatusDTO model, CardTransaction cardTransaction, Guid UserId)
         {
-
+            //UPDATES THE USER CARD TRANSACTION
             cardTransaction.TransactionStatus = model.TransactionStatus;
             cardTransaction.ActionById = UserId;
             cardTransaction.ActionedByDateTime = DateTime.UtcNow;
@@ -516,19 +531,19 @@ namespace Optima.Services.Implementation
         /// <returns>Task&lt;CardTransaction&gt;</returns>
         private async Task<CreditDebit> CreateCreditDebit(UpdateCardTransactionStatusDTO model, CardTransaction cardTransaction, Guid UserId)
         {
-            //get the user wallet and credit his account
+            //GET THE USER WALLET
             var userWallet = await _context.WalletBalance.Where(x => x.UserId == cardTransaction.ApplicationUserId).FirstOrDefaultAsync();
 
             var creditDebit = new CreditDebit();
 
             if (!(userWallet is null))
             {
-                //Update User Wallet Balance
+                //UPDATE THE USER WALLET BALANCE
                 userWallet.Balance += model.Amount;
                 userWallet.ModifiedOn = DateTime.UtcNow;
                 userWallet.ModifiedBy = UserId;
 
-                //Create a Credit for the User               
+                //CREATE A CREDIT DEBIT FOR THE USER              
                 creditDebit.Amount = model.Amount;
                 creditDebit.TransactionStatus = model.TransactionStatus;
                 creditDebit.TransactionType = TransactionType.Credit;
@@ -638,7 +653,7 @@ namespace Optima.Services.Implementation
                 case "Approved":
                     return NotificationType.Approved_Transaction;
                 
-                case "PartialApproval":
+                case "Partial Approval":
                     return NotificationType.Partial_Approved_Transaction; 
 
                 case "Declined":
@@ -650,6 +665,11 @@ namespace Optima.Services.Implementation
 
         }
 
+        /// <summary>
+        /// GENERATES THE CREDIT DEBIT TRANSACTION REF ID
+        /// </summary>
+        /// <param name="transactionType">the transaction type</param>
+        /// <returns></returns>
         private async Task<string> GenerateCreditDebitTransactionRef(TransactionType transactionType)
         {
             var lastCreditDebit = await _context.CreditDebit.LastOrDefaultAsync(x => x.TransactionType == transactionType);
