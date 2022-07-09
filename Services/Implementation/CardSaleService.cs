@@ -137,6 +137,7 @@ namespace Optima.Services.Implementation
                 TotalExpectedAmount = amount,
                 ApplicationUserId = UserId,
                 CreatedBy = UserId,
+                TransactionRef = "GenerateRef"
             };
 
             var cardSold = new List<CardSold>();
