@@ -33,6 +33,7 @@ namespace Optima.Services.Implementation
         private readonly INotificationService _notificationService;
         private readonly IHubContext<SignalRService, ISignalRService> _signalRNotificationService;
         private readonly IPushNotificationService _pushNotificationService;
+        private static Random random = new Random();
 
 
         public CardSaleService(ApplicationDbContext context, ICloudinaryServices cloudinaryServices, 
@@ -532,6 +533,7 @@ namespace Optima.Services.Implementation
                 creditDebit.TransactionType = TransactionType.Credit;
                 creditDebit.WalletBalanceId = userWallet.Id;
                 creditDebit.ActionedByUserId = UserId;
+                creditDebit.TransactionReference = GenerateCreditDebitTransactionRef(TransactionType.Credit).Result;
 
             }
 
@@ -646,5 +648,13 @@ namespace Optima.Services.Implementation
             }
 
         }
+
+        private async Task<string> GenerateCreditDebitTransactionRef(TransactionType transactionType)
+        {
+            var lastCreditDebit = await _context.CreditDebit.LastOrDefaultAsync(x => x.TransactionType == transactionType);
+
+            return GenerateCreditDebitTransactionRef(lastCreditDebit, transactionType);
+        }
+        
     }
 }

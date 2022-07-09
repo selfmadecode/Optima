@@ -122,5 +122,8 @@ namespace Optima.Models.Constant
         public const string DebitUpdated = "DEBIT TRANSACTION UPDATED SUCCESSFULLY";
 
 
+        public const string CreatedAdmin = "ADMIN CREATED SUCCESSFULLY";
+
+
     }
 }

@@ -11,6 +11,7 @@ namespace Optima.Models.Entities
         // used to store all credit and debit
         public decimal Amount { get; set; }
         public TransactionType TransactionType { get; set; }
+        public string TransactionReference { get; set; }
         public TransactionStatus TransactionStatus { get; set; }
         public Guid? ActionedByUserId { get; set; } // Admin that acted on the transaction
         public ApplicationUser ActionedByUser { get; set; }

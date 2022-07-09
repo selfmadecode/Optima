@@ -311,7 +311,8 @@ namespace Optima.Services.Implementation
                 TransactionType = TransactionType.Debit,
                 WalletBalanceId = model.Id,
                 BankAccountId = bankAccountId,
-                CreatedBy = UserId                
+                CreatedBy = UserId,
+                TransactionReference = GenerateCreditDebitTransactionRef(TransactionType.Debit).Result
             };
 
             // GET ACCOUNT TO DEBIT AND DEBIT
@@ -322,6 +323,12 @@ namespace Optima.Services.Implementation
             await _context.SaveChangesAsync();
 
             return new BaseResponse<bool>(true);
+        }
+        private async Task<string> GenerateCreditDebitTransactionRef(TransactionType transactionType)
+        {
+            var lastCreditDebit = await _context.CreditDebit.LastOrDefaultAsync(x => x.TransactionType == transactionType);
+
+            return GenerateCreditDebitTransactionRef(lastCreditDebit, transactionType);
         }
 
 
