@@ -6,6 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using Optima.Context;
 using Optima.Models.Constant;
 using Optima.Models.DTO.AuthDTO;
+using Optima.Models.DTO.UserDTOs;
 using Optima.Models.Entities;
 using Optima.Models.Enums;
 using Optima.Services.Interface;
@@ -19,6 +20,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using static Optima.Utilities.Helpers.PermisionProvider;
 
 namespace Optima.Services.Implementation
 {
@@ -39,6 +41,8 @@ namespace Optima.Services.Implementation
 
         private readonly IEncrypt _encrypt;
         private readonly ILog _logger;
+        private static Random random = new Random();
+
 
 
 
@@ -537,65 +541,98 @@ namespace Optima.Services.Implementation
             return await _context.Users.FirstOrDefaultAsync(x => x.Id == id);
         }
 
-        //public async Task<ResultModel<AdminDTO>> CreateAdmin(CreateAdmin model)
-        //{
-        //    var result = new ResultModel<UseAdminDTOrDTO>();
+        public async Task<BaseResponse<AdminDTO>> CreateAdmin(CreateAdminAccountDTO model)
+        {
+            var user = new ApplicationUser
+            {
+                UserType = UserTypes.ADMIN,
+                FullName = $"{model.FirstName} {model.LastName}",
+                NormalizedUserName  = model.EmailAddress.ToLower(),
+                UserName = model.EmailAddress.ToLower(),
+                EmailConfirmed = false,
+                IsAccountLocked = false,
+                PhoneNumber = model.PhoneNumber,
+                CreationTime = DateTime.UtcNow,
+                Email = model.EmailAddress,
+                HasAcceptedTerms = true         
+            };
 
-        //    // IF THE ADMIN ROLE EXIST
-        //    if (await _roleManager.RoleExistsAsync(RoleHelpers.SUPER_ADMIN.ToString()))
-        //    {
+            var password = GeneratePassword();
+            var response = await _userManager.CreateAsync(user, password);
+            // AN ERROR OCCURED WHILE CREATING USER
 
-        //        var role = await _roleManager.FindByIdAsync(model.RoleId.ToString());
+            if (!response.Succeeded)
+            {
+                foreach (var error in response.Errors)
+                {
+                    Errors.Add(error.Description);
+                }
+                return new BaseResponse<AdminDTO>(Errors.FirstOrDefault(), Errors);
+            };
 
-        //        if (role == null)
-        //        {
-        //            result.Message = "ROLE NOT FOUND";
-        //            return result;
-        //        }
+            await AssignPermissionAsync(user.Id, model.Permissions);
 
-        //        var user = new ApplicationUser
-        //        {
-        //            UserType = UserTypes.ADMIN,
-        //            FirstName = model.FirstName,
-        //            Email = model.Email,
-        //            DateOfBirth = model.DateOfBirth,
-        //            LastName = model.LastName,
-        //            UserName = model.Email.ToLower(),
-        //            EmailConfirmed = false,
-        //            Activated = true,
-        //            CreatedOnUtc = DateTime.UtcNow,
-        //            PhoneNumber = model.PhoneNumber
-        //        };
+            string token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
 
-        //        var response = await _userManager.CreateAsync(user, Default.Password);
-        //        // AN ERROR OCCURED WHILE CREATING USER
-        //        if (!response.Succeeded)
-        //        {
-        //            foreach (var error in response.Errors)
-        //            {
-        //                result.AddError(error.Description);
-        //            }
-        //            return result;
-        //        };
+            var emailConfirmationLink = _emailService.GenerateEmailConfirmationLinkAsync(_encrypt.Encrypt(token), user.Email);
+
+            _logger.Info("SENDING CONFIRMATION LINK...");
+
+            // SEND PASSWORD VIA EMAIL
+            await _emailService.SendAdminAccountVerificationEmail(
+                user.Email, user.FullName, EmailSubject.EmailConfirmation,
+                emailConfirmationLink, password);
+
+            var data = new AdminDTO
+            { 
+                FullName = user.FullName, 
+                DateCreated = user.CreationTime,
+                UserName = user.UserName 
+            };
+            
+            return new BaseResponse<AdminDTO>(data, ResponseMessage.CreatedAdmin);
+        }
+
+        public async Task AssignPermissionAsync(Guid UserId, IList<string> Permmissions)
+        {
+            var listOfClaims = new List<ApplicationUserClaim>();
+
+            foreach (var permmission in Permmissions)
+            {
+                var claim = new ApplicationUserClaim
+                {
+                    UserId = UserId,
+                    ClaimValue = permmission,
+                    ClaimType = nameof(Permission)
+                };
+                listOfClaims.Add(claim);
+            }
+
+            await _context.UserClaims.AddRangeAsync(listOfClaims);
+            _context.SaveChanges();
+        }
+
+        public string GeneratePassword()
+        {
+            var numbers = "982345173";
+            var capital = "AQWSDETHFUJNGF";
+            var small = "adginfhy";
+            var specialChar = "#$%&(";
+
+            var randomNum = new string(Enumerable.Repeat(numbers, 5)
+              .Select(s => s[random.Next(s.Length)]).ToArray());
+
+            var randomcapital = new string(Enumerable.Repeat(capital, 1)
+              .Select(s => s[random.Next(s.Length)]).ToArray());
+
+            var randomsmall = new string(Enumerable.Repeat(small, 2)
+              .Select(s => s[random.Next(s.Length)]).ToArray());
+
+            var randomspecialChar = new string(Enumerable.Repeat(specialChar, 1)
+              .Select(s => s[random.Next(s.Length)]).ToArray());
 
 
-        //        await _userManager.AddToRoleAsync(user, role.Name);
-
-        //        /* var status = await VerifyEmail(new VerifyEmailDTO
-        //         {
-        //             EmailAddress = user.Email,
-        //         });*/
-
-        //        result.Message = "USER CREATED SUCCESSFULLY";
-        //        //Send Invitation Email
-        //        await InviteUser(user.Email);
-        //        return result;
-        //    }
-
-        //    result.AddError("ADMIN ROLE NOT FOUND");
-
-        //    return result;
-        //}
-
+            return randomNum + randomspecialChar + randomsmall + randomcapital;
+        }        
     }
 }

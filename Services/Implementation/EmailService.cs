@@ -208,6 +208,12 @@ namespace Optima.Services.Implementation
             string[] replacements = { firstName, confirmationLink };
             return await GenerateMail(emailAddress, replacements, subject, EmailTemplateUrl.AccountVerificationTemplate);
         }
+        public async Task<BaseResponse<bool>> SendAdminAccountVerificationEmail(string emailAddress, string firstName, string subject, string confirmationLink, string password)
+        {
+
+            string[] replacements = { firstName, confirmationLink, password };
+            return await GenerateMail(emailAddress, replacements, subject, EmailTemplateUrl.AdminAccountVerificationTemplate);
+        }
         private async Task<BaseResponse<bool>> GenerateMail(string emailAddress, string[] replacements, string subject, string templateUrl)
         {
             var emailTemplatePath = Path.Combine(_env.ContentRootPath, templateUrl);

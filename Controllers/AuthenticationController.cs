@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Optima.Models.DTO.AuthDTO;
 using Optima.Services.Interface;
+using Optima.Utilities.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -130,7 +132,7 @@ namespace Optima.Controllers
         }
                 
         [HttpPost("{userEmail}")]
-        //[Authorize(Roles = AppRoles.AdminRole)]
+        [Authorize(Roles = RoleHelper.SUPERADMIN)]
         public async Task<IActionResult> LockoutUser(string userEmail)
         {
             try
@@ -144,7 +146,7 @@ namespace Optima.Controllers
         }
                 
         [HttpPost("{userEmail}")]
-        //[Authorize(Roles = AppRoles.AdminRole)]
+        [Authorize(Roles = RoleHelper.SUPERADMIN)]
         public async Task<IActionResult> UnLockUser(string userEmail)
         {
             try
@@ -156,6 +158,20 @@ namespace Optima.Controllers
                 return HandleError(ex);
             }
         }
-        
+
+        [HttpPost]
+        [Authorize(Roles = RoleHelper.SUPERADMIN)]
+        public async Task<IActionResult> CreateAdmin([FromBody] CreateAdminAccountDTO model)
+        {
+            try
+            {
+                return ReturnResponse(await _authService.CreateAdmin(model));
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex);
+            }
+        }
+
     }
 }
