@@ -187,7 +187,7 @@ namespace Optima.Services.Implementation
 
                 var data = new CreatedCardDTO { Id = newCard.Id, Name = newCard.Name };
 
-                return new BaseResponse<CreatedCardDTO>(ResponseMessage.CardCreation);
+                return new BaseResponse<CreatedCardDTO>(data, ResponseMessage.CardCreation);
             }
             catch (Exception ex)
             {

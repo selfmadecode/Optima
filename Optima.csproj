@@ -31,8 +31,6 @@
 	<ItemGroup>
     <Folder Include="error-logs\" />
     <Folder Include="logs\" />
-	<Folder Include="Filestore\" />
-	<Folder Include="Filestore\EmailTemplate" />
   </ItemGroup>
 
 

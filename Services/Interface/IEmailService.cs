@@ -16,5 +16,6 @@ namespace Optima.Services.Interface
         Task<BaseResponse<bool>> SendAccountConfirmationEmail(string email, string name);
         Task SendAccountBlockedEmail(string email, string name);
         Task SendAccountUnBlockedEmail(string email, string name);
+        Task<BaseResponse<bool>> SendAdminAccountVerificationEmail(string emailAddress, string firstName, string subject, string confirmationLink, string password);
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Optima.Models.DTO.AuthDTO;
+using Optima.Models.DTO.UserDTOs;
 using Optima.Models.Entities;
 using Optima.Utilities.Helpers;
 using System;
@@ -21,6 +22,6 @@ namespace Optima.Services.Interface
         Task<BaseResponse<ResetPasswordDTO>> ResetPassword(ResetPasswordDTO model);
         Task<BaseResponse<string>> LockoutUser(string emailAddress);
         Task<BaseResponse<string>> UnLockUser(string emailAddress);
-        //string BuildRefreshToken();
+        Task<BaseResponse<AdminDTO>> CreateAdmin(CreateAdminAccountDTO model);
     }
 }

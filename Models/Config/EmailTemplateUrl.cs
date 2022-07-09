@@ -9,6 +9,7 @@ namespace Optima.Models.Config
     {
         public const string Test = @"Filestore\EmailTemplate\Test.html";
         public const string AccountVerificationTemplate = @"Filestore\EmailTemplate\Confirm_email.html";
+        public const string AdminAccountVerificationTemplate = @"Filestore\EmailTemplate\Confirm_Email_Admin.html";
         public const string PasswordResetTemplate = @"Filestore\EmailTemplate\Reset_password.html";
         public const string AccountConfirmationTemplate = @"Filestore\EmailTemplate\AccountConfirmation.html";
         public const string AccountBlockedTemplate = @"Filestore\EmailTemplate\AccountBlocked.html";

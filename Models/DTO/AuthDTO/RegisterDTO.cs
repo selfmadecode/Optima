@@ -80,13 +80,13 @@ namespace Optima.Models.DTO.AuthDTO
 
         [Required]
         public string FirstName { get; set; }
+
         [Required]
         public string LastName { get; set; }
+
         public string PhoneNumber { get; set; }
 
         [Required]
-        public string Role { get; set; }
-
-
+        public IList<string> Permissions { get; set; }
     }
 }
