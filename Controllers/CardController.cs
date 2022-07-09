@@ -1,14 +1,11 @@
 ﻿using AzureRays.Shared.ViewModels;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Optima.Models.DTO.CardDTO;
 using Optima.Services.Interface;
 using Optima.Utilities.Helpers;
 using Optima.Utilities.Pagination;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using static Optima.Utilities.Helpers.PermisionProvider;
 
