@@ -593,7 +593,52 @@ namespace Optima.Services.Implementation
             return new BaseResponse<AdminDTO>(data, ResponseMessage.CreatedAdmin);
         }
 
-        public async Task AssignPermissionAsync(Guid UserId, IList<string> Permmissions)
+        public async Task<BaseResponse<UpdateClaimDTO>> UpdateClaimsAsync(UpdateClaimDTO model)
+        {
+            var user = await _userManager.FindByEmailAsync(model.EmailAddress);
+
+            if (user == null)
+            {
+                Errors.Add(ResponseMessage.ErrorMessage504);
+                return new BaseResponse<UpdateClaimDTO>(ResponseMessage.ErrorMessage000, Errors);
+            };
+
+            //var claims = await _userManager.GetClaimsAsync(user);
+
+            var claims = _context.UserClaims.Where(x => x.UserId == user.Id);
+            _context.UserClaims.RemoveRange(claims);
+            _context.SaveChanges();
+
+            await AssignPermissionAsync(user.Id, model.Permissions);
+
+            return new BaseResponse<UpdateClaimDTO>(model, ResponseMessage.UpdateAdminClaim);
+        }
+
+        public async Task<BaseResponse<AdminDetailsDTO>> GetAdminDetailsAndPermmissionsAsync(string email)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+
+            if (user == null)
+            {
+                Errors.Add(ResponseMessage.ErrorMessage504);
+                return new BaseResponse<AdminDetailsDTO>(ResponseMessage.ErrorMessage000, Errors);
+            };
+
+            var claims = await _userManager.GetClaimsAsync(user);
+
+            var data = new AdminDetailsDTO
+            {
+                EmailAddress = user.Email,
+                Name = user.FullName,
+                PhoneNumber = user.PhoneNumber,
+                UserId = user.Id,
+                Permissions = claims.Select(x => x.Value).ToList()
+            };
+
+            return new BaseResponse<AdminDetailsDTO>(data);
+        }
+
+        private async Task AssignPermissionAsync(Guid UserId, IList<string> Permmissions)
         {
             var listOfClaims = new List<ApplicationUserClaim>();
 
@@ -612,7 +657,7 @@ namespace Optima.Services.Implementation
             _context.SaveChanges();
         }
 
-        public string GeneratePassword()
+        private string GeneratePassword()
         {
             var numbers = "982345173";
             var capital = "AQWSDETHFUJNGF";
