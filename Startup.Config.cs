@@ -187,6 +187,7 @@ namespace Optima
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<IDashboardService, DashboardService>();
             services.AddScoped<ICloudinaryServices, CloudinaryUploadHelper>();
+            services.AddScoped<IFaqService, FaqService>();
 
 
             services.Configure<SmtpConfigSettings>(Configuration.GetSection("SmtpConfig"));

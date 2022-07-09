@@ -36,6 +36,8 @@ namespace Optima.Context
         public DbSet<CardType> CardTypes { get; set; }
         public DbSet<Prefix> VisaPrefixes { get; set; }
         public DbSet<CardType> CardType { get; set; }
+        public DbSet<Faq> Faqs { get; set; }
+        
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

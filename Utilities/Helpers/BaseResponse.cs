@@ -11,9 +11,18 @@ namespace Optima.Utilities.Helpers
         public BaseResponse()
         {
         }
+
         public BaseResponse(T data, string responseMessage = null)
         {
             this.Data = data;
+            this.Status = RequestExecution.Successful;
+            this.ResponseMessage = responseMessage;
+        }
+        
+        public BaseResponse(T data, int totalCount, string responseMessage = null)
+        {
+            this.Data = data;
+            this.TotalCount = totalCount;
             this.Status = RequestExecution.Successful;
             this.ResponseMessage = responseMessage;
         }
@@ -24,6 +33,7 @@ namespace Optima.Utilities.Helpers
             this.ResponseMessage = error;
             this.Errors = errors;
         }
+
         public BaseResponse(T data, string error, List<string> errors, RequestExecution status)
         {
             this.Status = status;

@@ -318,7 +318,7 @@ namespace Optima.Services.Implementation
         /// <returns>&lt;Task<ApplicationUser>&gt;</returns>
         private async Task<List<BankAccount>> GetUserBankAccount(Guid userId) =>
            await _context.BankAccounts
-                .Where(x => x.UserId == userId)
+                .Where(x => x.UserId == userId && x.IsActive)
                 .OrderByDescending(x => x.CreatedOn)
                 .ToListAsync();
       
