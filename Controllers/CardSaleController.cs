@@ -24,7 +24,8 @@ namespace Optima.Controllers
         }
 
         /// <summary>
-        /// CREATES A CARD FOR SALE; ITS VALIDATES AGAINST THE CONFIGURED CARD TYPE DENOMINATION ID
+        /// CREATES A CARD FOR SALE; ITS VALIDATES AGAINST THE CONFIGURED CARD TYPE DENOMINATION ID,
+        /// <see cref="SellCardDTO"/> FOR THE PAYLOAD IT ACCEPTS.
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
@@ -45,7 +46,7 @@ namespace Optima.Controllers
         }
 
         /// <summary>
-        /// GET ALL USER CARD SALES
+        /// GET ALL USER CARD SALES, THE RESPONSE BODY CAN ALSO BE FILTERED.
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
@@ -66,7 +67,8 @@ namespace Optima.Controllers
         }
 
         /// <summary>
-        /// UPDATE A USER CARD CODES
+        /// UPDATE A USER CARD CODES BEING CREATED AT <see cref="Create(SellCardDTO)"/>
+        /// <see cref="UpdateSellCardDTO"/> FOR THE PAYLOAD IT ACCEPTS.
         /// </summary>
         /// <param name="transactionId"></param>
         /// <param name="model"></param>
@@ -88,7 +90,8 @@ namespace Optima.Controllers
         }
 
         /// <summary>
-        /// ACTION ON A USER CARD SALE (OPTIMA ADMIN) TRANSACTION I.E. APPROVE, DECLINE OR REJECT.
+        /// ACTION ON A USER CARD SALE BEING CREATED AT <see cref="Create(SellCardDTO)"/>
+        /// (OPTIMA ADMIN) CAN EITHER APPROVE, DECLINE OR REJECT THE TRANSACTION.
         /// </summary>
         /// <param name="transactionId"></param>
         /// <param name="model"></param>

@@ -44,13 +44,7 @@ namespace Optima.Services.Implementation
         {
             var uploadedFileToDelete = string.Empty;
 
-            var result = ValidateFile(model.Logo);
-
-            if (result.Errors.Any())
-            {
-                return new BaseResponse<bool>(result.ResponseMessage, result.Errors);
-            }
-
+           
             try
             {
                 var checkCountry = await _context.Countries
@@ -177,13 +171,7 @@ namespace Optima.Services.Implementation
             var uploadedFileToDelete = string.Empty;
 
             try
-            {
-                var result = ValidateFile(model.Logo);
-
-                if (result.Errors.Any())
-                {
-                    return new BaseResponse<bool>(result.ResponseMessage, result.Errors);
-                }
+            {            
 
                 var country = await _context.Countries.FirstOrDefaultAsync(x => x.Id == CountryId);
 
@@ -251,41 +239,7 @@ namespace Optima.Services.Implementation
            
         }
 
-
-        /// <summary>
-        /// VALIDATE FILE
-        /// </summary>
-        /// <param name="file">The file.</param>
-        /// <returns>BaseResponse&lt;bool&gt;.</returns>
-        private BaseResponse<bool> ValidateFile(IFormFile file)
-        {
-            var response = new BaseResponse<bool>();
-
-            if (!(file is null))
-            {
-                if (file.Length > 1024 * 1024)
-                {
-                    response.ResponseMessage = "Logo file size must not exceed 1Mb";
-                    response.Errors.Add("Logo file size must not exceed 1Mb");
-                    response.Status = RequestExecution.Failed;
-                    return response;
-                }
-
-                var error = ValidateFileTypeHelper.ValidateFile(new[] { "jpg", "png", "jpeg" }, file.FileName);
-
-                if (!error)
-                {
-                    response.ResponseMessage = "Logo file type must be .jpg or .png or .jpeg";
-                    response.Errors.Add("Logo file type must be .jpg or .png or .jpeg");
-                    response.Status = RequestExecution.Failed;
-                    return response;
-                }
-
-            }
-
-            return response;
-        }
-
+ 
         /// <summary>
         /// GENERATE DELETE UPLOADED PATH
         /// </summary>

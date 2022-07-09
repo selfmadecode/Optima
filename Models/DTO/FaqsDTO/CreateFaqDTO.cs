@@ -4,12 +4,13 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Optima.Models.DTO.PrefixDTOs
+namespace Optima.Models.DTO.FaqsDTO
 {
-    public class UpdatePrefixDTO
+    public class CreateFaqDTO
     {
-        public Guid Id { get; set; }
         [Required]
-        public string PrefixNumber { get; set; } 
+        public string Question { get; set; }
+        [Required]
+        public string Answer { get; set; }
     }
 }
