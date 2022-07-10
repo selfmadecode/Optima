@@ -447,7 +447,9 @@ namespace Optima.Services.Implementation
                     Expiration = expiration,
                     Roles = userRoles,
                     RefreshToken = refreshToken,
-                    Permissions = claims.Select(x => x.Value).ToList()
+                    Permissions = claims.Select(x => x.Value).ToList(),
+                    FullName = user.FullName,
+                    UserName = user.UserName
                 };
 
                 return new BaseResponse<JwtResponseDTO>(data);

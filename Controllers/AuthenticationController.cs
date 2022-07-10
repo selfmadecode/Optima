@@ -188,7 +188,7 @@ namespace Optima.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = RoleHelper.SUPERADMIN)]
+        //[Authorize(Roles = RoleHelper.SUPERADMIN)]
         public async Task<IActionResult> AdminDetails(string EmailAddress)
         {
             try
