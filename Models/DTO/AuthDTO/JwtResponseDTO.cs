@@ -12,7 +12,7 @@ namespace Optima.Models.DTO.AuthDTO
         public DateTime Expiration { get; set; }
         public IList<string> Roles { get; set; }
         public IList<string> Permissions { get; set; }
-        public string FullName { get; set; }
-        public string UserName { get; set; }
+        //public string FullName { get; set; }
+        //public string UserName { get; set; }
     }
 }

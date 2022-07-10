@@ -448,8 +448,8 @@ namespace Optima.Services.Implementation
                     Roles = userRoles,
                     RefreshToken = refreshToken,
                     Permissions = claims.Select(x => x.Value).ToList(),
-                    FullName = user.FullName,
-                    UserName = user.UserName
+                    //FullName = user.FullName,
+                    //UserName = user.UserName
                 };
 
                 return new BaseResponse<JwtResponseDTO>(data);
