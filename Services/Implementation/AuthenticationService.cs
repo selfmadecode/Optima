@@ -152,7 +152,7 @@ namespace Optima.Services.Implementation
                 UserName = model.EmailAddress,
                 CreationTime = DateTime.UtcNow,
                 EmailConfirmed = false,
-                HasAcceptedTerms = true,
+                HasAcceptedTerms = model.HasAcceptedTerms,
                 PhoneNumber = model.PhoneNumber,
                 IsAccountLocked = false,
                 UserType = UserTypes.USER
