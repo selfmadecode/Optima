@@ -70,6 +70,27 @@ namespace Optima.Controllers
         }
 
         /// <summary>
+        /// GETS ALL BLOCKED CARDS, 
+        /// THE RESPONSE CAN ALSO BE FILTERED BY THE PROPERTY--> CARD NAME
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("Blocked")]
+        [ProducesResponseType(typeof(BaseResponse<PagedList<CardDTO>>), 200)]
+        public async Task<IActionResult> AllBlockedCards([FromQuery] BaseSearchViewModel model) 
+        {
+            try
+            {
+                return ReturnResponse(await _cardService.AllBlockedCards(model));
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex);
+            }
+        } 
+        
+        /// <summary>
         /// GETS ALL IN-ACTIVE CARDS, 
         /// THE STATUS ACTIVE AND IS ACTIVE IS SET BY THE ADMIN AT THIS ENDPOINT<see cref="UpdateCardStatus(Guid, UpdateCardStatusDTO)"/>
         /// IT CAN BE FILTERED BY THE PROPERTY CARD NAME
