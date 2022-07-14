@@ -27,5 +27,6 @@ namespace Optima.Services.Interface
         Task<BaseResponse<bool>> CardStatusUpdate(UpdateCardStatusDTO model, Guid UserId, Guid CardId);
         Task<BaseResponse<PagedList<CardDTO>>> AllActiveCards(BaseSearchViewModel model);
         Task<BaseResponse<PagedList<CardDTO>>> AllInActiveCards(BaseSearchViewModel model); 
+        Task<BaseResponse<PagedList<CardDTO>>> AllBlockedCards(BaseSearchViewModel model);  
     }
 }
