@@ -244,8 +244,14 @@ namespace Optima.Services.Implementation
                 return new BaseResponse<bool>(ResponseMessage.CardNotFound, Errors);
             }
 
-            //VALIDATES COUNTRYID AGAINST CARDTYPEID
+            //VALIDATES THE CREATED CARD IF IT IS A REGULAR TYPE
+            if (card.BaseCardType == BaseCardType.REGULAR)
+            {
+                Errors.Add(ResponseMessage.CardNotRegular);
+                return new BaseResponse<bool>(ResponseMessage.CardNotRegular, Errors);
+            }
 
+            //VALIDATES COUNTRYID AGAINST CARDTYPEID
             var result = await ValidateNormalCardConfigMain(model);
 
             if (result.Errors.Any())
@@ -258,7 +264,7 @@ namespace Optima.Services.Implementation
 
             if (data.Errors.Any())
             {
-                return new BaseResponse<bool>(result.ResponseMessage, result.Errors);
+                return new BaseResponse<bool>(data.ResponseMessage, data.Errors);
             }
 
             foreach (var rates in model.NormalCardConfigDTO.Select(x => x.CardRates))
@@ -340,8 +346,14 @@ namespace Optima.Services.Implementation
                 return new BaseResponse<bool>(ResponseMessage.CardNotFound, Errors);                
             }
 
-            //VALIDATES COUNTRYID AGAINST CARDTYPEID
+            //VALIDATES THE CREATED CARD IF IT IS AN AMAZON TYPE
+            if (card.BaseCardType == BaseCardType.AMAZON)
+            {
+                Errors.Add(ResponseMessage.CardNotAmazon);
+                return new BaseResponse<bool>(ResponseMessage.CardNotAmazon, Errors);
+            }
 
+            //VALIDATES COUNTRYID AGAINST CARDTYPEID
             var result = await ValidateReceiptTypeCardConfigMain(model);
 
             if (result.Errors.Any())
@@ -354,7 +366,7 @@ namespace Optima.Services.Implementation
 
             if (data.Errors.Any())
             {
-                return new BaseResponse<bool>(result.ResponseMessage, result.Errors);
+                return new BaseResponse<bool>(data.ResponseMessage, data.Errors);
             }
             
             foreach (var rates in model.ReceiptTypeConfig.Select(x => x.CardRates))
@@ -535,8 +547,14 @@ namespace Optima.Services.Implementation
                 return new BaseResponse<bool>(ResponseMessage.CardNotFound, Errors);
             }
 
-            //VALIDATES COUNTRYID AGAINST CARDTYPEID
+            //VALIDATES THE CREATED CARD IF IT IS AN AMAZON TYPE
+            if (card.BaseCardType == BaseCardType.SPECIAL)
+            {
+                Errors.Add(ResponseMessage.CardNotSpecial);
+                return new BaseResponse<bool>(ResponseMessage.CardNotSpecial, Errors);
+            }
 
+            //VALIDATES COUNTRYID AGAINST CARDTYPEID
             var result = await ValidateVisaTypeCardConfigMain(model);
 
             if (result.Errors.Any())
@@ -549,7 +567,7 @@ namespace Optima.Services.Implementation
 
             if (data.Errors.Any())
             {
-                return new BaseResponse<bool>(result.ResponseMessage, result.Errors);
+                return new BaseResponse<bool>(data.ResponseMessage, data.Errors);
             }
 
 
