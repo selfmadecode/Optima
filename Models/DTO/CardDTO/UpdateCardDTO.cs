@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Optima.Models.Enums;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -51,12 +52,12 @@ namespace Optima.Models.DTO.CardDTO
 
     public class UpdateCardStatusDTO 
     {
-        public UpdateCardStatus CardStatus { get; set; } 
+        public CardStatus CardStatus { get; set; } 
     }
 
-    public enum UpdateCardStatus
+    /*public enum UpdateCardStatus
     {
         Activate = 1,
         Deactivate
-    }
+    }*/
 }

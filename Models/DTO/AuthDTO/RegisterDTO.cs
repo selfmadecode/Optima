@@ -20,6 +20,9 @@ namespace Optima.Models.DTO.AuthDTO
 
         [Required]
         public string Password { get; set; }
+
+        [Required]
+        public bool HasAcceptedTerms { get; set; }
     }
     public class ForgotPasswordDTO
     {

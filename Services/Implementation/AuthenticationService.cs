@@ -152,7 +152,7 @@ namespace Optima.Services.Implementation
                 UserName = model.EmailAddress,
                 CreationTime = DateTime.UtcNow,
                 EmailConfirmed = false,
-                HasAcceptedTerms = false,
+                HasAcceptedTerms = model.HasAcceptedTerms,
                 PhoneNumber = model.PhoneNumber,
                 IsAccountLocked = false,
                 UserType = UserTypes.USER
@@ -398,15 +398,7 @@ namespace Optima.Services.Implementation
             {
                 Errors.Add(ResponseMessage.ErrorMessage503);
                 return new BaseResponse<JwtResponseDTO>(ResponseMessage.ErrorMessage503, Errors);
-            }
-
-            // IF THE USER HASN'T ACCEPTED TERMS AND CONDITION
-            if (user.HasAcceptedTerms == false)
-            {
-                _logger.Info($"{user.Email} has not accepted terms and condition");
-                Errors.Add(ResponseMessage.ErrorMessage509);
-                return new BaseResponse<JwtResponseDTO>(ResponseMessage.ErrorMessage509, Errors);
-            }
+            }                       
 
             if (user != null && await _userManager.CheckPasswordAsync(user, model.Password))
             {
@@ -417,6 +409,14 @@ namespace Optima.Services.Implementation
                     _logger.Info($"{user.Email} is not yet confirmed");
                     Errors.Add(ResponseMessage.ErrorMessage502);
                     return new BaseResponse<JwtResponseDTO>(ResponseMessage.ErrorMessage502, Errors);
+                }
+
+                // IF THE USER HASN'T ACCEPTED TERMS AND CONDITION
+                if (user.HasAcceptedTerms == false)
+                {
+                    _logger.Info($"{user.Email} has not accepted terms and condition");
+                    Errors.Add(ResponseMessage.ErrorMessage509);
+                    return new BaseResponse<JwtResponseDTO>(ResponseMessage.ErrorMessage509, Errors);
                 }
 
                 // TODO: GET USER PERMISSIONS
@@ -435,7 +435,8 @@ namespace Optima.Services.Implementation
                     UserId = user.Id,
                     Token = refreshToken,
                     IssuedAt = DateTime.UtcNow,
-                    ExpiresAt = DateTime.Now.AddMinutes(Convert.ToInt32(_configuration.GetSection("JWT:RefreshTokenExpiration").Value))
+                    //ExpiresAt = DateTime.Now.AddMinutes(Convert.ToInt32(_configuration.GetSection("JWT:RefreshTokenExpiration").Value))
+                    ExpiresAt = expiration
                 });
 
                 await SaveChanges();
@@ -447,7 +448,9 @@ namespace Optima.Services.Implementation
                     Expiration = expiration,
                     Roles = userRoles,
                     RefreshToken = refreshToken,
-                    Permissions = claims.Select(x => x.Value).ToList()
+                    Permissions = claims.Select(x => x.Value).ToList(),
+                    //FullName = user.FullName,
+                    //UserName = user.UserName
                 };
 
                 return new BaseResponse<JwtResponseDTO>(data);

@@ -23,7 +23,7 @@ namespace Optima.Controllers
             _faqService = faqService;
         }
 
-
+        [Authorize(Roles = RoleHelper.SUPERADMIN)]
         [HttpPost]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
         public async Task<IActionResult> Create([FromBody] CreateFaqDTO model)
@@ -69,7 +69,7 @@ namespace Optima.Controllers
 
         }
 
-
+        [Authorize(Roles = RoleHelper.SUPERADMIN)]
         [HttpPut("{id}")]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
         public async Task<IActionResult> Update(Guid id, [FromBody] UpdateFaqDTO model)
