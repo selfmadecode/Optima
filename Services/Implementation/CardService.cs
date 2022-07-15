@@ -24,7 +24,6 @@ namespace Optima.Services.Implementation
         private readonly ICloudinaryServices _cloudinaryServices;
         private readonly ILog _logger;
 
-
         public CardService(ApplicationDbContext dbContext,
             ICloudinaryServices cloudinaryServices)
         {
@@ -32,7 +31,6 @@ namespace Optima.Services.Implementation
             _cloudinaryServices = cloudinaryServices;
             _logger = LogManager.GetLogger(typeof(ICardService));
         }
-
 
 
         /// <summary>
@@ -220,34 +218,36 @@ namespace Optima.Services.Implementation
                 return new BaseResponse<bool>(ResponseMessage.CardNotFound, Errors);
             }
 
-            //VALIDATES INCOMING CARD CONFIG I.E. THE COUNTRIES IDs, THE CARD TYPE IDs.
-            var validateCardConfig =
-                await ValidateCardConfig(CardId, model.CardConfigDTO.Select(x => x.CountryId).ToList(), model.CardConfigDTO.Select(x => x.CardTypeId).ToList());
+            //VALIDATES COUNTRYID AGAINST CARDTYPEID
 
-            if (validateCardConfig.Errors.Any())
-                return new BaseResponse<bool>(validateCardConfig.ResponseMessage, validateCardConfig.Errors);
-                        
+            var result = await ValidateNormalCardConfigMain(model);
 
-            //CHECK IF CARD TYPE HASN'T BEEN ALREADY CONFGURED.
-            var checkCardConfig = await _dbContext.CardTypeDenomination.Where(x => model.CardConfigDTO.Select(x => x.CardTypeId).Contains(x.CardTypeId)).ToListAsync();
-
-            if (checkCardConfig.Any())
+            if (result.Errors.Any())
             {
-                Errors.Add(ResponseMessage.CardTypeConfigured);
-                return new BaseResponse<bool>(ResponseMessage.CardTypeConfigured, Errors);
+                return new BaseResponse<bool>(result.ResponseMessage, result.Errors);
             }
-            
-            //VALIDATES DENOMINATION
-            var validateDenomination = ValidateDenomination(model.CardConfigDTO.Select(x => x.DenominationId).ToList());
 
-            if (validateDenomination)
+            // VALIDATE IF CARDTYPE DEMONINATION TABLE CONTAINS ANY DATA FOR THIS CARDTYPE ID
+            var data = await ValidateThatDenominationForCardDoesNotExist(model);
+
+            if (data.Errors.Any())
             {
-                Errors.Add(ResponseMessage.CardTypeDenominationNotFound);
-                return new BaseResponse<bool>(ResponseMessage.CardTypeDenominationNotFound, Errors);
+                return new BaseResponse<bool>(result.ResponseMessage, result.Errors);
+            }
+
+            foreach (var rates in model.NormalCardConfigDTO.Select(x => x.CardRates))
+            {
+                var validateDenomination = ValidateDenominationIds(rates.Select(x => x.DenominationId).ToList());
+
+                if (validateDenomination)
+                {
+                    Errors.Add(ResponseMessage.CardTypeDenominationNotFound);
+                    return new BaseResponse<bool>(ResponseMessage.CardTypeDenominationNotFound, Errors);
+                }
             }
 
             //CREATES THE CARD TYPE DENOM INATION FOR NORMAL CARD
-            await CreateNormalCardTypeDenomination(model.CardConfigDTO, UserId);
+            await CreateNormalCardTypeDenomination(model, UserId, CardId);
            
             return new BaseResponse<bool>(true, ResponseMessage.CardConfigSuccess);
         }
@@ -258,30 +258,31 @@ namespace Optima.Services.Implementation
         /// <param name="CardConfigDTO">The model.</param>
         /// <param name="UserId">The UserId.</param>
         /// <returns>System.Threadings.Tasks.Task</returns>
-        private async Task CreateNormalCardTypeDenomination(List<CardConfigDTO> CardConfigDTO, Guid UserId)
+        private async Task CreateNormalCardTypeDenomination(ConfigureNormalCardDTO model, Guid UserId, Guid CardId)
         {
             var cardTypeDenominations = new List<CardTypeDenomination>();
 
-            //LOOP THROUGH EACH OF THE INCOMING CARD CONFIG
-            foreach (var cardConfig in CardConfigDTO)
+            foreach (var receiptCardType in model.NormalCardConfigDTO)
             {
+                var CardTypeId = receiptCardType.CardTypeId;
 
-                cardTypeDenominations.Add(new CardTypeDenomination
-                {
-                    CardTypeId = cardConfig.CardTypeId,
-                    DenominationId = cardConfig.DenominationId,
-                    Rate = cardConfig.Rate,
-                    CreatedBy = UserId,
-                });
+                receiptCardType.CardRates.ForEach(x => cardTypeDenominations
+                    .Add(new CardTypeDenomination
+                    {
+                        Rate = x.Rate,
+                        DenominationId = x.DenominationId,
+                        CardTypeId = CardTypeId,
+                        CreatedBy = UserId,
+                        CreatedOn = DateTime.UtcNow,
+                        IsActive = true
+                    }));
             }
 
             _dbContext.CardTypeDenomination.AddRange(cardTypeDenominations);
-
-            //UPDATE THE CARD TYPES STATUS
-            var cardTypes = await _dbContext.CardTypes
-                .Where(x => CardConfigDTO.Select(x => x.CardTypeId).Contains(x.Id)).ToListAsync();
-
-            cardTypes.ForEach(x => x.CardStatus = CardStatus.Active);
+            //UPDATES CARD TYPE STATUS
+            var card = _dbContext.Cards.FirstOrDefault(x => x.Id == CardId);
+            // card.status = Active
+            _dbContext.SaveChanges();
 
             _logger.Info("About to Save CardType Denomination For NormalCard Config... at ExecutionPoint:ConfigureNormalCard");
             await _dbContext.SaveChangesAsync();
@@ -306,35 +307,36 @@ namespace Optima.Services.Implementation
                 return new BaseResponse<bool>(ResponseMessage.CardNotFound, Errors);                
             }
 
-            //VALIDATES INCOMING CARD CONFIG I.E. THE COUNTRIES IDs, THE CARD TYPE IDs.
-            var validateCardConfig =
-                await ValidateCardConfig(CardId, model.ReceiptTypeCardConfigDTO.Select(x => x.CountryId).ToList(), model.ReceiptTypeCardConfigDTO.Select(x => x.CardTypeId).ToList());
+            //VALIDATES COUNTRYID AGAINST CARDTYPEID
 
-            if (validateCardConfig.Errors.Any())
+            var result = await ValidateReceiptTypeCardConfigMain(model);
+
+            if (result.Errors.Any())
             {
-                return new BaseResponse<bool>(validateCardConfig.ResponseMessage, validateCardConfig.Errors);                               
+                return new BaseResponse<bool>(result.ResponseMessage, result.Errors);
             }
 
-            //CHECK IF CARD TYPE HASN'T BEEN ALREADY CONFGURED.
-            var checkCardConfig = await _dbContext.CardTypeDenomination.Where(x => model.ReceiptTypeCardConfigDTO.Select(x => x.CardTypeId).Contains(x.CardTypeId)).ToListAsync();
+            // VALIDATE IF CARDTYPE DEMONINATION TABLE CONTAINS ANY DATA FOR THIS CARDTYPE ID
+            var data = await ValidateThatDenominationForCardDoesNotExist(model);
 
-            if (checkCardConfig.Any())
+            if (data.Errors.Any())
             {
-                Errors.Add(ResponseMessage.CardTypeConfigured);
-                return new BaseResponse<bool>(ResponseMessage.CardTypeConfigured, Errors);
-            };
-
-           //VALIDATES DENOMINATION
-            var validateDenomination = ValidateDenomination(model.ReceiptTypeCardConfigDTO.Select(x => x.DenominationId).ToList());
-
-            if (validateDenomination)
+                return new BaseResponse<bool>(result.ResponseMessage, result.Errors);
+            }
+            
+            foreach (var rates in model.ReceiptTypeConfig.Select(x => x.CardRates))
             {
-                Errors.Add(ResponseMessage.CardTypeDenominationNotFound);
-                return new BaseResponse<bool>(ResponseMessage.CardTypeDenominationNotFound, Errors);
+                var validateDenomination = ValidateDenominationIds(rates.Select(x => x.DenominationId).ToList());
+
+                if (validateDenomination)
+                {
+                    Errors.Add(ResponseMessage.CardTypeDenominationNotFound);
+                    return new BaseResponse<bool>(ResponseMessage.CardTypeDenominationNotFound, Errors);
+                }
             }
 
-            //VALIDATES RECEIPT TYPE
-            var validateReceipt = ValidateReceipt(model.ReceiptTypeCardConfigDTO.Select(x => x.ReceiptTypeId).ToList());
+            //VALIDATES RECEIPT TYPEID
+            var validateReceipt = ValidateReceipt(model.ReceiptTypeConfig.Select(x => x.ReceiptTypeId).ToList());
 
             if (validateReceipt)
             {
@@ -343,9 +345,98 @@ namespace Optima.Services.Implementation
             }
 
             //CONFIGURE RECEIPT TYPE CARD TYPE DENOMINATION
-            await CreateReceiptTypeDenomination(model.ReceiptTypeCardConfigDTO, UserId);
+            await CreateReceiptTypeDenomination(model, UserId, CardId);
 
             return new BaseResponse<bool>(true, ResponseMessage.CardConfigSuccess);
+        }
+
+        private async Task<BaseResponse<bool>> ValidateReceiptTypeCardConfigMain(ConfigureReceiptTypeCardDTO model)
+        {
+            foreach (var item in model.ReceiptTypeConfig)
+            {
+                // GET ALL CARD TYPES FOR THIS COUNTRY, THIS SHOULD RETURN THE E-CODE AND PHYSICAL VARIANT
+                var cardtype = await _dbContext.CardType
+                    .Where(x => x.CountryId == item.CountryId
+                    && x.Id == item.CardTypeId
+                    ).ToListAsync();
+
+                if (!cardtype.Any())
+                {
+                    Errors.Add(ResponseMessage.CardTypeNotFound);
+                    return new BaseResponse<bool>(ResponseMessage.CardTypeNotFound, Errors);
+                }                
+            }
+
+            return new BaseResponse<bool>();
+        }
+        private async Task<BaseResponse<bool>> ValidateNormalCardConfigMain(ConfigureNormalCardDTO model)
+        {
+            foreach (var item in model.NormalCardConfigDTO)
+            {
+                // GET ALL CARD TYPES FOR THIS COUNTRY, THIS SHOULD RETURN THE E-CODE AND PHYSICAL VARIANT
+                var cardtype = await _dbContext.CardType
+                    .Where(x => x.CountryId == item.CountryId
+                    && x.Id == item.CardTypeId
+                    ).ToListAsync();
+
+                if (!cardtype.Any())
+                {
+                    Errors.Add(ResponseMessage.CardTypeNotFound);
+                    return new BaseResponse<bool>(ResponseMessage.CardTypeNotFound, Errors);
+                }
+            }
+
+            return new BaseResponse<bool>();
+        }
+
+        private async Task<BaseResponse<bool>> ValidateThatDenominationForCardDoesNotExist(ConfigureReceiptTypeCardDTO model)
+        {
+            foreach (var item in model.ReceiptTypeConfig)
+            {
+                // VALIDATE IF CARDTYPE DEMONINATION CONATAINS ANY DATA FOR THIS CARDTYPE
+
+                var checkCardConfig = await _dbContext.CardTypeDenomination.Where(x => x.CardTypeId == item.CardTypeId).ToListAsync();
+
+                if (checkCardConfig.Any())
+                {
+                    Errors.Add(ResponseMessage.CardTypeConfigured);
+                    return new BaseResponse<bool>(ResponseMessage.CardTypeConfigured, Errors);
+                };
+            }
+            return new BaseResponse<bool>();
+        }
+        private async Task<BaseResponse<bool>> ValidateThatDenominationForCardDoesNotExist(ConfigureNormalCardDTO model)
+        {
+            foreach (var item in model.NormalCardConfigDTO)
+            {
+                // VALIDATE IF CARDTYPE DEMONINATION CONATAINS ANY DATA FOR THIS CARDTYPE
+
+                var checkCardConfig = await _dbContext.CardTypeDenomination.Where(x => x.CardTypeId == item.CardTypeId).ToListAsync();
+
+                if (checkCardConfig.Any())
+                {
+                    Errors.Add(ResponseMessage.CardTypeConfigured);
+                    return new BaseResponse<bool>(ResponseMessage.CardTypeConfigured, Errors);
+                };
+            }
+            return new BaseResponse<bool>();
+        }
+
+        private async Task<BaseResponse<bool>> ValidateThatDenominationForCardDoesNotExist(ConfigureVisaCardDTO model)
+        {
+            foreach (var item in model.VisaCardConfigDTO)
+            {
+                // VALIDATE IF CARDTYPE DEMONINATION CONATAINS ANY DATA FOR THIS CARDTYPE
+
+                var checkCardConfig = await _dbContext.CardTypeDenomination.Where(x => x.CardTypeId == item.CardTypeId).ToListAsync();
+
+                if (checkCardConfig.Any())
+                {
+                    Errors.Add(ResponseMessage.CardTypeConfigured);
+                    return new BaseResponse<bool>(ResponseMessage.CardTypeConfigured, Errors);
+                };
+            }
+            return new BaseResponse<bool>();
         }
 
         /// <summary>
@@ -354,30 +445,34 @@ namespace Optima.Services.Implementation
         /// <param name="ReceiptTypeCardConfigDTO">The model.</param>
         /// <param name="UserId">The UserId.</param>
         /// <returns>System.Threading.Tasks.Task</returns>
-        private async Task CreateReceiptTypeDenomination(List<ReceiptTypeCardConfigDTO> ReceiptTypeCardConfigDTO, Guid UserId)
+        private async Task CreateReceiptTypeDenomination(ConfigureReceiptTypeCardDTO model, Guid UserId, Guid CardId)
         {
-            //Add CardType Denomination
             var cardTypeDenominations = new List<CardTypeDenomination>();
 
-            //LOOP THROUGH EACH OF THE RECEIPT TYPE CARD TYPE CONFIG MODEL
-            foreach (var receiptTypeCardConfigDTO in ReceiptTypeCardConfigDTO)
+            foreach (var receiptCardType in model.ReceiptTypeConfig)
             {
-                cardTypeDenominations.Add(new CardTypeDenomination
-                {
-                    CardTypeId = receiptTypeCardConfigDTO.CardTypeId,
-                    DenominationId = receiptTypeCardConfigDTO.DenominationId,
-                    Rate = receiptTypeCardConfigDTO.Rate,
-                    ReceiptId = receiptTypeCardConfigDTO.ReceiptTypeId,
-                    CreatedBy = UserId
-                });
+                var CardTypeId = receiptCardType.CardTypeId;
+                var ReceiptId = receiptCardType.ReceiptTypeId;
+
+                receiptCardType.CardRates.ForEach(x => cardTypeDenominations
+                    .Add(new CardTypeDenomination
+                    {
+                        Rate = x.Rate,
+                        DenominationId = x.DenominationId,
+                        CardTypeId = CardTypeId,
+                        ReceiptId = ReceiptId,
+                        CreatedBy = UserId,
+                        CreatedOn = DateTime.UtcNow,
+                        IsActive = true
+                    }));                
             }
 
             _dbContext.CardTypeDenomination.AddRange(cardTypeDenominations);
 
             //UPDATES CARD TYPE STATUS
-            var cardTypes = await _dbContext.CardTypes.Where(x => ReceiptTypeCardConfigDTO.Select(x => x.CardTypeId).Contains(x.Id)).ToListAsync();
-
-            cardTypes.ForEach(x => x.CardStatus = CardStatus.Active);
+            var card = _dbContext.Cards.FirstOrDefault(x => x.Id == CardId);
+            // card.status = Active
+            _dbContext.SaveChanges();
 
             _logger.Info("About to Save CardType Denomination For Create Receipt ype Card Config... at ExecutionPoint:ConfigureReceiptTypeCard");
             await _dbContext.SaveChangesAsync();
@@ -402,35 +497,36 @@ namespace Optima.Services.Implementation
                 return new BaseResponse<bool>(ResponseMessage.CardNotFound, Errors);
             }
 
-            //VALIDATES INCOMING CARD CONFIG I.E. THE COUNTRIES IDs, THE CARD TYPE IDs.
-            var validateCardConfig = 
-                await ValidateCardConfig(CardId, model.VisaCardConfigDTO.Select(x => x.CountryId).ToList(), model.VisaCardConfigDTO.Select(x => x.CardTypeId).ToList());
+            //VALIDATES COUNTRYID AGAINST CARDTYPEID
 
-            if (validateCardConfig.Errors.Any())
+            var result = await ValidateVisaTypeCardConfigMain(model);
+
+            if (result.Errors.Any())
             {
-                return new BaseResponse<bool>(validateCardConfig.ResponseMessage, validateCardConfig.Errors);
+                return new BaseResponse<bool>(result.ResponseMessage, result.Errors);
             }
 
-            //CHECK IF CARD TYPE HASN'T BEEN ALREADY CONFGURED.
-            var checkCardConfig = await _dbContext.CardTypeDenomination.Where(x => model.VisaCardConfigDTO.Select(x => x.CardTypeId).Contains(x.CardTypeId)).ToListAsync();
+            // VALIDATE IF CARDTYPE DEMONINATION TABLE CONTAINS ANY DATA FOR THIS CARDTYPE ID
+            var data = await ValidateThatDenominationForCardDoesNotExist(model);
 
-            if (checkCardConfig.Any())
+            if (data.Errors.Any())
             {
-                Errors.Add(ResponseMessage.CardTypeConfigured);
-                return new BaseResponse<bool>(ResponseMessage.CardTypeConfigured, Errors);
-            };
-
-
-            //VALIDATES DENOMINATION
-            var validateDenomination = ValidateDenomination(model.VisaCardConfigDTO.Select(x => x.DenominationId).ToList());
-
-            if (validateDenomination)
-            {
-                Errors.Add(ResponseMessage.CardTypeDenominationNotFound);
-                return new BaseResponse<bool>(ResponseMessage.CardTypeDenominationNotFound, Errors);
+                return new BaseResponse<bool>(result.ResponseMessage, result.Errors);
             }
 
-           //VALIDATES PREFIX
+
+            foreach (var rates in model.VisaCardConfigDTO.Select(x => x.CardRates))
+            {
+                var validateDenomination = ValidateDenominationIds(rates.Select(x => x.DenominationId).ToList());
+
+                if (validateDenomination)
+                {
+                    Errors.Add(ResponseMessage.CardTypeDenominationNotFound);
+                    return new BaseResponse<bool>(ResponseMessage.CardTypeDenominationNotFound, Errors);
+                }
+            }
+
+            //VALIDATES PREFIX
             var validatePrefix = ValidatePrefix(model.VisaCardConfigDTO.Select(x => x.PrefixId).ToList());
 
             if (validatePrefix)
@@ -440,10 +536,30 @@ namespace Optima.Services.Implementation
             }
 
             //CONFIGURES VISA CARD TYPE DENOMINATION
-            await CreateVisaDenomination(model.VisaCardConfigDTO, UserId);
+            await CreateVisaDenomination(model, UserId, CardId);
 
 
             return new BaseResponse<bool>(true, ResponseMessage.CardConfigSuccess);
+        }
+
+        private async Task<BaseResponse<bool>> ValidateVisaTypeCardConfigMain(ConfigureVisaCardDTO model)
+        {
+            foreach (var item in model.VisaCardConfigDTO)
+            {
+                // GET ALL CARD TYPES FOR THIS COUNTRY, THIS SHOULD RETURN THE E-CODE AND PHYSICAL VARIANT
+                var cardtype = await _dbContext.CardType
+                    .Where(x => x.CountryId == item.CountryId
+                    && x.Id == item.CardTypeId
+                    ).ToListAsync();
+
+                if (!cardtype.Any())
+                {
+                    Errors.Add(ResponseMessage.CardTypeNotFound);
+                    return new BaseResponse<bool>(ResponseMessage.CardTypeNotFound, Errors);
+                }
+            }
+
+            return new BaseResponse<bool>();
         }
 
         /// <summary>
@@ -452,33 +568,35 @@ namespace Optima.Services.Implementation
         /// <param name="VisaCardConfigDTO">The model.</param>
         /// <param name="UserId">The UserId.</param>
         /// <returns>Systems.Threadings.Tasks.Task</returns>
-        private async Task CreateVisaDenomination(List<VisaCardConfigDTO> VisaCardConfigDTO, Guid UserId)
+        private async Task CreateVisaDenomination(ConfigureVisaCardDTO model, Guid UserId, Guid CardId)
         {
-            
             var cardTypeDenominations = new List<CardTypeDenomination>();
 
-            //LOOP THROUGH THE VISA CARD CONFIG MODEL
-            foreach (var visaCardConfig in VisaCardConfigDTO)
+            foreach (var receiptCardType in model.VisaCardConfigDTO)
             {
+                var CardTypeId = receiptCardType.CardTypeId;
+                var prefix = receiptCardType.PrefixId;
 
-                cardTypeDenominations.Add(new CardTypeDenomination
-                {
-                    CardTypeId = visaCardConfig.CardTypeId,
-                    DenominationId = visaCardConfig.DenominationId,
-                    Rate = visaCardConfig.Rate,
-                    PrefixId = visaCardConfig.PrefixId,
-                    CreatedBy = UserId
-                });
-
+                receiptCardType.CardRates.ForEach(x => cardTypeDenominations
+                    .Add(new CardTypeDenomination
+                    {
+                        Rate = x.Rate,
+                        DenominationId = x.DenominationId,
+                        CardTypeId = CardTypeId,
+                        PrefixId = prefix,
+                        CreatedBy = UserId,
+                        CreatedOn = DateTime.UtcNow,
+                        IsActive = true
+                    }));
             }
 
             _dbContext.CardTypeDenomination.AddRange(cardTypeDenominations);
 
-           //UPDATE CARD TYPE STATUS
-            var cardTypes = await _dbContext.CardTypes.Where(x => VisaCardConfigDTO.Select(x => x.CardTypeId).Contains(x.Id)).ToListAsync();
-
-            cardTypes.ForEach(x => x.CardStatus = CardStatus.Active);
-
+            //UPDATES CARD TYPE STATUS
+            var card = _dbContext.Cards.FirstOrDefault(x => x.Id == CardId);
+            // card.status = Active
+            _dbContext.SaveChanges();
+            
             _logger.Info("About to Save CardType Denomination For Create Visa Card Type Config... at ExecutionPoint:ConfigureVisaCard");
             await _dbContext.SaveChangesAsync();
             _logger.Info("Successfully Saved CardType Denomination For Create Visa Card Type Config... at ExecutionPoint:ConfigureVisaCard");
@@ -729,7 +847,7 @@ namespace Optima.Services.Implementation
             };
 
             //VALIDATES DENOMINATION
-            var validateDenomination = ValidateDenomination(model.VisaCardUpdateConfigDTO.Select(x => x.DenominationId).ToList());
+            var validateDenomination = ValidateDenominationIds(model.VisaCardUpdateConfigDTO.Select(x => x.DenominationId).ToList());
 
             if (validateDenomination)
             {
@@ -841,7 +959,7 @@ namespace Optima.Services.Implementation
             };
 
             //VALIDATES DENOMINATION
-            var validateDenomination = ValidateDenomination(model.ReceiptTypeUpdateCardConfigDTO.Select(x => x.DenominationId).ToList());
+            var validateDenomination = ValidateDenominationIds(model.ReceiptTypeUpdateCardConfigDTO.Select(x => x.DenominationId).ToList());
 
             if (validateDenomination)
             {
@@ -954,7 +1072,7 @@ namespace Optima.Services.Implementation
             };
 
             //VALIDATES DENOMINATION
-            var validateDenomination = ValidateDenomination(model.UpdateCardConfigDTO.Select(x => x.DenominationId).ToList());
+            var validateDenomination = ValidateDenominationIds(model.UpdateCardConfigDTO.Select(x => x.DenominationId).ToList());
 
             if (validateDenomination)
             {
@@ -1072,7 +1190,7 @@ namespace Optima.Services.Implementation
         /// </summary>
         /// <param name="denominationIds">The denominationIds.</param>
         /// <returns>System.boolean</returns>
-        private bool ValidateDenomination(List<Guid> denominationIds)
+        private bool ValidateDenominationIds(List<Guid> denominationIds)
         {
             var denominations = _dbContext.Denominations.Where(x => denominationIds.Contains(x.Id)).ToListAsync().Result.Select(x => x.Id);
 
