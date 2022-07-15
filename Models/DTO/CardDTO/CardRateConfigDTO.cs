@@ -5,17 +5,13 @@ using System.Linq;
 using System.Threading.Tasks;
 
 namespace Optima.Models.DTO.CardDTO
-{
-    public class CardConfigDTOS
+{    
+    public class CardRateConfigDTO
     {
         [Required]
         public Guid DenominationId { get; set; }
 
         [Required]
         public Decimal Rate { get; set; }
-
-        public Guid CountryId { get; set; }
-
-        public Guid CardTypeId { get; set; }
     }
 }

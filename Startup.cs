@@ -56,16 +56,19 @@ namespace Optima
 
             app.UseRouting();
 
-            app.UseAuthentication();
-            app.UseAuthorization();
             app.UseCors(x =>
             {
                 //x.AllowAnyOrigin()
                 x.WithOrigins(Configuration["CORSAllowedOrigins"]
-                .Split(",", StringSplitOptions.RemoveEmptyEntries))                
+                .Split(",", StringSplitOptions.RemoveEmptyEntries)
+                .ToArray())
                 .AllowAnyHeader()
                 .AllowAnyMethod();
             });
+
+            app.UseAuthentication();
+            app.UseAuthorization();
+            
            
             // ADD SWAGGER TO PIPELINE
             app.UseCustomSwagger();
