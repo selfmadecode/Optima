@@ -307,7 +307,8 @@ namespace Optima.Services.Implementation
             _dbContext.CardTypeDenomination.AddRange(cardTypeDenominations);
             //UPDATES CARD TYPE STATUS
             var card = _dbContext.Cards.FirstOrDefault(x => x.Id == CardId);
-            // card.status = Active
+            card.CardStatus = CardStatus.Approved;
+
             _dbContext.SaveChanges();
 
             _logger.Info("About to Save CardType Denomination For NormalCard Config... at ExecutionPoint:ConfigureNormalCard");
@@ -414,7 +415,6 @@ namespace Optima.Services.Implementation
 
             return new BaseResponse<bool>();
         }
-
         private async Task<BaseResponse<bool>> ValidateThatDenominationForCardDoesNotExist(ConfigureReceiptTypeCardDTO model)
         {
             foreach (var item in model.ReceiptTypeConfig)
@@ -447,7 +447,6 @@ namespace Optima.Services.Implementation
             }
             return new BaseResponse<bool>();
         }
-
         private async Task<BaseResponse<bool>> ValidateThatDenominationForCardDoesNotExist(ConfigureVisaCardDTO model)
         {
             foreach (var item in model.VisaCardConfigDTO)
@@ -497,7 +496,8 @@ namespace Optima.Services.Implementation
 
             //UPDATES CARD TYPE STATUS
             var card = _dbContext.Cards.FirstOrDefault(x => x.Id == CardId);
-            // card.status = Active
+
+            card.CardStatus = CardStatus.Approved;
             _dbContext.SaveChanges();
 
             _logger.Info("About to Save CardType Denomination For Create Receipt ype Card Config... at ExecutionPoint:ConfigureReceiptTypeCard");
@@ -567,7 +567,6 @@ namespace Optima.Services.Implementation
 
             return new BaseResponse<bool>(true, ResponseMessage.CardConfigSuccess);
         }
-
         private async Task<BaseResponse<bool>> ValidateVisaTypeCardConfigMain(ConfigureVisaCardDTO model)
         {
             foreach (var item in model.VisaCardConfigDTO)
@@ -620,7 +619,7 @@ namespace Optima.Services.Implementation
 
             //UPDATES CARD TYPE STATUS
             var card = _dbContext.Cards.FirstOrDefault(x => x.Id == CardId);
-            // card.status = Active
+            card.CardStatus = CardStatus.Approved;
             _dbContext.SaveChanges();
             
             _logger.Info("About to Save CardType Denomination For Create Visa Card Type Config... at ExecutionPoint:ConfigureVisaCard");
