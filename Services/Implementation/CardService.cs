@@ -733,7 +733,7 @@ namespace Optima.Services.Implementation
                 .AsNoTracking()
                 .ToListAsync();
          
-            var cards = _dbContext.Cards.AsNoTracking().AsQueryable();
+            var cards = _dbContext.Cards.Where(x => x.CardStatus == CardStatus.Pending).AsNoTracking().AsQueryable();
 
             var pagedCards = await cards.OrderByDescending(x => x.CreatedOn).ToPagedListAsync(model.PageIndex, model.PageSize);
 
@@ -766,7 +766,7 @@ namespace Optima.Services.Implementation
                 .AsNoTracking()
                 .ToListAsync();
 
-            var cards = _dbContext.Cards.AsNoTracking().Where(x => cardTypes.Select(x => x.CardId).Contains(x.Id)).AsQueryable();
+            var cards = _dbContext.Cards.AsNoTracking().Where(x => cardTypes.Select(x => x.CardId).Contains(x.Id) && x.CardStatus == CardStatus.Approved).AsQueryable();
 
             var pagedCards = await cards.OrderByDescending(x => x.CreatedOn).ToPagedListAsync(model.PageIndex, model.PageSize);
 
