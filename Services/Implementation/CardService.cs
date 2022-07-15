@@ -245,7 +245,7 @@ namespace Optima.Services.Implementation
             }
 
             //VALIDATES THE CREATED CARD IF IT IS A REGULAR TYPE
-            if (card.BaseCardType == BaseCardType.REGULAR)
+            if (card.BaseCardType != BaseCardType.REGULAR)
             {
                 Errors.Add(ResponseMessage.CardNotRegular);
                 return new BaseResponse<bool>(ResponseMessage.CardNotRegular, Errors);
@@ -347,7 +347,7 @@ namespace Optima.Services.Implementation
             }
 
             //VALIDATES THE CREATED CARD IF IT IS AN AMAZON TYPE
-            if (card.BaseCardType == BaseCardType.AMAZON)
+            if (card.BaseCardType != BaseCardType.AMAZON)
             {
                 Errors.Add(ResponseMessage.CardNotAmazon);
                 return new BaseResponse<bool>(ResponseMessage.CardNotAmazon, Errors);
@@ -547,8 +547,8 @@ namespace Optima.Services.Implementation
                 return new BaseResponse<bool>(ResponseMessage.CardNotFound, Errors);
             }
 
-            //VALIDATES THE CREATED CARD IF IT IS AN AMAZON TYPE
-            if (card.BaseCardType == BaseCardType.SPECIAL)
+            //VALIDATES THE CREATED CARD IF IT IS NOT VISA
+            if (card.BaseCardType != BaseCardType.SPECIAL)
             {
                 Errors.Add(ResponseMessage.CardNotSpecial);
                 return new BaseResponse<bool>(ResponseMessage.CardNotSpecial, Errors);
