@@ -287,10 +287,12 @@ namespace Optima.Services.Implementation
         private async Task CreateNormalCardTypeDenomination(ConfigureNormalCardDTO model, Guid UserId, Guid CardId)
         {
             var cardTypeDenominations = new List<CardTypeDenomination>();
+            var allCardTypes = new List<Guid>();
 
             foreach (var receiptCardType in model.NormalCardConfigDTO)
             {
                 var CardTypeId = receiptCardType.CardTypeId;
+                allCardTypes.Add(receiptCardType.CardTypeId);
 
                 receiptCardType.CardRates.ForEach(x => cardTypeDenominations
                     .Add(new CardTypeDenomination
@@ -308,6 +310,10 @@ namespace Optima.Services.Implementation
             //UPDATES CARD TYPE STATUS
             var card = _dbContext.Cards.FirstOrDefault(x => x.Id == CardId);
             card.CardStatus = CardStatus.Approved;
+
+
+            var cardTypes = await _dbContext.CardTypes.Where(x => allCardTypes.Contains(x.Id)).ToListAsync();
+            cardTypes.ForEach(x => x.CardStatus = CardStatus.Approved);
 
             _dbContext.SaveChanges();
 
@@ -473,11 +479,13 @@ namespace Optima.Services.Implementation
         private async Task CreateReceiptTypeDenomination(ConfigureReceiptTypeCardDTO model, Guid UserId, Guid CardId)
         {
             var cardTypeDenominations = new List<CardTypeDenomination>();
+            var allCardTypes = new List<Guid>();
 
             foreach (var receiptCardType in model.ReceiptTypeConfig)
             {
                 var CardTypeId = receiptCardType.CardTypeId;
                 var ReceiptId = receiptCardType.ReceiptTypeId;
+                allCardTypes.Add(receiptCardType.CardTypeId);
 
                 receiptCardType.CardRates.ForEach(x => cardTypeDenominations
                     .Add(new CardTypeDenomination
@@ -498,6 +506,10 @@ namespace Optima.Services.Implementation
             var card = _dbContext.Cards.FirstOrDefault(x => x.Id == CardId);
 
             card.CardStatus = CardStatus.Approved;
+
+            var cardTypes = await _dbContext.CardTypes.Where(x => allCardTypes.Contains(x.Id)).ToListAsync();
+            cardTypes.ForEach(x => x.CardStatus = CardStatus.Approved);
+
             _dbContext.SaveChanges();
 
             _logger.Info("About to Save CardType Denomination For Create Receipt ype Card Config... at ExecutionPoint:ConfigureReceiptTypeCard");
@@ -596,11 +608,13 @@ namespace Optima.Services.Implementation
         private async Task CreateVisaDenomination(ConfigureVisaCardDTO model, Guid UserId, Guid CardId)
         {
             var cardTypeDenominations = new List<CardTypeDenomination>();
+            var allCardTypes = new List<Guid>();
 
             foreach (var receiptCardType in model.VisaCardConfigDTO)
             {
                 var CardTypeId = receiptCardType.CardTypeId;
                 var prefix = receiptCardType.PrefixId;
+                allCardTypes.Add(receiptCardType.CardTypeId);
 
                 receiptCardType.CardRates.ForEach(x => cardTypeDenominations
                     .Add(new CardTypeDenomination
@@ -620,6 +634,9 @@ namespace Optima.Services.Implementation
             //UPDATES CARD TYPE STATUS
             var card = _dbContext.Cards.FirstOrDefault(x => x.Id == CardId);
             card.CardStatus = CardStatus.Approved;
+
+            var cardTypes = await _dbContext.CardTypes.Where(x => allCardTypes.Contains(x.Id)).ToListAsync();
+            cardTypes.ForEach(x => x.CardStatus = CardStatus.Approved);
             _dbContext.SaveChanges();
             
             _logger.Info("About to Save CardType Denomination For Create Visa Card Type Config... at ExecutionPoint:ConfigureVisaCard");
