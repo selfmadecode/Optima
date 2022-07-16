@@ -1100,9 +1100,10 @@ namespace Optima.Services.Implementation
         /// <returns>System.boolean</returns>
         private bool ValidateDenomination(List<Guid> denominationIds)
         {
+     
             var denominations = _dbContext.Denominations.Where(x => denominationIds.Contains(x.Id)).ToListAsync().Result.Select(x => x.Id);
 
-            if (denominations.Count() != denominationIds.Distinct().Count())
+            if (denominations.Count() != denominationIds.Count())
             {
                 return true;
             }

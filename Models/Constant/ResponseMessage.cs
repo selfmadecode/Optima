@@ -46,7 +46,7 @@ namespace Optima.Models.Constant
         public const string CardTypeNotFound = "ONE OR MORE CARDTYPE NOT FOUND FOR THIS CARD";
         public const string CardCountryTypeNotFound = "SAME COUNTRY SELECTED FOR THIS CARDTYPE OR COUNTRY NOT FOUND";
         public const string CardTypeConfigured = "CARDTYPE HAS ALREADY BEEN CONFIGURED";
-        public const string CardTypeDenominationNotFound = "DENOMINATION(s) DOES NOT EXIST";
+        public const string CardTypeDenominationNotFound = "DENOMINATION(s) DOES NOT EXIST OR DUPLICATE DENOMINATION(s) SELECTED.";
         public const string CardConfigSuccess = "CONFIGURED CARD SUCCESSFULLY";
         public const string CardReceiptNotFound = "RECEIPT DOES NOT FOUND";
         public const string CannotDeleteCard = "CANNOT DELETE CARD";
