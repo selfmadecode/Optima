@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Optima.Models.DTO.CardDTO
 {
-    public class CardConfigDTO
+    public class CardConfigDTOS
     {
         [Required]
         public Guid DenominationId { get; set; }

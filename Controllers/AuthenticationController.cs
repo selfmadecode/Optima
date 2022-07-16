@@ -173,5 +173,33 @@ namespace Optima.Controllers
             }
         }
 
+        [HttpPut]
+        [Authorize(Roles = RoleHelper.SUPERADMIN)]
+        public async Task<IActionResult> AdminPermmission([FromBody] UpdateClaimDTO model)
+        {
+            try
+            {
+                return ReturnResponse(await _authService.UpdateClaimsAsync(model));
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex);
+            }
+        }
+
+        [HttpGet]
+        //[Authorize(Roles = RoleHelper.SUPERADMIN)]
+        public async Task<IActionResult> AdminDetails(string EmailAddress)
+        {
+            try
+            {
+                return ReturnResponse(await _authService.GetAdminDetailsAndPermmissionsAsync(EmailAddress));
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex);
+            }
+        }
+
     }
 }

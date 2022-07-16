@@ -152,7 +152,7 @@ namespace Optima.Services.Implementation
                 UserName = model.EmailAddress,
                 CreationTime = DateTime.UtcNow,
                 EmailConfirmed = false,
-                HasAcceptedTerms = false,
+                HasAcceptedTerms = model.HasAcceptedTerms,
                 PhoneNumber = model.PhoneNumber,
                 IsAccountLocked = false,
                 UserType = UserTypes.USER
@@ -398,15 +398,7 @@ namespace Optima.Services.Implementation
             {
                 Errors.Add(ResponseMessage.ErrorMessage503);
                 return new BaseResponse<JwtResponseDTO>(ResponseMessage.ErrorMessage503, Errors);
-            }
-
-            // IF THE USER HASN'T ACCEPTED TERMS AND CONDITION
-            if (user.HasAcceptedTerms == false)
-            {
-                _logger.Info($"{user.Email} has not accepted terms and condition");
-                Errors.Add(ResponseMessage.ErrorMessage509);
-                return new BaseResponse<JwtResponseDTO>(ResponseMessage.ErrorMessage509, Errors);
-            }
+            }                       
 
             if (user != null && await _userManager.CheckPasswordAsync(user, model.Password))
             {
@@ -417,6 +409,14 @@ namespace Optima.Services.Implementation
                     _logger.Info($"{user.Email} is not yet confirmed");
                     Errors.Add(ResponseMessage.ErrorMessage502);
                     return new BaseResponse<JwtResponseDTO>(ResponseMessage.ErrorMessage502, Errors);
+                }
+
+                // IF THE USER HASN'T ACCEPTED TERMS AND CONDITION
+                if (user.HasAcceptedTerms == false)
+                {
+                    _logger.Info($"{user.Email} has not accepted terms and condition");
+                    Errors.Add(ResponseMessage.ErrorMessage509);
+                    return new BaseResponse<JwtResponseDTO>(ResponseMessage.ErrorMessage509, Errors);
                 }
 
                 // TODO: GET USER PERMISSIONS
@@ -435,7 +435,8 @@ namespace Optima.Services.Implementation
                     UserId = user.Id,
                     Token = refreshToken,
                     IssuedAt = DateTime.UtcNow,
-                    ExpiresAt = DateTime.Now.AddMinutes(Convert.ToInt32(_configuration.GetSection("JWT:RefreshTokenExpiration").Value))
+                    //ExpiresAt = DateTime.Now.AddMinutes(Convert.ToInt32(_configuration.GetSection("JWT:RefreshTokenExpiration").Value))
+                    ExpiresAt = expiration
                 });
 
                 await SaveChanges();
@@ -447,7 +448,9 @@ namespace Optima.Services.Implementation
                     Expiration = expiration,
                     Roles = userRoles,
                     RefreshToken = refreshToken,
-                    Permissions = claims.Select(x => x.Value).ToList()
+                    Permissions = claims.Select(x => x.Value).ToList(),
+                    //FullName = user.FullName,
+                    //UserName = user.UserName
                 };
 
                 return new BaseResponse<JwtResponseDTO>(data);
@@ -593,7 +596,52 @@ namespace Optima.Services.Implementation
             return new BaseResponse<AdminDTO>(data, ResponseMessage.CreatedAdmin);
         }
 
-        public async Task AssignPermissionAsync(Guid UserId, IList<string> Permmissions)
+        public async Task<BaseResponse<UpdateClaimDTO>> UpdateClaimsAsync(UpdateClaimDTO model)
+        {
+            var user = await _userManager.FindByEmailAsync(model.EmailAddress);
+
+            if (user == null)
+            {
+                Errors.Add(ResponseMessage.ErrorMessage504);
+                return new BaseResponse<UpdateClaimDTO>(ResponseMessage.ErrorMessage000, Errors);
+            };
+
+            //var claims = await _userManager.GetClaimsAsync(user);
+
+            var claims = _context.UserClaims.Where(x => x.UserId == user.Id);
+            _context.UserClaims.RemoveRange(claims);
+            _context.SaveChanges();
+
+            await AssignPermissionAsync(user.Id, model.Permissions);
+
+            return new BaseResponse<UpdateClaimDTO>(model, ResponseMessage.UpdateAdminClaim);
+        }
+
+        public async Task<BaseResponse<AdminDetailsDTO>> GetAdminDetailsAndPermmissionsAsync(string email)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+
+            if (user == null)
+            {
+                Errors.Add(ResponseMessage.ErrorMessage504);
+                return new BaseResponse<AdminDetailsDTO>(ResponseMessage.ErrorMessage000, Errors);
+            };
+
+            var claims = await _userManager.GetClaimsAsync(user);
+
+            var data = new AdminDetailsDTO
+            {
+                EmailAddress = user.Email,
+                Name = user.FullName,
+                PhoneNumber = user.PhoneNumber,
+                UserId = user.Id,
+                Permissions = claims.Select(x => x.Value).ToList()
+            };
+
+            return new BaseResponse<AdminDetailsDTO>(data);
+        }
+
+        private async Task AssignPermissionAsync(Guid UserId, IList<string> Permmissions)
         {
             var listOfClaims = new List<ApplicationUserClaim>();
 
@@ -612,7 +660,7 @@ namespace Optima.Services.Implementation
             _context.SaveChanges();
         }
 
-        public string GeneratePassword()
+        private string GeneratePassword()
         {
             var numbers = "982345173";
             var capital = "AQWSDETHFUJNGF";

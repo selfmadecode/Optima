@@ -114,7 +114,7 @@ namespace Optima.Controllers
         }
 
         /// <summary>
-        /// ADMIN CAN ACTIVATE AND DEACTIVATE THE STATUS OF A CARD <see cref="UpdateCardDTO"/> FOR THE PAYLOAD IT ACCEPTS.
+        /// ADMIN CAN ACTIVATE AND DEACTIVATE THE STATUS OF A CARD <see cref="AddCountryToCardDTO"/> FOR THE PAYLOAD IT ACCEPTS.
         /// </summary>
         /// <param name="CardId"></param>
         /// <param name="model"></param>
@@ -285,7 +285,7 @@ namespace Optima.Controllers
 
         /// <summary>
         /// ADD COUNTRIES TO ALREADY EXISTING CARD, I.E. CREATES NEW CARD TYPE, IF DOESN'T EXIST.
-        /// THIS CREATES NEW CARD TYPES FOR THE NEWLY ADDED COUNTRIES. <see cref="UpdateCardDTO">FOR THE PAYLOAD.
+        /// THIS CREATES NEW CARD TYPES FOR THE NEWLY ADDED COUNTRIES. <see cref="AddCountryToCardDTO">FOR THE PAYLOAD.
         /// </summary>
         /// <param name="CardId"></param>
         /// <param name="model"></param>
@@ -293,11 +293,11 @@ namespace Optima.Controllers
         [HttpPut]
         [Route("Add-Countries/{CardId}")]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
-        public async Task<IActionResult> AllCountriesToCard(Guid CardId, [FromForm] UpdateCardDTO model)
+        public async Task<IActionResult> AddCountriesToCard(Guid CardId, [FromBody] AddCountryToCardDTO model)
         {
             try
             {
-                return ReturnResponse(await _cardService.UpdateCard(model, UserId, CardId));
+                return ReturnResponse(await _cardService.AddCountryToCard(model, UserId, CardId));
             }
             catch (Exception ex)
             {

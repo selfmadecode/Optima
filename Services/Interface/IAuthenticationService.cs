@@ -23,5 +23,7 @@ namespace Optima.Services.Interface
         Task<BaseResponse<string>> LockoutUser(string emailAddress);
         Task<BaseResponse<string>> UnLockUser(string emailAddress);
         Task<BaseResponse<AdminDTO>> CreateAdmin(CreateAdminAccountDTO model);
+        Task<BaseResponse<UpdateClaimDTO>> UpdateClaimsAsync(UpdateClaimDTO model);
+        Task<BaseResponse<AdminDetailsDTO>> GetAdminDetailsAndPermmissionsAsync(string email);
     }
 }

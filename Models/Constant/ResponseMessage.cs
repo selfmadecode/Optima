@@ -45,6 +45,7 @@ namespace Optima.Models.Constant
         public const string CardNotFound = "GIFT CARD NOT FOUND";
         public const string CardTypeNotFound = "ONE OR MORE CARDTYPE NOT FOUND FOR THIS CARD";
         public const string CardCountryTypeNotFound = "SAME COUNTRY SELECTED FOR THIS CARDTYPE OR COUNTRY NOT FOUND";
+        public const string CardCountryExist = "SELECTED COUNTRY ALREADY EXIST FOR THIS CARD";
         public const string CardTypeConfigured = "CARDTYPE HAS ALREADY BEEN CONFIGURED";
         public const string CardTypeDenominationNotFound = "DENOMINATION(s) DOES NOT EXIST OR DUPLICATE DENOMINATION(s) SELECTED.";
         public const string CardConfigSuccess = "CONFIGURED CARD SUCCESSFULLY";
@@ -93,6 +94,7 @@ namespace Optima.Models.Constant
         public const string VisaPrefixNotFound = "VISA PREFIX DOESN'T EXIST";
         public const string CannotDeleteVisaPrefix = "CANNOT DELETE VISA PREFIX";
         public const string DeleteVisaPrefix = "VISA PREFIX DELETED SUCCCESSFULLY";
+        public const string CardNotSpecial = "CARD NOT A SPECIAL PREFIX TYPE";
 
 
         public const string UserCardTransactionNotFound = "CARD TRANSACTION DOESN'T EXISTS FOR THIS USER";
@@ -101,6 +103,7 @@ namespace Optima.Models.Constant
         public const string CardCodesNotFound = "CARD CODE(s) DOESN'T EXISTS FOR THIS CARD TRANSACTION";
         public const string CardCodeUpdate = "SUCCESSFULLY UPDATED THE CARD CODES";
         public const string CardTransactionUpdate = "SUCCESSFULLY UPDATED THE CARD TRANSACTION";
+        public const string CardNotRegular = "CARD NOT A REGULAR TYPE";
 
 
         public const string ReceiptExist = "RECEIPT TYPE ALREADY EXIST";
@@ -109,6 +112,8 @@ namespace Optima.Models.Constant
         public const string ReceiptDeleted = "RECEIPT TYPE DELETED SUCCESSFULLY";
         public const string ReceiptUpdated = "RECEIPT TYPE UPDATED SUCCESSFULLY";
         public const string CannotDeleteReceipt = "CANNOT DELETE RECEIPT TYPE";
+        public const string CardNotAmazon = "CARD NOT AN AMAZON TYPE";
+
 
         public const string DeviceTokenNotFound = "DEVICE TOKEN DOESN'T EXISTS FOR THIS USER";
         public const string DeviceTokenDeleted = "SUCCESSFULLY DELETED THE DEVICE TOKEN";
@@ -135,6 +140,7 @@ namespace Optima.Models.Constant
         public const string DenominationCannotBeDeleted = "DENOMINATION CANNOT BE DELETED";
 
         public const string CreatedAdmin = "ADMIN CREATED SUCCESSFULLY";
+        public const string UpdateAdminClaim = "ADMIN PERMMISSION UPDATED";
 
 
     }
