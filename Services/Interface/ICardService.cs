@@ -19,7 +19,7 @@ namespace Optima.Services.Interface
         Task<BaseResponse<PagedList<CardDTO>>> GetAllCard(BaseSearchViewModel model);
         Task<BaseResponse<PagedList<CardDTO>>> GetAllPendingCardConfig(BaseSearchViewModel model);
         Task<BaseResponse<PagedList<CardDTO>>> GetAllApprovedCardConfig(BaseSearchViewModel model);
-        Task<BaseResponse<bool>> UpdateCard(UpdateCardDTO model, Guid UserId, Guid CardId);
+        Task<BaseResponse<bool>> AddCountryToCard(AddCountryToCardDTO model, Guid UserId, Guid CardId);
         Task<BaseResponse<bool>> UpdateVisaCard(UpdateVisaCardConfigDTO model, Guid UserId, Guid CardId);
         Task<BaseResponse<bool>> UpdateReceiptCard(UpdateReceiptTypeConfigDTO model, Guid UserId, Guid CardId);
         Task<BaseResponse<bool>> UpdateNormalCard(UpdateNormalCardConfigDTO model, Guid UserId, Guid CardId);
