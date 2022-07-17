@@ -793,8 +793,6 @@ namespace Optima.Services.Implementation
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
         public async Task<BaseResponse<bool>> AddCountryToCard(AddCountryToCardDTO model, Guid UserId, Guid CardId)
         {
-            var uploadedFileToDelete = string.Empty;
-
             try
             {   
                 //VALIDATES CARD ID.
@@ -836,16 +834,15 @@ namespace Optima.Services.Implementation
                 card.ModifiedBy = UserId;
                 card.ModifiedOn = DateTime.UtcNow;
 
-                _logger.Info("About To Update Card... at Execution:UpdateCard");
+                _logger.Info($"About To Update Card... at Execution: {nameof(AddCountryToCard)}");
                 await _dbContext.SaveChangesAsync();
-                _logger.Info("Successfully Updated Card... at Execution:UpdateCard");
+                _logger.Info($"Successfully Updated Card... at Execution: {nameof(AddCountryToCard)}");
 
                 return new BaseResponse<bool>(true, ResponseMessage.CardUpdate);
 
             }
             catch (Exception ex)
             {
-                await _cloudinaryServices.DeleteImage(GenerateDeleteUploadedPath(uploadedFileToDelete));
                 _logger.Error(ex.Message, ex);
 
                 Errors.Add(ResponseMessage.ErrorMessage999);
