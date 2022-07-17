@@ -628,6 +628,7 @@ namespace Optima.Services.Implementation
             };
 
             var claims = await _userManager.GetClaimsAsync(user);
+            var roles = await _userManager.GetRolesAsync(user);
 
             var data = new AdminDetailsDTO
             {
@@ -635,10 +636,17 @@ namespace Optima.Services.Implementation
                 Name = user.FullName,
                 PhoneNumber = user.PhoneNumber,
                 UserId = user.Id,
+                Roles = roles,
                 Permissions = claims.Select(x => x.Value).ToList()
             };
 
             return new BaseResponse<AdminDetailsDTO>(data);
+        }
+        public async Task<BaseResponse<AdminDetailsDTO>> GetAdminDetailsAndPermmissionsAsync(Guid UserId)
+        {
+            var user = await _userManager.FindByIdAsync(UserId.ToString());
+
+            return await GetAdminDetailsAndPermmissionsAsync(user.Email);
         }
 
         private async Task AssignPermissionAsync(Guid UserId, IList<string> Permmissions)

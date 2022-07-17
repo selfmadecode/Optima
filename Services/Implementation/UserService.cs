@@ -193,8 +193,11 @@ namespace Optima.Services.Implementation
             }
             catch (Exception ex)
             {
-                await _cloudinaryServices.DeleteImage(GenerateDeleteUploadedPath(uploadedFileToDelete));
-                _logger.Error(ex.Message, ex);
+                if (!string.IsNullOrWhiteSpace(uploadedFileToDelete))
+                {
+                    await _cloudinaryServices.DeleteImage(GenerateDeleteUploadedPath(uploadedFileToDelete));
+                    _logger.Error(ex.Message, ex);
+                }
 
                 Errors.Add(ResponseMessage.ErrorMessage999);
                 return new BaseResponse<bool>(ResponseMessage.ErrorMessage999, Errors);

@@ -43,8 +43,7 @@ namespace Optima.Services.Implementation
         public async Task<BaseResponse<bool>> CreateCountry(CreateCountryDTO model, Guid UserId)
         {
             var uploadedFileToDelete = string.Empty;
-
-           
+        
             try
             {
                 var checkCountry = await _context.Countries
@@ -75,8 +74,11 @@ namespace Optima.Services.Implementation
             }
             catch (Exception ex)
             {
-                await _cloudinaryServices.DeleteImage(GenerateDeleteUploadedPath(uploadedFileToDelete));
-                _logger.Error(ex.Message, ex);
+                if (!string.IsNullOrWhiteSpace(uploadedFileToDelete))
+                {
+                    await _cloudinaryServices.DeleteImage(GenerateDeleteUploadedPath(uploadedFileToDelete));
+                    _logger.Error(ex.Message, ex);
+                }
 
                 return new BaseResponse<bool>();
             }           
@@ -180,16 +182,22 @@ namespace Optima.Services.Implementation
                     return new BaseResponse<bool>(ResponseMessage.CountryNotFound, Errors);
                 }
 
-                if (model.Name.Replace(" ", "").ToLower() != country.Name.Replace(" ", "").ToLower())
+                if (!String.IsNullOrWhiteSpace(model.Name))
                 {
-                    var checkExistingCountries = await _context.Countries.AnyAsync(x => x.Name.ToLower().Replace(" ", "") == model.Name.ToLower().Replace(" ", ""));
-
-                    if (checkExistingCountries)
+                    if (model.Name.Replace(" ", "").ToLower() != country.Name.Replace(" ", "").ToLower())
                     {
-                        Errors.Add(ResponseMessage.CountryAlreadyExist);
-                        return new BaseResponse<bool>(ResponseMessage.CountryAlreadyExist, Errors);
+                        var checkExistingCountries = await _context.Countries.AnyAsync(x => x.Name.ToLower().Replace(" ", "") == model.Name.ToLower().Replace(" ", ""));
+
+                        if (checkExistingCountries)
+                        {
+                            Errors.Add(ResponseMessage.CountryAlreadyExist);
+                            return new BaseResponse<bool>(ResponseMessage.CountryAlreadyExist, Errors);
+                        }
+
+                        country.Name = model.Name;
                     }
                 }
+
 
 
                 if (!(model.Logo is null) && !(country.LogoUrl is null))
@@ -231,9 +239,11 @@ namespace Optima.Services.Implementation
             }
             catch (Exception ex)
             {
-                await _cloudinaryServices.DeleteImage(GenerateDeleteUploadedPath(uploadedFileToDelete));
-                _logger.Error(ex.Message, ex);
-
+                if (!string.IsNullOrWhiteSpace(uploadedFileToDelete))
+                {
+                    await _cloudinaryServices.DeleteImage(GenerateDeleteUploadedPath(uploadedFileToDelete));
+                    _logger.Error(ex.Message, ex);
+                }
                 return new BaseResponse<bool>();
             }
            

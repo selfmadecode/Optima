@@ -11,7 +11,25 @@ namespace Optima.Models.DTO.CardDTO
         [Required]
         public Guid DenominationId { get; set; }
 
-        [Required]
+       [Required]
         public Decimal Rate { get; set; }
     }
+
+    public class UpdateCardRateDenominationConfigDTO : CardRateConfigDTO 
+    {
+        public Guid CardRateId { get; set; }
+
+    }
+
+    public class UpdateCardConfig
+    {
+        [Required]
+        public Guid CountryId { get; set; }
+
+        [Required]
+        public Guid CardTypeId { get; set; }
+
+        public List<UpdateCardRateDenominationConfigDTO> UpdateCardRateDenominationConfigDTO { get; set; } 
+    }
+
 }

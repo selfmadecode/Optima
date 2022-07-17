@@ -25,5 +25,6 @@ namespace Optima.Services.Interface
         Task<BaseResponse<AdminDTO>> CreateAdmin(CreateAdminAccountDTO model);
         Task<BaseResponse<UpdateClaimDTO>> UpdateClaimsAsync(UpdateClaimDTO model);
         Task<BaseResponse<AdminDetailsDTO>> GetAdminDetailsAndPermmissionsAsync(string email);
+        Task<BaseResponse<AdminDetailsDTO>> GetAdminDetailsAndPermmissionsAsync(Guid UserId);
     }
 }

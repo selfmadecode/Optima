@@ -1,11 +1,13 @@
 ﻿using AzureRays.Shared.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Optima.Models.DTO.CardDTO;
 using Optima.Services.Interface;
 using Optima.Utilities.Helpers;
 using Optima.Utilities.Pagination;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using static Optima.Utilities.Helpers.PermisionProvider;
 
@@ -17,10 +19,13 @@ namespace Optima.Controllers
     public class CardController : BaseController
     {
         private readonly ICardService _cardService;
+        private readonly IConfiguration _configuration;
 
-        public CardController(ICardService cardService)
+
+        public CardController(ICardService cardService, IConfiguration configuration)
         {
             _cardService = cardService;
+            _configuration = configuration;
         }
 
         /// <summary>
@@ -39,6 +44,12 @@ namespace Optima.Controllers
         {
             try
             {
+                var validationResult = await model.Validate(_configuration);
+
+                if (validationResult.Errors.Any())
+                {
+                    return ReturnResponse(validationResult);
+                }
                 return ReturnResponse(await _cardService.CreateCard(model, UserId));
             }
             catch (Exception ex)
@@ -114,7 +125,7 @@ namespace Optima.Controllers
         }
 
         /// <summary>
-        /// ADMIN CAN ACTIVATE AND DEACTIVATE THE STATUS OF A CARD <see cref="UpdateCardDTO"/> FOR THE PAYLOAD IT ACCEPTS.
+        /// ADMIN CAN ACTIVATE AND DEACTIVATE THE STATUS OF A CARD <see cref="AddCountryToCardDTO"/> FOR THE PAYLOAD IT ACCEPTS.
         /// </summary>
         /// <param name="CardId"></param>
         /// <param name="model"></param>
@@ -268,6 +279,7 @@ namespace Optima.Controllers
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
+        [AllowAnonymous]
         [HttpGet]
         [Route("Approved")]
         [ProducesResponseType(typeof(BaseResponse<PagedList<CardDTO>>), 200)]
@@ -285,7 +297,7 @@ namespace Optima.Controllers
 
         /// <summary>
         /// ADD COUNTRIES TO ALREADY EXISTING CARD, I.E. CREATES NEW CARD TYPE, IF DOESN'T EXIST.
-        /// THIS CREATES NEW CARD TYPES FOR THE NEWLY ADDED COUNTRIES. <see cref="UpdateCardDTO">FOR THE PAYLOAD.
+        /// THIS CREATES NEW CARD TYPES FOR THE NEWLY ADDED COUNTRIES. <see cref="AddCountryToCardDTO">FOR THE PAYLOAD.
         /// </summary>
         /// <param name="CardId"></param>
         /// <param name="model"></param>
@@ -293,11 +305,11 @@ namespace Optima.Controllers
         [HttpPut]
         [Route("Add-Countries/{CardId}")]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
-        public async Task<IActionResult> AllCountriesToCard(Guid CardId, [FromForm] UpdateCardDTO model)
+        public async Task<IActionResult> AddCountriesToCard(Guid CardId, [FromBody] AddCountryToCardDTO model)
         {
             try
             {
-                return ReturnResponse(await _cardService.UpdateCard(model, UserId, CardId));
+                return ReturnResponse(await _cardService.AddCountryToCard(model, UserId, CardId));
             }
             catch (Exception ex)
             {
@@ -315,10 +327,16 @@ namespace Optima.Controllers
         [HttpPut]
         [Route("Update-Normal/{CardId}")]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
-        public async Task<IActionResult> UpdateNormalCard(Guid CardId, [FromBody] UpdateNormalCardConfigDTO model)
+        public async Task<IActionResult> UpdateNormalCard(Guid CardId, [FromForm] UpdateNormalTypeCardDTO model)
         {
             try
             {
+                var validationResult = await model.Validate(_configuration);
+
+                if (validationResult.Errors.Any())
+                {
+                    return ReturnResponse(validationResult);
+                }
                 return ReturnResponse(await _cardService.UpdateNormalCard(model, UserId, CardId));
             }
             catch (Exception ex)
@@ -336,17 +354,24 @@ namespace Optima.Controllers
         /// <param name="model"></param>
         /// <returns></returns>
         [HttpPut]
-        [Route("Update-ReceiptType{CardId}")]
+        [AllowAnonymous]
+        [Route("Update-ReceiptType/{cardId}")]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
-        public async Task<IActionResult> UpdateReceiptCard(Guid CardId, [FromBody] UpdateReceiptTypeConfigDTO model)
+        public async Task<IActionResult> UpdateReceiptCard(Guid cardId, [FromForm] UpdateReceiptTypeCardDTO model)
         {
             try
             {
-                return ReturnResponse(await _cardService.UpdateReceiptCard(model, UserId, CardId));
+                var validationResult = await model.Validate(_configuration);
+
+                if (validationResult.Errors.Any())
+                {
+                    return ReturnResponse(validationResult);
+                }
+                return ReturnResponse(await _cardService.UpdateReceiptCard(model, UserId, cardId));
             }
             catch (Exception ex)
             {
-                return HandleError(ex); ;
+                return HandleError(ex);
             }
         }
 
@@ -361,10 +386,16 @@ namespace Optima.Controllers
         [HttpPut]
         [Route("Update-Visa/{CardId}")]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
-        public async Task<IActionResult> UpdateVisaCard(Guid CardId, [FromBody] UpdateVisaCardConfigDTO model)
+        public async Task<IActionResult> UpdateVisaCard(Guid CardId, [FromForm] UpdateVisaTypeCardDTO model)
         {
             try
             {
+                var validationResult = await model.Validate(_configuration);
+
+                if (validationResult.Errors.Any())
+                {
+                    return ReturnResponse(validationResult);
+                }
                 return ReturnResponse(await _cardService.UpdateVisaCard(model, UserId, CardId));
             }
             catch (Exception ex)

@@ -202,5 +202,19 @@ namespace Optima.Controllers
             }
         }
 
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> CurrentAdminDetails()
+        {
+            try
+            {
+                return ReturnResponse(await _authService.GetAdminDetailsAndPermmissionsAsync(UserId));
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex);
+            }
+        }
+
     }
 }

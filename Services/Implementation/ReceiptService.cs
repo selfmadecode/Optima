@@ -119,16 +119,23 @@ namespace Optima.Services.Implementation
                 return new BaseResponse<bool>(ResponseMessage.ReceiptNotFound, Errors);
             }
 
-            if (model.Name.Replace(" ", "").ToLower() != checkReceipt.Name.Replace(" ", "").ToLower())
+            if (!String.IsNullOrWhiteSpace(model.Name))
             {
-                var checkExistingReceipts = await _context.Receipts.AnyAsync(x => x.Name.ToLower().Replace(" ", "") == model.Name.ToLower().Replace(" ", ""));
-
-                if (checkExistingReceipts)
+                if (model.Name.Replace(" ", "").ToLower() != checkReceipt.Name.Replace(" ", "").ToLower())
                 {
-                    Errors.Add(ResponseMessage.ReceiptExist);
-                    return new BaseResponse<bool>(ResponseMessage.ReceiptExist, Errors);
+                    var checkExistingReceipts = await _context.Receipts.AnyAsync(x => x.Name.ToLower().Replace(" ", "") == model.Name.ToLower().Replace(" ", ""));
+
+                    if (checkExistingReceipts)
+                    {
+                        Errors.Add(ResponseMessage.ReceiptExist);
+                        return new BaseResponse<bool>(ResponseMessage.ReceiptExist, Errors);
+                    }
+
+                    checkReceipt.Name = model.Name;
                 }
             }
+
+            
 
 
             checkReceipt.Name = string.IsNullOrWhiteSpace(model.Name) ? checkReceipt.Name : model.Name;

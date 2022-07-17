@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using Optima.Models.Entities;
 using Optima.Models.Enums;
+using Optima.Utilities.Helpers;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -10,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Optima.Models.DTO.CardDTO
 {
-    public class CreateCardDTO : IValidatableObject
+    public class CreateCardDTO
     {
         [Required]
         public string Name { get; set; }
@@ -23,12 +25,17 @@ namespace Optima.Models.DTO.CardDTO
         [Required]
         public List<Guid> CountryIds { get; set; } = new List<Guid>();
 
-        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        public async Task<BaseResponse<bool>> Validate(IConfiguration configuration)
         {
+
+            var fileSize = configuration.GetValue<int>("FileSize");
+
             if (!(Logo is null))
             {
-                if (Logo.Length > 1024 * 1024)
-                    yield return new ValidationResult("Logo file size must not exceed 1Mb");
+                if (Logo.Length > fileSize * fileSize)
+                {
+                    return new BaseResponse<bool>("Logo file size must not exceed 1Mb", new List<string> { "Logo file size must not exceed 1Mb" });
+                }
 
 
                 var allowedExt = new string[] { "jpg", "png", "jpeg" };
@@ -37,8 +44,12 @@ namespace Optima.Models.DTO.CardDTO
                 var extensionValid = allowedExt.ToList().Any(x => $".{x}".Equals(ext, StringComparison.InvariantCultureIgnoreCase));
 
                 if (!extensionValid)
-                    yield return new ValidationResult("Logo file type must be .jpg or .png or .jpeg");
+                {
+                    return new BaseResponse<bool>("Logo file type must be .jpg or .png or .jpeg", new List<string> { "Logo file type must be .jpg or .png or .jpeg" });
+                }
             }
+
+            return new BaseResponse<bool>();
         }
     }
 }

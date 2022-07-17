@@ -1,5 +1,6 @@
 ﻿using Optima.Models.DTO.CountryDTOs;
 using Optima.Models.Entities;
+using Optima.Models.Enums;
 using Optima.Utilities;
 using System;
 using System.Collections.Generic;
@@ -11,7 +12,7 @@ namespace Optima.Models.DTO.CardDTO
     public class CardTypeDTO
     {
         public Guid Id { get; set; }
-        public string CardCategory { get; set; }
+        public CardCategory CardType { get; set; }
         public string CardStatus { get; set; }
         public CountryDTO CountryDTO { get; set; }
         public DateTime CreatedOn { get; set; }
@@ -24,7 +25,7 @@ namespace Optima.Models.DTO.CardDTO
                : new CardTypeDTO
                {
                    Id = model.Id,
-                   CardCategory = model.CardCategory.GetDescription(),
+                   CardType = model.CardCategory,
                    CardStatus = model.CardStatus.GetDescription(),
                    CountryDTO = model.Country,
                    CardTypeDenominationDTOs = model.CardTypeDenomination.Select(x => (CardTypeDenominationDTO)x).ToList(),

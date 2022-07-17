@@ -7,9 +7,8 @@ namespace Optima.Models.Entities
 {
     public class CardTypeDenomination : BaseEntity
     {
-        public CardType CardType { get; set; }
-        public Guid CardTypeId { get; set; }
-
+        public CardType CardType { get; set; } 
+        public Guid CardTypeId { get; set; } 
 
         public Denomination Denomination { get; set; }
         public Guid DenominationId { get; set; }
