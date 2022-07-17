@@ -344,9 +344,10 @@ namespace Optima.Controllers
         /// <param name="model"></param>
         /// <returns></returns>
         [HttpPut]
-        [Route("Update-ReceiptType{CardId}")]
+        [AllowAnonymous]
+        [Route("Update-ReceiptType/{cardId}")]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
-        public async Task<IActionResult> UpdateReceiptCard(Guid CardId, [FromForm] UpdateReceiptTypeCardDTO model)
+        public async Task<IActionResult> UpdateReceiptCard(Guid cardId, [FromForm] UpdateReceiptTypeCardDTO model)
         {
             try
             {
@@ -356,7 +357,7 @@ namespace Optima.Controllers
                 {
                     ReturnResponse(validationResult);
                 }
-                return ReturnResponse(await _cardService.UpdateReceiptCard(model, UserId, CardId));
+                return ReturnResponse(await _cardService.UpdateReceiptCard(model, UserId, cardId));
             }
             catch (Exception ex)
             {
