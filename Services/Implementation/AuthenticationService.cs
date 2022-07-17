@@ -509,7 +509,7 @@ namespace Optima.Services.Implementation
             _logger.Info("Sending User blocked email notification....");
             await _emailService.SendAccountBlockedEmail(user.Email, user.FullName);
 
-            return new BaseResponse<string>(ResponseMessage.ErrorMessage506);
+            return new BaseResponse<string>(user.Email, ResponseMessage.ErrorMessage506);
         }
                 
         public async Task<BaseResponse<string>> UnLockUser(string emailAddress)
@@ -533,7 +533,7 @@ namespace Optima.Services.Implementation
             _logger.Info("Sending User unblocked email notification....");
             await _emailService.SendAccountUnBlockedEmail(user.Email, user.FullName);
 
-            return new BaseResponse<string>(ResponseMessage.AccountUnlocked);
+            return new BaseResponse<string>(user.Email, ResponseMessage.AccountUnlocked);
         }
                        
         
