@@ -8,10 +8,10 @@ namespace Optima.Models.DTO.CardDTO
 {    
     public class CardRateConfigDTO
     {
-        //[Required]
+        [Required]
         public Guid DenominationId { get; set; }
 
-       // [Required]
+       [Required]
         public Decimal Rate { get; set; }
     }
 
@@ -23,10 +23,10 @@ namespace Optima.Models.DTO.CardDTO
 
     public class UpdateCardConfig
     {
-       // [Required]
+        [Required]
         public Guid CountryId { get; set; }
 
-        //[Required]
+        [Required]
         public Guid CardTypeId { get; set; }
 
         public List<UpdateCardRateDenominationConfigDTO> UpdateCardRateDenominationConfigDTO { get; set; } 
