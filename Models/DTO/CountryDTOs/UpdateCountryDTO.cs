@@ -10,7 +10,6 @@ namespace Optima.Models.DTO.CountryDTOs
 {
     public class UpdateCountryDTO : IValidatableObject
     {
-        [Required]
         public string Name { get; set; }
         public IFormFile Logo { get; set; }
 

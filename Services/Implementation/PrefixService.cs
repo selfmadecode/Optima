@@ -127,19 +127,22 @@ namespace Optima.Services.Implementation
                 return new BaseResponse<bool>(ResponseMessage.VisaPrefixNotFound, Errors);
             }
 
-            if (model.PrefixNumber.Replace(" ", "").ToLower() != checkPrefix.PrefixNumber.Replace(" ", "").ToLower())
+            if (!String.IsNullOrWhiteSpace(model.PrefixNumber))
             {
-                var checkExistingReceipts = await _context.Receipts.AnyAsync(x => x.Name.ToLower().Replace(" ", "") == model.PrefixNumber.ToLower().Replace(" ", ""));
-
-                if (checkExistingReceipts)
+                if (model.PrefixNumber.Replace(" ", "").ToLower() != checkPrefix.PrefixNumber.Replace(" ", "").ToLower())
                 {
-                    Errors.Add(ResponseMessage.VisaPrefixExist);
-                    return new BaseResponse<bool>(ResponseMessage.VisaPrefixExist, Errors);
-                }
+                    var checkExistingReceipts = await _context.Receipts.AnyAsync(x => x.Name.ToLower().Replace(" ", "") == model.PrefixNumber.ToLower().Replace(" ", ""));
 
-                checkPrefix.PrefixNumber = model.PrefixNumber;
+                    if (checkExistingReceipts)
+                    {
+                        Errors.Add(ResponseMessage.VisaPrefixExist);
+                        return new BaseResponse<bool>(ResponseMessage.VisaPrefixExist, Errors);
+                    }
+
+                    checkPrefix.PrefixNumber = model.PrefixNumber;
+                }
             }
-            
+                   
 
             checkPrefix.PrefixNumber = string.IsNullOrWhiteSpace(model.PrefixNumber) ? checkPrefix.PrefixNumber : model.PrefixNumber;
 

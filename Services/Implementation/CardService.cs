@@ -926,7 +926,7 @@ namespace Optima.Services.Implementation
             }
 
             //UPDATE OR CREATES CARD IMAGE IF IT DOESN'T EXISTS.
-            await CreatesOrUpdatesImage(model.Logo, card);
+            //await CreatesOrUpdatesImage(model.Logo, card);
 
    
             //UPDATES THE ALREADY CONFIGURED VISA CARD TYPE DENOMINATION
@@ -1562,7 +1562,7 @@ namespace Optima.Services.Implementation
         /// <returns></returns>
         private async Task<bool> ValidateCardName(string cardName, Card card)
         {
-            if (String.IsNullOrEmpty(cardName) || String.IsNullOrWhiteSpace(cardName))
+            if (String.IsNullOrWhiteSpace(cardName))
             {
                 return false;
             }

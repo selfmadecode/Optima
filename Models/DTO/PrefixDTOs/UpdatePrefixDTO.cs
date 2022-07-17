@@ -9,7 +9,6 @@ namespace Optima.Models.DTO.PrefixDTOs
     public class UpdatePrefixDTO
     {
         public Guid Id { get; set; }
-        [Required]
         public string PrefixNumber { get; set; } 
     }
 }

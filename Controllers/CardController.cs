@@ -380,12 +380,12 @@ namespace Optima.Controllers
         {
             try
             {
-                var validationResult = await model.Validate();
+                /*var validationResult = await model.Validate();
 
                 if (validationResult.Errors.Any())
                 {
                     ReturnResponse(validationResult);
-                }
+                }*/
                 return ReturnResponse(await _cardService.UpdateVisaCard(model, UserId, CardId));
             }
             catch (Exception ex)
