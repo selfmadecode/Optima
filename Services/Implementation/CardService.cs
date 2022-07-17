@@ -859,7 +859,7 @@ namespace Optima.Services.Implementation
         /// <param name="model">The model.</param>
         /// <param name="UserId">The UserId.</param>
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
-        public async Task<BaseResponse<bool>> UpdateVisaCard(UpdateVisaCardConfigDTO model, Guid UserId, Guid CardId)
+        public async Task<BaseResponse<bool>> UpdateVisaCard(UpdateVisaTypeCardDTO model, Guid UserId, Guid CardId)
         {
             var response = new BaseResponse<bool>();
 
