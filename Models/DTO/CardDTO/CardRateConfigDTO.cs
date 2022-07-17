@@ -11,7 +11,7 @@ namespace Optima.Models.DTO.CardDTO
         [Required]
         public Guid DenominationId { get; set; }
 
-        [Required]
+       [Required]
         public Decimal Rate { get; set; }
     }
 

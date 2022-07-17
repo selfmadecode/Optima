@@ -24,6 +24,7 @@ namespace Optima.Models.DTO.AuthDTO
         public string PhoneNumber { get; set; }
 
         public IList<string> Permissions { get; set; }
+        public IList<string> Roles { get; set; }
     }
 
     public class GetAdminDetailsDTO
