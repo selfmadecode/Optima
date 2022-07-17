@@ -493,8 +493,8 @@ namespace Optima.Services.Implementation
             var user = await GetUser(emailAddress);
             if (user == null)
             {
-                Errors.Add(ResponseMessage.ErrorMessage504);
-                return new BaseResponse<string>(ResponseMessage.ErrorMessage504, Errors);
+                Errors.Add(ResponseMessage.ErrorMessage600);
+                return new BaseResponse<string>(ResponseMessage.ErrorMessage600, Errors);
             };
 
             if (user.IsAccountLocked == true)
@@ -517,8 +517,8 @@ namespace Optima.Services.Implementation
             var user = await GetUser(emailAddress);
             if (user == null)
             {
-                Errors.Add(ResponseMessage.ErrorMessage504);
-                return new BaseResponse<string>(ResponseMessage.ErrorMessage504, Errors);
+                Errors.Add(ResponseMessage.ErrorMessage600);
+                return new BaseResponse<string>(ResponseMessage.ErrorMessage600, Errors);
             };
 
             if (user.IsAccountLocked == false)

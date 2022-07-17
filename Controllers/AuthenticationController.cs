@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Optima.Models.DTO.AuthDTO;
+using Optima.Models.DTO.UserDTOs;
 using Optima.Services.Interface;
 using Optima.Utilities.Helpers;
 using System;
@@ -104,12 +105,12 @@ namespace Optima.Controllers
             }
         }
 
-        [HttpPost("{email}")]
-        public async Task<IActionResult> LogOut(string email)
+        [HttpPost]
+        public async Task<IActionResult> LogOut([FromBody] UserEmailDTO model)
         {
             try
             {
-                return ReturnResponse(await _authService.UpdateUserLastLogin(email, CurrentDateTime));
+                return ReturnResponse(await _authService.UpdateUserLastLogin(model.UserName, CurrentDateTime));
             }
             catch (Exception ex)
             {
@@ -118,7 +119,7 @@ namespace Optima.Controllers
         }
              
         [HttpPost]
-        public async Task<IActionResult> ChangePassword(ChangePasswordDTO model)
+        public async Task<IActionResult> ChangePassword([FromBody]ChangePasswordDTO model)
         {
 
             try
@@ -131,13 +132,13 @@ namespace Optima.Controllers
             }
         }
                 
-        [HttpPost("{userEmail}")]
+        [HttpPost]
         [Authorize(Roles = RoleHelper.SUPERADMIN)]
-        public async Task<IActionResult> LockoutUser(string userEmail)
+        public async Task<IActionResult> LockoutUser([FromBody]UserEmailDTO model)
         {
             try
             {
-                return ReturnResponse(await _authService.LockoutUser(userEmail));
+                return ReturnResponse(await _authService.LockoutUser(model.UserName));
             }
             catch (Exception ex)
             {
@@ -145,13 +146,13 @@ namespace Optima.Controllers
             }
         }
                 
-        [HttpPost("{userEmail}")]
+        [HttpPost]
         [Authorize(Roles = RoleHelper.SUPERADMIN)]
-        public async Task<IActionResult> UnLockUser(string userEmail)
+        public async Task<IActionResult> UnLockUser([FromBody]UserEmailDTO model)
         {
             try
             {
-                return ReturnResponse(await _authService.UnLockUser(userEmail));
+                return ReturnResponse(await _authService.UnLockUser(model.UserName));
             }
             catch (Exception ex)
             {
