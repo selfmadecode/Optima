@@ -6,6 +6,7 @@ using Optima.Services.Interface;
 using Optima.Utilities.Helpers;
 using Optima.Utilities.Pagination;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using static Optima.Utilities.Helpers.PermisionProvider;
 
@@ -320,6 +321,12 @@ namespace Optima.Controllers
         {
             try
             {
+                var validationResult = await model.Validate();
+
+                if (validationResult.Errors.Any())
+                {
+                    ReturnResponse(validationResult);
+                }
                 return ReturnResponse(await _cardService.UpdateNormalCard(model, UserId, CardId));
             }
             catch (Exception ex)
@@ -343,11 +350,17 @@ namespace Optima.Controllers
         {
             try
             {
+                var validationResult = await model.Validate();
+
+                if (validationResult.Errors.Any())
+                {
+                    ReturnResponse(validationResult);
+                }
                 return ReturnResponse(await _cardService.UpdateReceiptCard(model, UserId, CardId));
             }
             catch (Exception ex)
             {
-                return HandleError(ex); ;
+                return HandleError(ex);
             }
         }
 
@@ -366,6 +379,12 @@ namespace Optima.Controllers
         {
             try
             {
+                var validationResult = await model.Validate();
+
+                if (validationResult.Errors.Any())
+                {
+                    ReturnResponse(validationResult);
+                }
                 return ReturnResponse(await _cardService.UpdateVisaCard(model, UserId, CardId));
             }
             catch (Exception ex)

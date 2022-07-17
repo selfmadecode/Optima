@@ -17,7 +17,7 @@ namespace Optima.Models.DTO.CardDTO
 
     public class UpdateCardRateDenominationConfigDTO : CardRateConfigDTO 
     {
-        public Guid CardTypeDenominationId { get; set; }
+        public Guid CardRateId { get; set; }
 
     }
 

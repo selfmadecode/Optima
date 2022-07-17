@@ -900,7 +900,7 @@ namespace Optima.Services.Implementation
 
             //VALIDATE INCOMING CARD TYPE DENOMINATION
             var validateCardTypeDenomination
-                = ValidateCardTypeDenomination(model.UpdateVisaTypeConfigDTO.SelectMany(x => x.UpdateCardRateDenominationConfigDTO).Select(x => x.CardTypeDenominationId).ToList());
+                = ValidateCardTypeDenomination(model.UpdateVisaTypeConfigDTO.SelectMany(x => x.UpdateCardRateDenominationConfigDTO).Select(x => x.CardRateId).ToList());
 
             if (validateCardTypeDenomination)
             {
@@ -952,7 +952,7 @@ namespace Optima.Services.Implementation
         {
             var newCardTypeDenomination = new List<CardTypeDenomination>();
             //SELECT ALL CARD TYPE DENOMINATION IDs
-            var allCardTypeDenominationsIds = VisaCardUpdateConfigDTO.SelectMany(x => x.UpdateCardRateDenominationConfigDTO).Select(x => x.CardTypeDenominationId);
+            var allCardTypeDenominationsIds = VisaCardUpdateConfigDTO.SelectMany(x => x.UpdateCardRateDenominationConfigDTO).Select(x => x.CardRateId);
             //GET ALL CARD TYPE DENOMINATIONS IDs.
             var allCardTypeDenominations = await _dbContext.CardTypeDenomination.Where(x => allCardTypeDenominationsIds.Contains(x.Id)).ToListAsync();
 
@@ -961,7 +961,7 @@ namespace Optima.Services.Implementation
             {
                
                 //GET THE CARD TYPE DENOMINATION IDs TO BE UPDATED
-                var cardTypeDenominationIds = visaCardUpdateConfigDTO.UpdateCardRateDenominationConfigDTO.Select(x => x.CardTypeDenominationId);
+                var cardTypeDenominationIds = visaCardUpdateConfigDTO.UpdateCardRateDenominationConfigDTO.Select(x => x.CardRateId);
                 var cardTypeDenominationsToBeUpdated = allCardTypeDenominations.Where(x => cardTypeDenominationIds.Contains(x.Id)).ToList();
 
                 //LOOP THROUGH THE VISA CARD RATE DENOMINATION -> UPDATE CARD RATE DENOMINATION CONFIGDTO
@@ -969,7 +969,7 @@ namespace Optima.Services.Implementation
                 {
                     //CHECK IF A CARD TYPE DENOMINATION DOESN'T ALREADY HAVE THE DENOMINATION ID.
                     var acardTypeToBeUpdated = cardTypeDenominationsToBeUpdated
-                        .FirstOrDefault(x => x.Id == updateCardRateDenominationDTO.CardTypeDenominationId && x.DenominationId == updateCardRateDenominationDTO.DenominationId);
+                        .FirstOrDefault(x => x.Id == updateCardRateDenominationDTO.CardRateId && x.DenominationId == updateCardRateDenominationDTO.DenominationId);
 
                     if (!(acardTypeToBeUpdated is null))
                     {
@@ -1048,7 +1048,7 @@ namespace Optima.Services.Implementation
 
             //VALIDATE INCOMING CARD TYPE DENOMINATION
             var validateCardTypeDenomination
-                = ValidateCardTypeDenomination(model.UpdateReceiptTypeConfigDTO.SelectMany(x => x.UpdateCardRateDenominationConfigDTO).Select(x => x.CardTypeDenominationId).ToList());
+                = ValidateCardTypeDenomination(model.UpdateReceiptTypeConfigDTO.SelectMany(x => x.UpdateCardRateDenominationConfigDTO).Select(x => x.CardRateId).ToList());
 
             if (validateCardTypeDenomination)
             {
@@ -1101,7 +1101,7 @@ namespace Optima.Services.Implementation
 
             var newCardTypeDenomination = new List<CardTypeDenomination>();
             //SELECT ALL CARD TYPE DENOMINATION IDs
-            var allCardTypeDenominationsIds = ReceiptTypeUpdateCardConfigDTO.SelectMany(x => x.UpdateCardRateDenominationConfigDTO).Select(x => x.CardTypeDenominationId);
+            var allCardTypeDenominationsIds = ReceiptTypeUpdateCardConfigDTO.SelectMany(x => x.UpdateCardRateDenominationConfigDTO).Select(x => x.CardRateId);
             //GET ALL CARD TYPE DENOMINATIONS IDs.
             var allCardTypeDenominations = await _dbContext.CardTypeDenomination.Where(x => allCardTypeDenominationsIds.Contains(x.Id)).ToListAsync();
 
@@ -1110,7 +1110,7 @@ namespace Optima.Services.Implementation
             {
 
                 //GET THE CARD TYPE DENOMINATION IDs TO BE UPDATED
-                var cardTypeDenominationIds = receiptTypeCardConfigDTO.UpdateCardRateDenominationConfigDTO.Select(x => x.CardTypeDenominationId);
+                var cardTypeDenominationIds = receiptTypeCardConfigDTO.UpdateCardRateDenominationConfigDTO.Select(x => x.CardRateId);
                 var cardTypeDenominationsToBeUpdated = allCardTypeDenominations.Where(x => cardTypeDenominationIds.Contains(x.Id)).ToList();
 
                 //LOOP THROUGH THE RECEIPT CARD RATE DENOMINATION CONFIG  
@@ -1118,7 +1118,7 @@ namespace Optima.Services.Implementation
                 {
                     //CHECK IF A CARD TYPE DENOMINATION DOESN'T ALREADY HAVE THE DENOMINATION ID.
                     var acardTypeToBeUpdated = cardTypeDenominationsToBeUpdated
-                        .FirstOrDefault(x => x.Id == updateCardRateDenominationDTO.CardTypeDenominationId && x.DenominationId == updateCardRateDenominationDTO.DenominationId);
+                        .FirstOrDefault(x => x.Id == updateCardRateDenominationDTO.CardRateId && x.DenominationId == updateCardRateDenominationDTO.DenominationId);
 
                     if (!(acardTypeToBeUpdated is null))
                     {
@@ -1201,7 +1201,7 @@ namespace Optima.Services.Implementation
 
             //VALIDATE INCOMING CARD TYPE DENOMINATION
             var validateCardTypeDenomination
-                = ValidateCardTypeDenomination(model.UpdateNormalCardTypeConfigDTO.SelectMany(x => x.UpdateCardRateDenominationConfigDTO).Select(x => x.CardTypeDenominationId).ToList());
+                = ValidateCardTypeDenomination(model.UpdateNormalCardTypeConfigDTO.SelectMany(x => x.UpdateCardRateDenominationConfigDTO).Select(x => x.CardRateId).ToList());
 
             if (validateCardTypeDenomination)
             {
@@ -1245,7 +1245,7 @@ namespace Optima.Services.Implementation
             
             var newCardTypeDenomination = new List<CardTypeDenomination>();
             //SELECT ALL CARD TYPE DENOMINATION IDs
-            var allCardTypeDenominationsIds = UpdateCardConfigDTO.SelectMany(x => x.UpdateCardRateDenominationConfigDTO).Select(x => x.CardTypeDenominationId);
+            var allCardTypeDenominationsIds = UpdateCardConfigDTO.SelectMany(x => x.UpdateCardRateDenominationConfigDTO).Select(x => x.CardRateId);
             //GET ALL CARD TYPE DENOMINATIONS IDs.
             var allCardTypeDenominations = await _dbContext.CardTypeDenomination.Where(x => allCardTypeDenominationsIds.Contains(x.Id)).ToListAsync();
 
@@ -1255,7 +1255,7 @@ namespace Optima.Services.Implementation
             {
 
                 //GET THE CARD TYPE DENOMINATION IDs TO BE UPDATED
-                var cardTypeDenominationIds = normalCardConfigDTO.UpdateCardRateDenominationConfigDTO.Select(x => x.CardTypeDenominationId);
+                var cardTypeDenominationIds = normalCardConfigDTO.UpdateCardRateDenominationConfigDTO.Select(x => x.CardRateId);
                 var cardTypeDenominationsToBeUpdated = allCardTypeDenominations.Where(x => cardTypeDenominationIds.Contains(x.Id)).ToList();
 
                 //LOOP THROUGH THE NORMAL CARD RATE DENOMINATION MODEL
@@ -1263,7 +1263,7 @@ namespace Optima.Services.Implementation
                 {
                     //CHECK IF A CARD TYPE DENOMINATION DOESN'T ALREADY HAVE THE DENOMINATION ID.
                     var acardTypeToBeUpdated = cardTypeDenominationsToBeUpdated
-                        .FirstOrDefault(x => x.Id == updateCardRateDenominationDTO.CardTypeDenominationId && x.DenominationId == updateCardRateDenominationDTO.DenominationId);
+                        .FirstOrDefault(x => x.Id == updateCardRateDenominationDTO.CardRateId && x.DenominationId == updateCardRateDenominationDTO.DenominationId);
 
                     if (!(acardTypeToBeUpdated is null))
                     {
@@ -1400,9 +1400,13 @@ namespace Optima.Services.Implementation
         /// <param name="id" >the Ids</param>   
         /// <param name="cardTypesIds">The cardType Ids.</param>
         /// <returns>System.boolean</returns>
-        private bool ValidateCardTypes(Guid id, List<Guid> cardTypesIds)
+        private bool ValidateCardTypes(Guid cardId, List<Guid> cardTypesIds)
         {
-            var cardTypes = _dbContext.CardType.Where(x => x.CardId == id && cardTypesIds.Contains(x.Id)).ToListAsync().Result.Select(x => x.Id);
+            // VALIDATE THAT THE CARDTYPE BELONGS TO THIS CARD
+            var cardTypes = _dbContext.CardType
+                .Where(x => x.CardId == cardId 
+                    && cardTypesIds.Contains(x.Id))
+                .ToListAsync().Result.Select(x => x.Id);
 
             if (cardTypes.Count() != cardTypesIds.Count())
             {
@@ -1487,7 +1491,8 @@ namespace Optima.Services.Implementation
         /// <returns>System.boolean</returns>
         private bool ValidateCardTypeDenomination(List<Guid> cardTypeDenominationIds)
         {
-            var cardTypeDenomination = _dbContext.CardTypeDenomination.Where(x => cardTypeDenominationIds.Contains(x.Id)).ToListAsync().Result.Select(x => x.Id);
+            var cardTypeDenomination = _dbContext.CardTypeDenomination
+                .Where(x => cardTypeDenominationIds.Contains(x.Id)).ToListAsync().Result.Select(x => x.Id);
 
             if (cardTypeDenomination.Count() != cardTypeDenominationIds.Where(x => x != Guid.Empty).Distinct().Count()) 
             {
@@ -1560,6 +1565,10 @@ namespace Optima.Services.Implementation
         /// <returns></returns>
         private async Task<bool> ValidateCardName(string cardName, Card card)
         {
+            if (String.IsNullOrEmpty(cardName) || String.IsNullOrWhiteSpace(cardName))
+            {
+                return false;
+            }
             if (cardName.Replace(" ", "").ToLower() != card.Name.Replace(" ", "").ToLower())
             {
                 var checkExistingCard = await _dbContext.Cards.AnyAsync(x => x.Name.ToLower().Replace(" ", "") == cardName.ToLower().Replace(" ", ""));
