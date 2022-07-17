@@ -43,8 +43,7 @@ namespace Optima.Services.Implementation
         public async Task<BaseResponse<bool>> CreateCountry(CreateCountryDTO model, Guid UserId)
         {
             var uploadedFileToDelete = string.Empty;
-
-           
+        
             try
             {
                 var checkCountry = await _context.Countries
@@ -75,8 +74,11 @@ namespace Optima.Services.Implementation
             }
             catch (Exception ex)
             {
-                await _cloudinaryServices.DeleteImage(GenerateDeleteUploadedPath(uploadedFileToDelete));
-                _logger.Error(ex.Message, ex);
+                if (!string.IsNullOrWhiteSpace(uploadedFileToDelete))
+                {
+                    await _cloudinaryServices.DeleteImage(GenerateDeleteUploadedPath(uploadedFileToDelete));
+                    _logger.Error(ex.Message, ex);
+                }
 
                 return new BaseResponse<bool>();
             }           
@@ -237,9 +239,11 @@ namespace Optima.Services.Implementation
             }
             catch (Exception ex)
             {
-                await _cloudinaryServices.DeleteImage(GenerateDeleteUploadedPath(uploadedFileToDelete));
-                _logger.Error(ex.Message, ex);
-
+                if (!string.IsNullOrWhiteSpace(uploadedFileToDelete))
+                {
+                    await _cloudinaryServices.DeleteImage(GenerateDeleteUploadedPath(uploadedFileToDelete));
+                    _logger.Error(ex.Message, ex);
+                }
                 return new BaseResponse<bool>();
             }
            

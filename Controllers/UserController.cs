@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Optima.Models.DTO.UserDTOs;
 using Optima.Services.Interface;
 using Optima.Utilities.Helpers;
@@ -19,10 +20,12 @@ namespace Optima.Controllers
     public class UserController : BaseController
     {
         private readonly IUserService _userService;
+        private readonly IConfiguration _configuration;
 
-        public UserController(IUserService userService)
+        public UserController(IUserService userService, IConfiguration configuration)
         {
             _userService = userService;
+            _configuration = configuration;
         }
 
 
@@ -74,6 +77,12 @@ namespace Optima.Controllers
         {
             try
             {
+                var validationResult = await model.Validate(_configuration);
+
+                if (validationResult.Errors.Any())
+                {
+                    return ReturnResponse(validationResult);
+                }
                 return ReturnResponse(await _userService.UpdateProfile(model, UserId));
             }
             catch (Exception ex)

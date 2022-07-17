@@ -3,6 +3,7 @@ using log4net;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Optima.Models.DTO.CountryDTOs;
 using Optima.Services.Interface;
 using Optima.Utilities.Helpers;
@@ -20,10 +21,12 @@ namespace Optima.Controllers
     public class CountryController : BaseController
     {
         private readonly ICountryService _countryService;
+        private readonly IConfiguration _configuration;
 
-        public CountryController(ICountryService countryService)
+        public CountryController(ICountryService countryService,  IConfiguration configuration)
         {
             _countryService = countryService;
+            _configuration = configuration;
         }
 
         [HttpPost]
@@ -33,6 +36,12 @@ namespace Optima.Controllers
         {
             try
             {
+                var validationResult = await model.Validate(_configuration);
+
+                if (validationResult.Errors.Any())
+                {
+                    return ReturnResponse(validationResult);
+                }
                 return ReturnResponse(await _countryService.CreateCountry(model, UserId));
             }
             catch (Exception ex)
@@ -96,6 +105,12 @@ namespace Optima.Controllers
         {
             try
             {
+                var validationResult = await model.Validate(_configuration);
+
+                if (validationResult.Errors.Any())
+                {
+                    return ReturnResponse(validationResult);
+                }
                 return ReturnResponse(await _countryService.UpdateCountry(model, UserId, CountryId));
             }
             catch (Exception ex)

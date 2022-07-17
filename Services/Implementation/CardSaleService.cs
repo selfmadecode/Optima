@@ -97,8 +97,11 @@ namespace Optima.Services.Implementation
                 //DELETES THE FILES ALREADY UPLOADED TO CLOUDINARY.
                 foreach (var filePath in filesToDelete)
                 {
-                    var fullPath = GenerateDeleteUploadedPath(filePath);
-                    await _cloudinaryServices.DeleteImage(fullPath);
+                    if (!string.IsNullOrWhiteSpace(filePath))
+                    {
+                        await _cloudinaryServices.DeleteImage(GenerateDeleteUploadedPath(filePath));
+                        _logger.Error(ex.Message, ex);
+                    }
                 }
 
                 _logger.Error(ex.Message, ex);

@@ -1,6 +1,7 @@
 ﻿using AzureRays.Shared.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Optima.Models.DTO.CardDTO;
 using Optima.Services.Interface;
 using Optima.Utilities.Helpers;
@@ -18,10 +19,13 @@ namespace Optima.Controllers
     public class CardController : BaseController
     {
         private readonly ICardService _cardService;
+        private readonly IConfiguration _configuration;
 
-        public CardController(ICardService cardService)
+
+        public CardController(ICardService cardService, IConfiguration configuration)
         {
             _cardService = cardService;
+            _configuration = configuration;
         }
 
         /// <summary>
@@ -40,6 +44,12 @@ namespace Optima.Controllers
         {
             try
             {
+                var validationResult = await model.Validate(_configuration);
+
+                if (validationResult.Errors.Any())
+                {
+                    return ReturnResponse(validationResult);
+                }
                 return ReturnResponse(await _cardService.CreateCard(model, UserId));
             }
             catch (Exception ex)
@@ -321,11 +331,11 @@ namespace Optima.Controllers
         {
             try
             {
-                var validationResult = await model.Validate();
+                var validationResult = await model.Validate(_configuration);
 
                 if (validationResult.Errors.Any())
                 {
-                    ReturnResponse(validationResult);
+                    return ReturnResponse(validationResult);
                 }
                 return ReturnResponse(await _cardService.UpdateNormalCard(model, UserId, CardId));
             }
@@ -351,11 +361,11 @@ namespace Optima.Controllers
         {
             try
             {
-                var validationResult = await model.Validate();
+                var validationResult = await model.Validate(_configuration);
 
                 if (validationResult.Errors.Any())
                 {
-                    ReturnResponse(validationResult);
+                    return ReturnResponse(validationResult);
                 }
                 return ReturnResponse(await _cardService.UpdateReceiptCard(model, UserId, cardId));
             }
@@ -380,12 +390,12 @@ namespace Optima.Controllers
         {
             try
             {
-                /*var validationResult = await model.Validate();
+                var validationResult = await model.Validate(_configuration);
 
                 if (validationResult.Errors.Any())
                 {
-                    ReturnResponse(validationResult);
-                }*/
+                    return ReturnResponse(validationResult);
+                }
                 return ReturnResponse(await _cardService.UpdateVisaCard(model, UserId, CardId));
             }
             catch (Exception ex)
