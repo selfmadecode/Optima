@@ -189,6 +189,8 @@ namespace Optima.Services.Implementation
                         Errors.Add(ResponseMessage.CountryAlreadyExist);
                         return new BaseResponse<bool>(ResponseMessage.CountryAlreadyExist, Errors);
                     }
+
+                    country.Name = model.Name;
                 }
 
 

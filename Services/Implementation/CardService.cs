@@ -1,5 +1,6 @@
 ﻿using AzureRays.Shared.ViewModels;
 using log4net;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Optima.Context;
 using Optima.Models.Constant;
@@ -597,6 +598,7 @@ namespace Optima.Services.Implementation
 
             return new BaseResponse<bool>(true, ResponseMessage.CardConfigSuccess);
         }
+
         private async Task<BaseResponse<bool>> ValidateVisaTypeCardConfigMain(ConfigureVisaCardDTO model)
         {
             foreach (var item in model.VisaCardConfigDTO)
@@ -784,7 +786,7 @@ namespace Optima.Services.Implementation
 
 
         /// <summary>
-        /// UPDATE CARD
+        /// ADD COUNTRies TO CARD
         /// </summary>
         /// <param name="model">The model.</param>
         /// <param name="UserId">The UserId.</param>
@@ -872,44 +874,70 @@ namespace Optima.Services.Implementation
                 return new BaseResponse<bool>(ResponseMessage.CardNotFound, Errors);
             }
 
-            //VALIDATES INCOMING CARD CONFIG I.E. THE COUNTRIES IDs, THE CARD TYPE IDs.
-            var validateCardConfig =
-                await ValidateCardConfig(CardId, model.VisaCardUpdateConfigDTO.Select(x => x.CountryId).ToList(), model.VisaCardUpdateConfigDTO.Select(x => x.CardTypeId).ToList());
-
-            if (validateCardConfig.Errors.Any())
+            //VALIDATES THE CREATED CARD IF IT IS NOT VISA
+            if (card.BaseCardType != BaseCardType.SPECIAL)
             {
-                return new BaseResponse<bool>(validateCardConfig.ResponseMessage, validateCardConfig.Errors);
-            };
-
-            //VALIDATES DENOMINATION
-            var validateDenomination = ValidateDenominationIds(model.VisaCardUpdateConfigDTO.Select(x => x.DenominationId).ToList());
-
-            if (validateDenomination)
-            {
-                Errors.Add(ResponseMessage.CardTypeDenominationNotFound);
-                return new BaseResponse<bool>(ResponseMessage.CardTypeDenominationNotFound, Errors);
+                Errors.Add(ResponseMessage.CardNotSpecial);
+                return new BaseResponse<bool>(ResponseMessage.CardNotSpecial, Errors);
             }
 
-            //VALIDATES PREFIX
-            var validatePrefix = ValidatePrefix(model.VisaCardUpdateConfigDTO.Select(x => x.PrefixId).ToList());
-
-            if (validatePrefix)
+            //VALIDATES INCOMING CARD NAME
+            var cardNameValidation = await ValidateCardName(model.CardName, card);
+            if (cardNameValidation)
             {
-                Errors.Add(ResponseMessage.CardReceiptNotFound);
-                return new BaseResponse<bool>(ResponseMessage.CardReceiptNotFound, Errors);
+                Errors.Add(ResponseMessage.CardExist);
+                return new BaseResponse<bool>(ResponseMessage.CardExist, Errors);
+            }
+           
+            //VALIDATE CARD TYPES
+            var validateCardType = ValidateCardTypes(CardId, model.UpdateVisaTypeConfigDTO.Select(x => x.CardTypeId).ToList());
+
+            if (validateCardType)
+            {
+                Errors.Add(ResponseMessage.CardTypeNotFound);
+                return new BaseResponse<bool>(ResponseMessage.CardTypeNotFound, Errors);
             }
 
-            //VALIDATES CARD TYPE DENOMINATION 
-            var validateCardTypeDenomination = ValidateCardTypeDenomination(model.VisaCardUpdateConfigDTO.Select(x => x.CardTypeDenominationId).ToList());
-            
+            //VALIDATE INCOMING CARD TYPE DENOMINATION
+            var validateCardTypeDenomination
+                = ValidateCardTypeDenomination(model.UpdateVisaTypeConfigDTO.SelectMany(x => x.UpdateCardRateDenominationConfigDTO).Select(x => x.CardTypeDenominationId).ToList());
+
             if (validateCardTypeDenomination)
             {
                 Errors.Add(ResponseMessage.CardTypeDenominationNotFound);
                 return new BaseResponse<bool>(ResponseMessage.CardTypeDenominationNotFound, Errors);
             }
 
+            //VALIDATES INCOMING DENOMINATION NOT DUPLICATED OR DOESN'T EXISTS.
+            foreach (var cardRates in model.UpdateVisaTypeConfigDTO.Select(x => x.UpdateCardRateDenominationConfigDTO))
+            {
+                var validateDenomination = ValidateDenominationIds(cardRates.Select(x => x.DenominationId).ToList());
+
+                if (validateDenomination)
+                {
+                    Errors.Add(ResponseMessage.CardTypeDenominationNotFound);
+                    return new BaseResponse<bool>(ResponseMessage.CardTypeDenominationNotFound, Errors);
+                }
+            }
+
+            //VALIDATES PREFIX
+            var validatePrefix = ValidatePrefix(model.UpdateVisaTypeConfigDTO.Select(x => x.PrefixId).ToList());
+            if (validatePrefix)
+            {
+                Errors.Add(ResponseMessage.VisaPrefixNotFound);
+                return new BaseResponse<bool>(ResponseMessage.VisaPrefixNotFound, Errors);
+            }
+
+            //UPDATE OR CREATES CARD IMAGE IF IT DOESN'T EXISTS.
+            await CreatesOrUpdatesImage(model.Logo, card);
+
+   
             //UPDATES THE ALREADY CONFIGURED VISA CARD TYPE DENOMINATION
-            await UpdateVisa(model.VisaCardUpdateConfigDTO, UserId);
+            await UpdateVisa(model.UpdateVisaTypeConfigDTO, UserId);
+
+            //UPDATES CARD 
+            _dbContext.Cards.Update(card);
+            await _dbContext.SaveChangesAsync();
 
             return new BaseResponse<bool>(true, ResponseMessage.CardUpdate);
         }
@@ -920,42 +948,53 @@ namespace Optima.Services.Implementation
         /// <param name="VisaCardUpdateConfigDTO">The VisaCardUpdateConfigDTO.</param>
         /// <param name="UserId">The UserId.</param>
         /// <returns>System.Threading.Tasks.Task</returns>
-        private async Task UpdateVisa(List<VisaCardUpdateConfigDTO> VisaCardUpdateConfigDTO, Guid UserId)
+        private async Task UpdateVisa(List<UpdateVisaTypeCardConfigDTO> VisaCardUpdateConfigDTO, Guid UserId)
         {
             var newCardTypeDenomination = new List<CardTypeDenomination>();
+            //SELECT ALL CARD TYPE DENOMINATION IDs
+            var allCardTypeDenominationsIds = VisaCardUpdateConfigDTO.SelectMany(x => x.UpdateCardRateDenominationConfigDTO).Select(x => x.CardTypeDenominationId);
+            //GET ALL CARD TYPE DENOMINATIONS IDs.
+            var allCardTypeDenominations = await _dbContext.CardTypeDenomination.Where(x => allCardTypeDenominationsIds.Contains(x.Id)).ToListAsync();
 
             //LOOP THROUGH INCOMING VISA CARD UPDATE MODEL
             foreach (var visaCardUpdateConfigDTO in VisaCardUpdateConfigDTO)
             {
-                //CHECK IF THE CARD TYPE DENOMINATION ALREADY EXISTS, CONFIGURES A VISA CARD TYPE DENOMINATION IF IT DOESN'T
-                var cardTypeDenomination = _dbContext.CardTypeDenomination.FirstOrDefault(x => x.CardTypeId == visaCardUpdateConfigDTO.CardTypeId);
+               
+                //GET THE CARD TYPE DENOMINATION IDs TO BE UPDATED
+                var cardTypeDenominationIds = visaCardUpdateConfigDTO.UpdateCardRateDenominationConfigDTO.Select(x => x.CardTypeDenominationId);
+                var cardTypeDenominationsToBeUpdated = allCardTypeDenominations.Where(x => cardTypeDenominationIds.Contains(x.Id)).ToList();
 
-                if (!(cardTypeDenomination is null))
+                //LOOP THROUGH THE VISA CARD RATE DENOMINATION -> UPDATE CARD RATE DENOMINATION CONFIGDTO
+                foreach (var updateCardRateDenominationDTO in visaCardUpdateConfigDTO.UpdateCardRateDenominationConfigDTO)
                 {
-                    //UPDATE
-                    cardTypeDenomination.PrefixId = visaCardUpdateConfigDTO.PrefixId;
-                    cardTypeDenomination.DenominationId = visaCardUpdateConfigDTO.DenominationId;
-                    cardTypeDenomination.Rate = visaCardUpdateConfigDTO.Rate;
-                    cardTypeDenomination.ModifiedBy = UserId;
-                    cardTypeDenomination.ModifiedOn = DateTime.UtcNow;
-                }
-                else
-                {
-                    //CONFIGURES A VISA CARD TYPE DENOMINATION
-                    newCardTypeDenomination.Add(new CardTypeDenomination
+                    //CHECK IF A CARD TYPE DENOMINATION DOESN'T ALREADY HAVE THE DENOMINATION ID.
+                    var acardTypeToBeUpdated = cardTypeDenominationsToBeUpdated
+                        .FirstOrDefault(x => x.Id == updateCardRateDenominationDTO.CardTypeDenominationId && x.DenominationId == updateCardRateDenominationDTO.DenominationId);
+
+                    if (!(acardTypeToBeUpdated is null))
                     {
-                        CardTypeId = visaCardUpdateConfigDTO.CardTypeId,
-                        DenominationId = visaCardUpdateConfigDTO.DenominationId,
-                        Rate = visaCardUpdateConfigDTO.Rate,
-                        PrefixId = visaCardUpdateConfigDTO.PrefixId,
-                        CreatedBy = UserId
-                    });
+                        //UPDATE CARD TYPE DENOMINATION
+                        acardTypeToBeUpdated.PrefixId = visaCardUpdateConfigDTO.PrefixId;
+                        acardTypeToBeUpdated.Rate = updateCardRateDenominationDTO.Rate;
+                        acardTypeToBeUpdated.ModifiedBy = UserId;
+                        acardTypeToBeUpdated.ModifiedOn = DateTime.UtcNow;
+                    }
+                    else 
+                    {
+                        //CREATE NEW CARD TYPE DENOMINATION
+                        newCardTypeDenomination.Add(new CardTypeDenomination
+                        {
+                            CardTypeId = visaCardUpdateConfigDTO.CardTypeId,
+                            DenominationId = updateCardRateDenominationDTO.DenominationId,
+                            Rate = updateCardRateDenominationDTO.Rate,
+                            PrefixId = visaCardUpdateConfigDTO.PrefixId,
+                            CreatedBy = UserId
+                        });
 
-                    //UPDATE CARD TYPE STATUS
-                    var cardType = await _dbContext.CardType.FirstOrDefaultAsync(x => x.Id == visaCardUpdateConfigDTO.CardTypeId);
-                    cardType.CardStatus = CardStatus.Approved;
+                    }
+
                 }
-
+                
             }
 
             await _dbContext.CardTypeDenomination.AddRangeAsync(newCardTypeDenomination);
@@ -971,7 +1010,7 @@ namespace Optima.Services.Implementation
         /// <param name="model">The model.</param>
         /// <param name="UserId">The UserId.</param>
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
-        public async Task<BaseResponse<bool>> UpdateReceiptCard(UpdateReceiptTypeConfigDTO model, Guid UserId, Guid CardId)
+        public async Task<BaseResponse<bool>> UpdateReceiptCard(UpdateReceiptTypeCardDTO model, Guid UserId, Guid CardId)
         {
             var response = new BaseResponse<bool>();
 
@@ -984,27 +1023,53 @@ namespace Optima.Services.Implementation
                 return new BaseResponse<bool>(ResponseMessage.CardNotFound, Errors);
             };
 
-            //VALIDATES INCOMING CARD CONFIG I.E. THE COUNTRIES IDs, THE CARD TYPE IDs.
-            var validateCardConfig =
-                await ValidateCardConfig(CardId, model.ReceiptTypeUpdateCardConfigDTO.Select(x => x.CountryId).ToList(), model.ReceiptTypeUpdateCardConfigDTO.Select(x => x.CardTypeId).ToList());
-
-            if (validateCardConfig.Errors.Any())
+            //VALIDATES THE CREATED CARD IF IT IS AN AMAZON TYPE
+            if (card.BaseCardType != BaseCardType.AMAZON)
             {
-                return new BaseResponse<bool>(validateCardConfig.ResponseMessage, validateCardConfig.Errors);
-            };
+                Errors.Add(ResponseMessage.CardNotAmazon);
+                return new BaseResponse<bool>(ResponseMessage.CardNotAmazon, Errors);
+            }
 
-            //VALIDATES DENOMINATION
-            var validateDenomination = ValidateDenominationIds(model.ReceiptTypeUpdateCardConfigDTO.Select(x => x.DenominationId).ToList());
+            //VALIDATES INCOMING CARD NAME
+            var cardNameValidation = await ValidateCardName(model.CardName, card);
+            if (cardNameValidation)
+            {
+                Errors.Add(ResponseMessage.CardExist);
+                return new BaseResponse<bool>(ResponseMessage.CardExist, Errors);
+            }
 
-            if (validateDenomination)
+            //VALIDATE CARD TYPES
+            var validateCardType = ValidateCardTypes(CardId, model.UpdateReceiptTypeConfigDTO.Select(x => x.CardTypeId).ToList());
+            if (validateCardType)
+            {
+                Errors.Add(ResponseMessage.CardTypeNotFound);
+                return new BaseResponse<bool>(ResponseMessage.CardTypeNotFound, Errors);
+            }
+
+            //VALIDATE INCOMING CARD TYPE DENOMINATION
+            var validateCardTypeDenomination
+                = ValidateCardTypeDenomination(model.UpdateReceiptTypeConfigDTO.SelectMany(x => x.UpdateCardRateDenominationConfigDTO).Select(x => x.CardTypeDenominationId).ToList());
+
+            if (validateCardTypeDenomination)
             {
                 Errors.Add(ResponseMessage.CardTypeDenominationNotFound);
                 return new BaseResponse<bool>(ResponseMessage.CardTypeDenominationNotFound, Errors);
             }
 
-            //VALIDATES RECEIPT
-            var validateReceipt = ValidateReceipt(model.ReceiptTypeUpdateCardConfigDTO.Select(x => x.ReceiptId).ToList());
+            //VALIDATES INCOMING DENOMINATION IDs NOT DUPLICATED OR DOESN'T EXISTS.
+            foreach (var cardRates in model.UpdateReceiptTypeConfigDTO.Select(x => x.UpdateCardRateDenominationConfigDTO))
+            {
+                var validateDenomination = ValidateDenominationIds(cardRates.Select(x => x.DenominationId).ToList());
 
+                if (validateDenomination)
+                {
+                    Errors.Add(ResponseMessage.CardTypeDenominationNotFound);
+                    return new BaseResponse<bool>(ResponseMessage.CardTypeDenominationNotFound, Errors);
+                }
+            }
+
+            //VALIDATES RECEIPT TYPE
+            var validateReceipt = ValidateReceipt(model.UpdateReceiptTypeConfigDTO.Select(x => x.ReceiptTypeId).ToList());
             if (validateReceipt)
             {
                 Errors.Add(ResponseMessage.CardReceiptNotFound);
@@ -1012,16 +1077,15 @@ namespace Optima.Services.Implementation
             }
 
 
-            //VALIDATES CARD TYPE DENOMINATION
-            var validateCardTypeDenomination = ValidateCardTypeDenomination(model.ReceiptTypeUpdateCardConfigDTO.Select(x => x.CardTypeDenominationId).ToList());
-            if (validateCardTypeDenomination)
-            {
-                Errors.Add(ResponseMessage.CardTypeDenominationNotFound);
-                return new BaseResponse<bool>(ResponseMessage.CardTypeDenominationNotFound, Errors);
-            }
-
+            //UPDATE OR CREATES CARD IMAGE IF IT DOESN'T EXISTS.
+            await CreatesOrUpdatesImage(model.Logo, card);
+            
             //UPDATES RECEIPT TYPE CARD CONFIG
-            await UpdateReceiptType(model.ReceiptTypeUpdateCardConfigDTO, UserId);
+            await UpdateReceiptType(model.UpdateReceiptTypeConfigDTO, UserId);
+
+            //UPDATES CARD 
+            _dbContext.Cards.Update(card);
+            await _dbContext.SaveChangesAsync();
 
             return new BaseResponse<bool>(true, ResponseMessage.CardUpdate);
         }
@@ -1032,43 +1096,56 @@ namespace Optima.Services.Implementation
         /// <param name="ReceiptTypeUpdateCardConfigDTO">The ReceiptTypeUpdateCardConfigDTO.</param>
         /// <param name="UserId">The UserId.</param>
         /// <returns>System.Threading.Tasks.Task</returns>
-        private async Task UpdateReceiptType(List<ReceiptTypeUpdateConfigDTO> ReceiptTypeUpdateCardConfigDTO, Guid UserId)
+        private async Task UpdateReceiptType(List<UpdateReceiptTypeCardConfigDTO> ReceiptTypeUpdateCardConfigDTO, Guid UserId)
         {
+
             var newCardTypeDenomination = new List<CardTypeDenomination>();
+            //SELECT ALL CARD TYPE DENOMINATION IDs
+            var allCardTypeDenominationsIds = ReceiptTypeUpdateCardConfigDTO.SelectMany(x => x.UpdateCardRateDenominationConfigDTO).Select(x => x.CardTypeDenominationId);
+            //GET ALL CARD TYPE DENOMINATIONS IDs.
+            var allCardTypeDenominations = await _dbContext.CardTypeDenomination.Where(x => allCardTypeDenominationsIds.Contains(x.Id)).ToListAsync();
 
-            ////LOOP THROUGH INCOMING VISA CARD UPDATE MODEL
-            foreach (var receiptTypeUpdateConfigDTO in ReceiptTypeUpdateCardConfigDTO)
+            //LOOP THROUGH THE INCOMING RECEIPT CARD TYPE UPDATE MODEL
+            foreach (var receiptTypeCardConfigDTO in ReceiptTypeUpdateCardConfigDTO)
             {
-                //CHECK IF THE CARD TYPE DENOMINATION ALREADY EXISTS, CONFIGURES A RECEIPT CARD TYPE DENOMINATION IF IT DOESN'T
-                var cardTypeDenomination = _dbContext.CardTypeDenomination.FirstOrDefault(x => x.CardTypeId == receiptTypeUpdateConfigDTO.CardTypeId);
 
-                if (!(cardTypeDenomination is null))
+                //GET THE CARD TYPE DENOMINATION IDs TO BE UPDATED
+                var cardTypeDenominationIds = receiptTypeCardConfigDTO.UpdateCardRateDenominationConfigDTO.Select(x => x.CardTypeDenominationId);
+                var cardTypeDenominationsToBeUpdated = allCardTypeDenominations.Where(x => cardTypeDenominationIds.Contains(x.Id)).ToList();
+
+                //LOOP THROUGH THE RECEIPT CARD RATE DENOMINATION CONFIG  
+                foreach (var updateCardRateDenominationDTO in receiptTypeCardConfigDTO.UpdateCardRateDenominationConfigDTO)
                 {
-                    //UPDATE
-                    cardTypeDenomination.ReceiptId = receiptTypeUpdateConfigDTO.ReceiptId;
-                    cardTypeDenomination.DenominationId = receiptTypeUpdateConfigDTO.DenominationId;
-                    cardTypeDenomination.Rate = receiptTypeUpdateConfigDTO.Rate;
-                    cardTypeDenomination.ModifiedBy = UserId;
-                    cardTypeDenomination.ModifiedOn = DateTime.UtcNow;
-                }
-                else
-                {
-                    //CONFIGURES A RECEIPT CARD TYPE DENOMINATION
-                    newCardTypeDenomination.Add(new CardTypeDenomination
+                    //CHECK IF A CARD TYPE DENOMINATION DOESN'T ALREADY HAVE THE DENOMINATION ID.
+                    var acardTypeToBeUpdated = cardTypeDenominationsToBeUpdated
+                        .FirstOrDefault(x => x.Id == updateCardRateDenominationDTO.CardTypeDenominationId && x.DenominationId == updateCardRateDenominationDTO.DenominationId);
+
+                    if (!(acardTypeToBeUpdated is null))
                     {
-                        CardTypeId = receiptTypeUpdateConfigDTO.CardTypeId,
-                        DenominationId = receiptTypeUpdateConfigDTO.DenominationId,
-                        Rate = receiptTypeUpdateConfigDTO.Rate,
-                        ReceiptId = receiptTypeUpdateConfigDTO.ReceiptId,
-                        CreatedBy = UserId
-                    });
+                        //UPDATE CARD TYPE DENOMINATION
+                        acardTypeToBeUpdated.PrefixId = receiptTypeCardConfigDTO.ReceiptTypeId;
+                        acardTypeToBeUpdated.Rate = updateCardRateDenominationDTO.Rate;
+                        acardTypeToBeUpdated.ModifiedBy = UserId;
+                        acardTypeToBeUpdated.ModifiedOn = DateTime.UtcNow;
+                    }
+                    else
+                    {
+                        //CREATE NEW CARD TYPE DENOMINATION
+                        newCardTypeDenomination.Add(new CardTypeDenomination
+                        {
+                            CardTypeId = receiptTypeCardConfigDTO.CardTypeId,
+                            DenominationId = updateCardRateDenominationDTO.DenominationId,
+                            Rate = updateCardRateDenominationDTO.Rate,
+                            ReceiptId = receiptTypeCardConfigDTO.ReceiptTypeId,
+                            CreatedBy = UserId
+                        });
 
-                    //UPDATE CARD TYPE STATUS
-                    var cardType = await _dbContext.CardType.FirstOrDefaultAsync(x => x.Id == receiptTypeUpdateConfigDTO.CardTypeId);
-                    cardType.CardStatus = CardStatus.Approved;
+                    }
+
                 }
 
             }
+
 
             await _dbContext.CardTypeDenomination.AddRangeAsync(newCardTypeDenomination);
 
@@ -1084,7 +1161,7 @@ namespace Optima.Services.Implementation
         /// <param name="model">The model.</param>
         /// <param name="UserId">The UserId.</param>
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
-        public async Task<BaseResponse<bool>> UpdateNormalCard(UpdateNormalCardConfigDTO model, Guid UserId, Guid CardId)
+        public async Task<BaseResponse<bool>> UpdateNormalCard(UpdateNormalTypeCardDTO model, Guid UserId, Guid CardId)
         {
             var response = new BaseResponse<bool>();
 
@@ -1097,34 +1174,62 @@ namespace Optima.Services.Implementation
                 return new BaseResponse<bool>(ResponseMessage.CardNotFound, Errors);
             };
 
-            //VALIDATES INCOMING CARD CONFIG I.E. THE COUNTRIES IDs, THE CARD TYPE IDs.
-            var validateCardConfig =
-                await ValidateCardConfig(CardId, model.UpdateCardConfigDTO.Select(x => x.CountryId).ToList(), model.UpdateCardConfigDTO.Select(x => x.CardTypeId).ToList());
 
-            if (validateCardConfig.Errors.Any())
+            //VALIDATES THE CREATED CARD IF IT IS A REGULAR TYPE
+            if (card.BaseCardType != BaseCardType.REGULAR)
             {
-                return new BaseResponse<bool>(validateCardConfig.ResponseMessage, validateCardConfig.Errors);
-            };
-
-            //VALIDATES DENOMINATION
-            var validateDenomination = ValidateDenominationIds(model.UpdateCardConfigDTO.Select(x => x.DenominationId).ToList());
-
-            if (validateDenomination)
-            {
-                Errors.Add(ResponseMessage.CardTypeDenominationNotFound);
-                return new BaseResponse<bool>(ResponseMessage.CardTypeDenominationNotFound, Errors);
+                Errors.Add(ResponseMessage.CardNotRegular);
+                return new BaseResponse<bool>(ResponseMessage.CardNotRegular, Errors);
             }
 
-            //VALIDATES CARD TYPE DENOMINATION
-            var validateCardTypeDenomination = ValidateCardTypeDenomination(model.UpdateCardConfigDTO.Select(x => x.CardTypeDenominationId).ToList());
+            //VALIDATES INCOMING CARD NAME
+            var cardNameValidation = await ValidateCardName(model.CardName, card);
+            if (cardNameValidation)
+            {
+                Errors.Add(ResponseMessage.CardExist);
+                return new BaseResponse<bool>(ResponseMessage.CardExist, Errors);
+            }
+
+            //VALIDATE CARD TYPES
+            var validateCardType = ValidateCardTypes(CardId, model.UpdateNormalCardTypeConfigDTO.Select(x => x.CardTypeId).ToList());
+
+            if (validateCardType)
+            {
+                Errors.Add(ResponseMessage.CardTypeNotFound);
+                return new BaseResponse<bool>(ResponseMessage.CardTypeNotFound, Errors);
+            }
+
+            //VALIDATE INCOMING CARD TYPE DENOMINATION
+            var validateCardTypeDenomination
+                = ValidateCardTypeDenomination(model.UpdateNormalCardTypeConfigDTO.SelectMany(x => x.UpdateCardRateDenominationConfigDTO).Select(x => x.CardTypeDenominationId).ToList());
+
             if (validateCardTypeDenomination)
             {
                 Errors.Add(ResponseMessage.CardTypeDenominationNotFound);
                 return new BaseResponse<bool>(ResponseMessage.CardTypeDenominationNotFound, Errors);
             }
 
+            //VALIDATES INCOMING DENOMINATION IDs NOT DUPLICATED OR DOESN'T EXISTS.
+            foreach (var cardRates in model.UpdateNormalCardTypeConfigDTO.Select(x => x.UpdateCardRateDenominationConfigDTO))
+            {
+                var validateDenomination = ValidateDenominationIds(cardRates.Select(x => x.DenominationId).ToList());
+
+                if (validateDenomination)
+                {
+                    Errors.Add(ResponseMessage.CardTypeDenominationNotFound);
+                    return new BaseResponse<bool>(ResponseMessage.CardTypeDenominationNotFound, Errors);
+                }
+            }
+
+
+            //UPDATE OR CREATES CARD IMAGE IF IT DOESN'T EXISTS.
+            await CreatesOrUpdatesImage(model.Logo, card);
             //UPDATES NORMAL CARD 
-            await UpdateNormalCard(model.UpdateCardConfigDTO, UserId);
+            await UpdateNormalCard(model.UpdateNormalCardTypeConfigDTO, UserId);
+
+            //UPDATES CARD 
+            _dbContext.Cards.Update(card);
+            await _dbContext.SaveChangesAsync();
 
             return new BaseResponse<bool>(true, ResponseMessage.CardUpdate);
         }
@@ -1135,41 +1240,55 @@ namespace Optima.Services.Implementation
         /// <param name="UpdateCardConfigDTO">The UpdateCardConfigDTO.</param>
         /// <param name="UserId">The UserId.</param>
         /// <returns>System.Threading.Tasks.Task</returns>
-        private async Task UpdateNormalCard(List<UpdateCardConfigDTO> UpdateCardConfigDTO, Guid UserId)
+        private async Task UpdateNormalCard(List<UpdateCardConfig> UpdateCardConfigDTO, Guid UserId)
         {
+            
             var newCardTypeDenomination = new List<CardTypeDenomination>();
+            //SELECT ALL CARD TYPE DENOMINATION IDs
+            var allCardTypeDenominationsIds = UpdateCardConfigDTO.SelectMany(x => x.UpdateCardRateDenominationConfigDTO).Select(x => x.CardTypeDenominationId);
+            //GET ALL CARD TYPE DENOMINATIONS IDs.
+            var allCardTypeDenominations = await _dbContext.CardTypeDenomination.Where(x => allCardTypeDenominationsIds.Contains(x.Id)).ToListAsync();
 
-            ////LOOP THROUGH INCOMING VISA CARD UPDATE MODEL
-            foreach (var updateNormalCardConfigDTO in UpdateCardConfigDTO)
+
+            //LOOP THROUGH INCOMING NORMAL CARD UPDATE MODEL
+            foreach (var normalCardConfigDTO in UpdateCardConfigDTO)
             {
-                //CHECK IF THE CARD TYPE DENOMINATION ALREADY EXISTS, CONFIGURES A RECEIPT CARD TYPE DENOMINATION IF IT DOESN'T
-                var cardTypeDenomination = _dbContext.CardTypeDenomination.FirstOrDefault(x => x.CardTypeId == updateNormalCardConfigDTO.CardTypeId);
 
-                if (!(cardTypeDenomination is null))
+                //GET THE CARD TYPE DENOMINATION IDs TO BE UPDATED
+                var cardTypeDenominationIds = normalCardConfigDTO.UpdateCardRateDenominationConfigDTO.Select(x => x.CardTypeDenominationId);
+                var cardTypeDenominationsToBeUpdated = allCardTypeDenominations.Where(x => cardTypeDenominationIds.Contains(x.Id)).ToList();
+
+                //LOOP THROUGH THE NORMAL CARD RATE DENOMINATION MODEL
+                foreach (var updateCardRateDenominationDTO in normalCardConfigDTO.UpdateCardRateDenominationConfigDTO)
                 {
-                    //UPDATE
-                    cardTypeDenomination.DenominationId = updateNormalCardConfigDTO.DenominationId;
-                    cardTypeDenomination.Rate = updateNormalCardConfigDTO.Rate;
-                    cardTypeDenomination.ModifiedBy = UserId;
-                    cardTypeDenomination.ModifiedOn = DateTime.UtcNow;
-                }
-                else
-                {
-                    //CONFIGURE A NORMAL CARD
-                    newCardTypeDenomination.Add(new CardTypeDenomination
+                    //CHECK IF A CARD TYPE DENOMINATION DOESN'T ALREADY HAVE THE DENOMINATION ID.
+                    var acardTypeToBeUpdated = cardTypeDenominationsToBeUpdated
+                        .FirstOrDefault(x => x.Id == updateCardRateDenominationDTO.CardTypeDenominationId && x.DenominationId == updateCardRateDenominationDTO.DenominationId);
+
+                    if (!(acardTypeToBeUpdated is null))
                     {
-                        CardTypeId = updateNormalCardConfigDTO.CardTypeId,
-                        DenominationId = updateNormalCardConfigDTO.DenominationId,
-                        Rate = updateNormalCardConfigDTO.Rate,
-                        CreatedBy = UserId
-                    });
+                        //UPDATE CARD TYPE DENOMINATION
+                        acardTypeToBeUpdated.Rate = updateCardRateDenominationDTO.Rate;
+                        acardTypeToBeUpdated.ModifiedBy = UserId;
+                        acardTypeToBeUpdated.ModifiedOn = DateTime.UtcNow;
+                    }
+                    else
+                    {
+                        //CREATE NEW CARD TYPE DENOMINATION
+                        newCardTypeDenomination.Add(new CardTypeDenomination
+                        {
+                            CardTypeId = normalCardConfigDTO.CardTypeId,
+                            DenominationId = updateCardRateDenominationDTO.DenominationId,
+                            Rate = updateCardRateDenominationDTO.Rate,
+                            CreatedBy = UserId
+                        });
 
-                    //UPDATE CARD STATUS
-                    var cardType = await _dbContext.CardType.FirstOrDefaultAsync(x => x.Id == updateNormalCardConfigDTO.CardTypeId);
-                    cardType.CardStatus = CardStatus.Approved;
+                    }
+
                 }
 
             }
+            
 
             await _dbContext.CardTypeDenomination.AddRangeAsync(newCardTypeDenomination);
             _logger.Info("About to Save CardType Denomination For Update Normal Card Type Config... at ExecutionPoint:UpdateNormalCard");
@@ -1362,52 +1481,6 @@ namespace Optima.Services.Implementation
 
 
         /// <summary>
-        /// VALIDATE CARD CONFIG
-        /// </summary>
-        /// <param name="CardId">The CardId.</param>
-        /// <param name="CountryIds">The countryIds.</param>
-        /// <param name="CardTypeIds">The CardTypeIds.</param>
-        /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
-        private async Task<BaseResponse<bool>> ValidateCardConfig(Guid CardId, List<Guid> CountryIds, List<Guid> CardTypeIds)
-        {
-            if (CountryIds == null || CountryIds == null || CardTypeIds == null)
-            {
-                Errors.Add("DATA CANNOT BE NULL");
-                return new BaseResponse<bool>("DATA CANNOT BE NULL", Errors);
-            }
-
-            var card = await _dbContext.Cards
-                .Include(x => x.CardType)
-                .Where(x => x.Id == CardId)
-                .FirstOrDefaultAsync();
-
-            // RETURNS THE CARD TYPES FOR THIS CARD WHERE THE ID EXISTS FOR THE SPECIFIED CARD
-            var cardTypes = card.CardType.Where(x => CardTypeIds.Contains(x.Id)).ToList();
-
-            // IF THE COUNT OF CARDTYPE RETURNED IS NOT EQUAL TO THE CARDTYPEIDs RETURNED
-            // THEN ONE ID IS WRONG
-            if (cardTypes.Count != CardTypeIds.Count())
-            {
-                Errors.Add(ResponseMessage.CardTypeNotFound);
-                return new BaseResponse<bool>(ResponseMessage.CardTypeNotFound, Errors);
-            }
-
-
-            var countryCardType = cardTypes.Where(x => CountryIds.Contains(x.CountryId)).ToList();
-
-            // CHECK THE COUNTRIES RETURNED FOR THE CARDTYPE AGAINST THE NUMBER SENT
-            // IF THE COUNTRIES RETURNED IS 2 AND THE COUNTRYIDs IS NOT EQUAL, THEN ONE ID IS WRONG
-            if (countryCardType.Count != CountryIds.Distinct().Count())
-            {
-                Errors.Add(ResponseMessage.CardCountryTypeNotFound);
-                return new BaseResponse<bool>(ResponseMessage.CardCountryTypeNotFound, Errors);
-            }
-
-            return new BaseResponse<bool>();
-        }
-
-
-        /// <summary>
         /// VALIDATE CARD TYPE DENOMINATION
         /// </summary>
         /// <param name="cardTypeDenominationIds">The prefixIds.</param>
@@ -1479,6 +1552,105 @@ namespace Optima.Services.Implementation
             return query;
         }
 
-        
+        /// <summary>
+        /// VALIDATES CARD NAME
+        /// </summary>
+        /// <param name="cardName">the CardName</param>
+        /// <param name="card">the Card</param>
+        /// <returns></returns>
+        private async Task<bool> ValidateCardName(string cardName, Card card)
+        {
+            if (cardName.Replace(" ", "").ToLower() != card.Name.Replace(" ", "").ToLower())
+            {
+                var checkExistingCard = await _dbContext.Cards.AnyAsync(x => x.Name.ToLower().Replace(" ", "") == cardName.ToLower().Replace(" ", ""));
+                if (checkExistingCard)
+                    return true;
+                
+                card.Name = cardName;
+            }
+           
+            return false;
+        }
+
+        /// <summary>
+        /// CREATES OR UPDATES A CARD IMAGE
+        /// </summary>
+        /// <param name="Logo"></param>
+        /// <param name="card"></param>
+        /// <returns></returns>
+        private async Task CreatesOrUpdatesImage(IFormFile Logo, Card card)
+        {
+            //UPDATES CARD LOGO IF IT ALREADY EXISTS
+            if (!(Logo is null) && !(card.LogoUrl is null))
+            {
+
+                _logger.Info("Preparing to Delete Image From Cloudinary... at ExecutionPoint:UpdateCard");
+                var fullPath = GenerateDeleteUploadedPath(card.LogoUrl);
+                await _cloudinaryServices.DeleteImage(fullPath);
+                _logger.Info("Successfully Deleted Image From Cloudinary... at ExecutionPoint:UpdateCard");
+
+                _logger.Info("Uploading Image to Cloudinary... at ExecutionPoint:UpdateCard");
+                var (uploadedFile, hasUploadError, responseMessage) = await _cloudinaryServices.UploadImage(Logo);
+                _logger.Info("Successfully Uploaded to Cloudinary... at ExecutionPoint:UpdateCard");
+
+                card.LogoUrl = uploadedFile;
+            }
+
+            //CREATES A CARD LOGO I.E.IT DOESN'T EXISTS.
+            if (!(Logo is null) && (card.LogoUrl is null))
+            {
+                _logger.Info("Uploading Image to Cloudinary... at ExecutionPoint:UpdateCard");
+                var (uploadedFile, hasUploadError, responseMessage) = await _cloudinaryServices.UploadImage(Logo);
+                _logger.Info("Successfully Uploaded to Cloudinary... at ExecutionPoint:UpdateCard");
+
+                card.LogoUrl = uploadedFile;
+            }
+        }
+
+
+        /// <summary>
+        /// VALIDATE CARD CONFIG
+        /// </summary>
+        /// <param name="CardId">The CardId.</param>
+        /// <param name="CountryIds">The countryIds.</param>
+        /// <param name="CardTypeIds">The CardTypeIds.</param>
+        /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
+        private async Task<BaseResponse<bool>> ValidateCardConfig(Guid CardId, List<Guid> CountryIds, List<Guid> CardTypeIds)
+        {
+            if (CountryIds == null || CountryIds == null || CardTypeIds == null)
+            {
+                Errors.Add("DATA CANNOT BE NULL");
+                return new BaseResponse<bool>("DATA CANNOT BE NULL", Errors);
+            }
+
+            var card = await _dbContext.Cards
+                .Include(x => x.CardType)
+                .Where(x => x.Id == CardId)
+                .FirstOrDefaultAsync();
+
+            // RETURNS THE CARD TYPES FOR THIS CARD WHERE THE ID EXISTS FOR THE SPECIFIED CARD
+            var cardTypes = card.CardType.Where(x => CardTypeIds.Contains(x.Id)).ToList();
+
+            // IF THE COUNT OF CARDTYPE RETURNED IS NOT EQUAL TO THE CARDTYPEIDs RETURNED
+            // THEN ONE ID IS WRONG
+            if (cardTypes.Count != CardTypeIds.Count())
+            {
+                Errors.Add(ResponseMessage.CardTypeNotFound);
+                return new BaseResponse<bool>(ResponseMessage.CardTypeNotFound, Errors);
+            }
+
+
+            var countryCardType = cardTypes.Where(x => CountryIds.Contains(x.CountryId)).ToList();
+
+            // CHECK THE COUNTRIES RETURNED FOR THE CARDTYPE AGAINST THE NUMBER SENT
+            // IF THE COUNTRIES RETURNED IS 2 AND THE COUNTRYIDs IS NOT EQUAL, THEN ONE ID IS WRONG
+            if (countryCardType.Count != CountryIds.Distinct().Count())
+            {
+                Errors.Add(ResponseMessage.CardCountryTypeNotFound);
+                return new BaseResponse<bool>(ResponseMessage.CardCountryTypeNotFound, Errors);
+            }
+
+            return new BaseResponse<bool>();
+        }
     }
 }

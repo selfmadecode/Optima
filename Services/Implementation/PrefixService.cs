@@ -136,6 +136,8 @@ namespace Optima.Services.Implementation
                     Errors.Add(ResponseMessage.VisaPrefixExist);
                     return new BaseResponse<bool>(ResponseMessage.VisaPrefixExist, Errors);
                 }
+
+                checkPrefix.PrefixNumber = model.PrefixNumber;
             }
             
 

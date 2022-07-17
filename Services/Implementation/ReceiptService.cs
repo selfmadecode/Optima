@@ -128,6 +128,8 @@ namespace Optima.Services.Implementation
                     Errors.Add(ResponseMessage.ReceiptExist);
                     return new BaseResponse<bool>(ResponseMessage.ReceiptExist, Errors);
                 }
+
+                checkReceipt.Name = model.Name;
             }
 
 

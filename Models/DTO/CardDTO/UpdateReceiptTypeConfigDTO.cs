@@ -8,19 +8,10 @@ using System.Threading.Tasks;
 
 namespace Optima.Models.DTO.CardDTO
 {
-    /*public class UpdateReceiptTypeConfigDTO
-    {
-        public List<ReceiptTypeUpdateConfigDTO> ReceiptTypeUpdateCardConfigDTO { get; set; } = new List<ReceiptTypeUpdateConfigDTO>();
-    }
-
-    public class ReceiptTypeUpdateConfigDTO : UpdateCardConfigDTO
-    {
-        [Required]
-        public Guid ReceiptId { get; set; } 
-    }*/
 
     public class UpdateReceiptTypeCardDTO : IValidatableObject
     {
+        [Required]
         public string CardName { get; set; }
         public IFormFile Logo { get; set; }
         public List<UpdateReceiptTypeCardConfigDTO> UpdateReceiptTypeConfigDTO { get; set; } = new List<UpdateReceiptTypeCardConfigDTO>();

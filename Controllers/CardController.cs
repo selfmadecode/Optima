@@ -268,6 +268,7 @@ namespace Optima.Controllers
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
+        [AllowAnonymous]
         [HttpGet]
         [Route("Approved")]
         [ProducesResponseType(typeof(BaseResponse<PagedList<CardDTO>>), 200)]
@@ -315,7 +316,7 @@ namespace Optima.Controllers
         [HttpPut]
         [Route("Update-Normal/{CardId}")]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
-        public async Task<IActionResult> UpdateNormalCard(Guid CardId, [FromBody] UpdateNormalCardConfigDTO model)
+        public async Task<IActionResult> UpdateNormalCard(Guid CardId, [FromForm] UpdateNormalTypeCardDTO model)
         {
             try
             {
@@ -338,7 +339,7 @@ namespace Optima.Controllers
         [HttpPut]
         [Route("Update-ReceiptType{CardId}")]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
-        public async Task<IActionResult> UpdateReceiptCard(Guid CardId, [FromBody] UpdateReceiptTypeConfigDTO model)
+        public async Task<IActionResult> UpdateReceiptCard(Guid CardId, [FromForm] UpdateReceiptTypeCardDTO model)
         {
             try
             {
@@ -361,7 +362,7 @@ namespace Optima.Controllers
         [HttpPut]
         [Route("Update-Visa/{CardId}")]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
-        public async Task<IActionResult> UpdateVisaCard(Guid CardId, [FromBody] UpdateVisaCardConfigDTO model)
+        public async Task<IActionResult> UpdateVisaCard(Guid CardId, [FromForm] UpdateVisaTypeCardDTO model)
         {
             try
             {

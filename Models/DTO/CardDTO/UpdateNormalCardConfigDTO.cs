@@ -8,16 +8,13 @@ using System.Threading.Tasks;
 
 namespace Optima.Models.DTO.CardDTO
 {
-   /* public class UpdateNormalCardConfigDTO
-    {
-        public List<UpdateCardConfigDTO> UpdateCardConfigDTO { get; set; } = new List<UpdateCardConfigDTO>();
-    }
-   */
+  
     public class UpdateNormalTypeCardDTO : IValidatableObject
     {
+        [Required]
         public string CardName { get; set; }
         public IFormFile Logo { get; set; }
-        public List<UpdateCardConfig> UpdateNormalCardTypeDTO { get; set; } = new List<UpdateCardConfig>();
+        public List<UpdateCardConfig> UpdateNormalCardTypeConfigDTO { get; set; } = new List<UpdateCardConfig>();
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
