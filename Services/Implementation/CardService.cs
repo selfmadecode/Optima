@@ -1671,5 +1671,51 @@ namespace Optima.Services.Implementation
             return null;
         }
 
+        public async Task<BaseResponse<MobileCardDTO>> GetCardForMobile(Guid id)
+        {
+            var card = await _dbContext.Cards.Where(x => x.Id == id)
+               .Include(x => x.CardType).ThenInclude(x => x.Country)
+               .Include(x => x.CardType).ThenInclude(x => x.CardTypeDenomination).ThenInclude(x => x.Denomination)
+               .Include(x => x.CardType).ThenInclude(x => x.CardTypeDenomination).ThenInclude(x => x.Prefix)
+               .Include(x => x.CardType).ThenInclude(x => x.CardTypeDenomination).ThenInclude(x => x.Receipt)
+               .FirstOrDefaultAsync();
+
+            ///group card by countries
+            var groupedCards = card.CardType.GroupBy(x => x.Country).ToList();
+            #region
+            /* //card
+
+             var mobileCardDTO = new MobileCardDTO
+             {
+                 Name = card.Name,
+
+             };
+
+             groupedCards.ForEach (x => new MobileCardTypeDTO
+             {
+                 Id = x.Key.Id,
+                 CountryName = x.Key.Name,
+                 Logo = x.Key.LogoUrl,
+             });
+
+
+             var mobileCardTypeDTO = new MobileCardTypeDTO
+             {
+                 //Id = groupedCards.
+
+
+             };*/
+            #endregion
+            MobileCardDTO cardDTO = card;
+            cardDTO.MobileCardTypeDTOs = groupedCards.Select(x => new MobileCardTypeDTO
+            {
+                CountryId = x.Key.Id,
+                CountryName = x.Key.Name,
+                Logo = x.Key.LogoUrl,
+                CardTypesDTO = x.Select(x=>(MobileCardTypes)x).ToList(),
+            }).ToList();
+
+            return new BaseResponse<MobileCardDTO>(cardDTO, ResponseMessage.SuccessMessage000);
+        }
     }
 }

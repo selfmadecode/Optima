@@ -425,5 +425,26 @@ namespace Optima.Controllers
                 return HandleError(ex);
             }
         }
+
+        /// <summary>
+        /// GETS A CARD AND INCLUDES ITS CARDTYPE AND CARDTYPE DENOMINATION I.E IF THE CARDTYPE DENOMINATION HAS PREFIX CONFIGURED,
+        /// THE PREFIX WOULD ALSO BE INCLUDED AS PART OF THE RESPONSE, ELSE IT WOULDN'T. ETC.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [HttpGet]
+        [Route("Mobile/{id}")]
+        [ProducesResponseType(typeof(BaseResponse<CardDTO>), 200)]
+        public async Task<IActionResult> GetMobile(Guid id)
+        {
+            try
+            {
+                return ReturnResponse(await _cardService.GetCardForMobile(id));
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex); ;
+            }
+        }
     }
 }
