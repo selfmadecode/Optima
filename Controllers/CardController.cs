@@ -220,7 +220,7 @@ namespace Optima.Controllers
         /// <param name="id"></param>
         /// <returns></returns>
         [HttpGet]
-        [Route("{id}")]
+        [Route("Old/{id}")]
         [ProducesResponseType(typeof(BaseResponse<CardDTO>), 200)] 
         public async Task<IActionResult> Get(Guid id)
         {
@@ -433,13 +433,13 @@ namespace Optima.Controllers
         /// <param name="id"></param>
         /// <returns></returns>
         [HttpGet]
-        [Route("Main/{id}")]
-        [ProducesResponseType(typeof(BaseResponse<CardDTO>), 200)]
-        public async Task<IActionResult> Main(Guid id)
+        [Route("{id}")]
+        [ProducesResponseType(typeof(BaseResponse<MainCardDTO>), 200)]
+        public async Task<IActionResult> GetMain(Guid id)
         {
             try
             {
-                return ReturnResponse(await _cardService.GetCardForMobile(id));
+                return ReturnResponse(await _cardService.GetCard_Ordered_By_Country(id));
             }
             catch (Exception ex)
             {

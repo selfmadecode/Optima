@@ -1671,7 +1671,7 @@ namespace Optima.Services.Implementation
             return null;
         }
 
-        public async Task<BaseResponse<MainCardDTO>> GetCardForMobile(Guid id)
+        public async Task<BaseResponse<MainCardDTO>> GetCard_Ordered_By_Country(Guid id)
         {
             var card = await _dbContext.Cards.Where(x => x.Id == id)
                .Include(x => x.CardType).ThenInclude(x => x.Country)
