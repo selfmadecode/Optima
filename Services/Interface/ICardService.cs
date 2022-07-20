@@ -28,6 +28,6 @@ namespace Optima.Services.Interface
         Task<BaseResponse<PagedList<CardDTO>>> AllActiveCards(BaseSearchViewModel model);
         Task<BaseResponse<PagedList<CardDTO>>> AllInActiveCards(BaseSearchViewModel model); 
         Task<BaseResponse<PagedList<CardDTO>>> AllBlockedCards(BaseSearchViewModel model);
-        Task<BaseResponse<MobileCardDTO>> GetCardForMobile(Guid id);
+        Task<BaseResponse<MainCardDTO>> GetCardForMobile(Guid id);
     }
 }

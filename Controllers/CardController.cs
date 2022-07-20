@@ -433,9 +433,9 @@ namespace Optima.Controllers
         /// <param name="id"></param>
         /// <returns></returns>
         [HttpGet]
-        [Route("Mobile/{id}")]
+        [Route("Main/{id}")]
         [ProducesResponseType(typeof(BaseResponse<CardDTO>), 200)]
-        public async Task<IActionResult> GetMobile(Guid id)
+        public async Task<IActionResult> GetMain(Guid id)
         {
             try
             {

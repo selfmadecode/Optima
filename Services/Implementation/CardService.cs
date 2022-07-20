@@ -1671,7 +1671,7 @@ namespace Optima.Services.Implementation
             return null;
         }
 
-        public async Task<BaseResponse<MobileCardDTO>> GetCardForMobile(Guid id)
+        public async Task<BaseResponse<MainCardDTO>> GetCardForMobile(Guid id)
         {
             var card = await _dbContext.Cards.Where(x => x.Id == id)
                .Include(x => x.CardType).ThenInclude(x => x.Country)
@@ -1680,42 +1680,80 @@ namespace Optima.Services.Implementation
                .Include(x => x.CardType).ThenInclude(x => x.CardTypeDenomination).ThenInclude(x => x.Receipt)
                .FirstOrDefaultAsync();
 
-            ///group card by countries
+            ///GROUP CARD BY COUNTRIES
             var groupedCards = card.CardType.GroupBy(x => x.Country).ToList();
-            #region
-            /* //card
 
-             var mobileCardDTO = new MobileCardDTO
-             {
-                 Name = card.Name,
+            MainCardDTO cardDTO = card;
 
-             };
-
-             groupedCards.ForEach (x => new MobileCardTypeDTO
-             {
-                 Id = x.Key.Id,
-                 CountryName = x.Key.Name,
-                 Logo = x.Key.LogoUrl,
-             });
-
-
-             var mobileCardTypeDTO = new MobileCardTypeDTO
-             {
-                 //Id = groupedCards.
-
-
-             };*/
-            #endregion
-            MobileCardDTO cardDTO = card;
-            cardDTO.MobileCardTypeDTOs = groupedCards.Select(x => new MobileCardTypeDTO
+            switch (card.BaseCardType)
             {
-                CountryId = x.Key.Id,
-                CountryName = x.Key.Name,
-                Logo = x.Key.LogoUrl,
-                CardTypesDTO = x.Select(x=>(MobileCardTypes)x).ToList(),
-            }).ToList();
+                case BaseCardType.REGULAR:
+                    {                   
+                        cardDTO.MainCardTypeDTOs = groupedCards.Select(x => new MainCardTypeDTO
+                        {
+                            CountryId = x.Key.Id,
+                            CountryName = x.Key.Name,
+                            Logo = x.Key.LogoUrl,
+                            CardTypesDTO = x.Select(x => (MainCardTypes)x).ToList()                          
+                        }).ToList();
+                    }
+                    break;
+                case BaseCardType.AMAZON:
+                    {
+                        var receiptCardTypeDenominations = new ReceiptCardTypeDenomination();
+                        var groupedCardTypeDenomination = card.CardType.SelectMany(x => x.CardTypeDenomination).GroupBy(x => x.Receipt).FirstOrDefault();
+                     
+                        receiptCardTypeDenominations.ReceiptId = groupedCardTypeDenomination.Key.Id;
+                        receiptCardTypeDenominations.ReceiptType = groupedCardTypeDenomination.Key.Name;
+                        receiptCardTypeDenominations.MainCardTypeDenominationDTO = groupedCardTypeDenomination.Select(x => (MainCardTypeDenominationDTO)x).ToList();
 
-            return new BaseResponse<MobileCardDTO>(cardDTO, ResponseMessage.SuccessMessage000);
+                        cardDTO.MainCardTypeDTOs = groupedCards.Select(x => new MainCardTypeDTO
+                        {
+                            CountryId = x.Key.Id,
+                            CountryName = x.Key.Name,
+                            Logo = x.Key.LogoUrl,
+                            CardTypesDTO = x.Select(x => new MainCardTypes
+                            {
+                                Id = x.Id,                            
+                                CardStatus = x.CardStatus,
+                                CardType = x.CardCategory,
+                                CreatedOn = x.CreatedOn,
+                                Receipt = receiptCardTypeDenominations,
+                            }).ToList()
+                        }).ToList();                        
+                    }
+                    break;
+                case BaseCardType.SPECIAL:
+                    {
+                        var prefixCardTypeDenominations = new PrefixCardTypeDenomination();
+                        var groupedCardTypDenomination = card.CardType.SelectMany(x => x.CardTypeDenomination).GroupBy(x => x.Prefix).FirstOrDefault();
+
+                        prefixCardTypeDenominations.PrefixId = groupedCardTypDenomination.Key.Id;
+                        prefixCardTypeDenominations.PrefixName = groupedCardTypDenomination.Key.PrefixNumber;
+                        prefixCardTypeDenominations.MainCardTypeDenominationDTO = groupedCardTypDenomination.Select(x => (MainCardTypeDenominationDTO)x).ToList();
+
+                        cardDTO.MainCardTypeDTOs = groupedCards.Select(x => new MainCardTypeDTO
+                        {
+                            CountryId = x.Key.Id,
+                            CountryName = x.Key.Name,
+                            Logo = x.Key.LogoUrl,
+                            CardTypesDTO = x.Select(x => new MainCardTypes
+                            {
+                                Id = x.Id,                               
+                                CardType = x.CardCategory,
+                                CardStatus = x.CardStatus,
+                                CreatedOn = x.CreatedOn,
+                                Prefix = prefixCardTypeDenominations,                           
+                            }).ToList()
+                        }).ToList();
+                    }
+                    break;
+                default:
+                    break;
+            }
+
+          
+            return new BaseResponse<MainCardDTO>(cardDTO, ResponseMessage.SuccessMessage000);
         }
     }
 }
