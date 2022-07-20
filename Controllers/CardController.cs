@@ -435,7 +435,7 @@ namespace Optima.Controllers
         [HttpGet]
         [Route("Main/{id}")]
         [ProducesResponseType(typeof(BaseResponse<CardDTO>), 200)]
-        public async Task<IActionResult> GetMain(Guid id)
+        public async Task<IActionResult> Main(Guid id)
         {
             try
             {
