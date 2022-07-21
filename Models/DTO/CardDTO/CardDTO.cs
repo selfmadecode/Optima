@@ -70,14 +70,6 @@ namespace Optima.Models.DTO.CardDTO
         public DateTime CreatedOn { get; set; }
         public List<MainCardTypes> CardTypesDTO { get; set; }
 
-        public static implicit operator MainCardTypeDTO(List<CardType> model)
-        {
-            return model is null ? null
-               : new MainCardTypeDTO
-               {
-                   CardTypesDTO = model.Select(x => (MainCardTypes)x).ToList()
-               };
-        }
     }
 
     public class MainCardTypes
@@ -103,36 +95,11 @@ namespace Optima.Models.DTO.CardDTO
                };
         }
     }
-    #region
-
-    /* public class MobileCardTypes
-     {
-         public Guid Id { get; set; }
-         public string CardType { get; set; }
-         public string CardStatus { get; set; }
-         public DateTime CreatedOn { get; set; }
-         public List<CardTypeDenominationDTO> CardTypeDenominationDTOs { get; set; }
-
-         public static implicit operator MobileCardTypes(CardType model)
-         {
-             return model is null ? null
-                : new MobileCardTypes
-                {
-                    Id = model.Id,
-                    CardType = model.CardCategory.GetDescription(),
-                    CardStatus = model.CardStatus.GetDescription(),
-                    CreatedOn = model.CreatedOn,
-                    CardTypeDenominationDTOs = model.CardTypeDenomination.Select(x => (CardTypeDenominationDTO)x).ToList(),
-                };
-         }
-     }
- */
-    #endregion
 
     public class PrefixCardTypeDenomination
     {
         public Guid PrefixId { get; set; }
-        public string PrefixName { get; set; }
+        public string PrefixNumber { get; set; }
         public List<MainCardTypeDenominationDTO> MainCardTypeDenominationDTO { get; set; }
     }
 
@@ -150,7 +117,6 @@ namespace Optima.Models.DTO.CardDTO
         public DenominationDTO DenominationDTO { get; set; }
         public decimal Rate { get; set; }
         public DateTime CreatedOn { get; set; }
-
 
 
         public static implicit operator MainCardTypeDenominationDTO(CardTypeDenomination model)
