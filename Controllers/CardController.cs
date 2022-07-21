@@ -327,16 +327,11 @@ namespace Optima.Controllers
         [HttpPut]
         [Route("Update-Normal/{CardId}")]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
-        public async Task<IActionResult> UpdateNormalCard(Guid CardId, [FromForm] UpdateNormalTypeCardDTO model)
+        public async Task<IActionResult> UpdateNormalCard(Guid CardId, [FromBody] UpdateNormalTypeCardDTO model)
         {
             try
             {
-                var validationResult = await model.Validate(_configuration);
-
-                if (validationResult.Errors.Any())
-                {
-                    return ReturnResponse(validationResult);
-                }
+              
                 return ReturnResponse(await _cardService.UpdateNormalCard(model, UserId, CardId));
             }
             catch (Exception ex)
@@ -357,16 +352,10 @@ namespace Optima.Controllers
         [AllowAnonymous]
         [Route("Update-ReceiptType/{cardId}")]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
-        public async Task<IActionResult> UpdateReceiptCard(Guid cardId, [FromForm] UpdateReceiptTypeCardDTO model)
+        public async Task<IActionResult> UpdateReceiptCard(Guid cardId, [FromBody] UpdateReceiptTypeCardDTO model)
         {
             try
             {
-                var validationResult = await model.Validate(_configuration);
-
-                if (validationResult.Errors.Any())
-                {
-                    return ReturnResponse(validationResult);
-                }
                 return ReturnResponse(await _cardService.UpdateReceiptCard(model, UserId, cardId));
             }
             catch (Exception ex)
@@ -386,16 +375,10 @@ namespace Optima.Controllers
         [HttpPut]
         [Route("Update-Visa/{CardId}")]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
-        public async Task<IActionResult> UpdateVisaCard(Guid CardId, [FromForm] UpdateVisaTypeCardDTO model)
+        public async Task<IActionResult> UpdateVisaCard(Guid CardId, [FromBody] UpdateVisaTypeCardDTO model)
         {
             try
             {
-                var validationResult = await model.Validate(_configuration);
-
-                if (validationResult.Errors.Any())
-                {
-                    return ReturnResponse(validationResult);
-                }
                 return ReturnResponse(await _cardService.UpdateVisaCard(model, UserId, CardId));
             }
             catch (Exception ex)
@@ -427,7 +410,8 @@ namespace Optima.Controllers
         }
 
         /// <summary>
-        /// GETS A CARD AND INCLUDES ITS CARDTYPE AND CARDTYPE DENOMINATION I.E IF THE CARDTYPE DENOMINATION HAS PREFIX CONFIGURED,
+        /// GETS A CARD AND INCLUDES ITS CARDTYPE AND CARDTYPE DENOMINATION, THIS RESULT IS BEING ORDERED BY COUNTRY
+        /// I.E IF THE CARDTYPE DENOMINATION HAS PREFIX CONFIGURED,
         /// THE PREFIX WOULD ALSO BE INCLUDED AS PART OF THE RESPONSE, ELSE IT WOULDN'T. ETC.
         /// </summary>
         /// <param name="id"></param>
@@ -440,6 +424,34 @@ namespace Optima.Controllers
             try
             {
                 return ReturnResponse(await _cardService.GetCard_Ordered_By_Country(id));
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex); ;
+            }
+        }
+
+        /// <summary>
+        /// UPDATES OR CREATE A CARD IMAGE
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        [HttpPut]
+        [Route("Logo/{id}")]
+        [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
+        public async Task<IActionResult> CardImage(Guid id, [FromForm] UpdateCardImageDTO model)
+        {
+            try
+            {
+                var validationResult = await model.Validate(_configuration);
+
+                if (validationResult.Errors.Any())
+                {
+                    return ReturnResponse(validationResult);
+                }
+
+                return ReturnResponse(await _cardService.UpdateCardImage(id, model));
             }
             catch (Exception ex)
             {

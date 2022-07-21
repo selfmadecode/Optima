@@ -860,7 +860,6 @@ namespace Optima.Services.Implementation
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
         public async Task<BaseResponse<bool>> UpdateVisaCard(UpdateVisaTypeCardDTO model, Guid UserId, Guid CardId)
         {
-            var uploadedFileToDelete = string.Empty;
 
             try
             {
@@ -929,10 +928,6 @@ namespace Optima.Services.Implementation
                     return new BaseResponse<bool>(ResponseMessage.VisaPrefixNotFound, Errors);
                 }
 
-                //UPDATE OR CREATES CARD IMAGE IF IT DOESN'T EXISTS.
-                uploadedFileToDelete = await CreatesOrUpdatesImage(model.Logo, card);
-
-
                 //UPDATES THE ALREADY CONFIGURED VISA CARD TYPE DENOMINATION
                 await UpdateVisa(model.UpdateVisaTypeConfigDTO, UserId);
 
@@ -943,12 +938,8 @@ namespace Optima.Services.Implementation
                 return new BaseResponse<bool>(true, ResponseMessage.CardUpdate);
             }
             catch (Exception ex)
-            {
-                if (!string.IsNullOrWhiteSpace(uploadedFileToDelete))
-                {
-                    await _cloudinaryServices.DeleteImage(GenerateDeleteUploadedPath(uploadedFileToDelete));
-                    _logger.Error(ex.Message, ex);
-                }
+            {         
+                _logger.Error(ex.Message, ex);
 
                 Errors.Add(ResponseMessage.ErrorMessage999);
                 return new BaseResponse<bool>(ResponseMessage.ErrorMessage999, Errors);
@@ -1026,7 +1017,6 @@ namespace Optima.Services.Implementation
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
         public async Task<BaseResponse<bool>> UpdateReceiptCard(UpdateReceiptTypeCardDTO model, Guid UserId, Guid CardId)
         {
-            var uploadedFileToDelete = string.Empty;
 
             try
             {
@@ -1094,10 +1084,6 @@ namespace Optima.Services.Implementation
                     return new BaseResponse<bool>(ResponseMessage.CardReceiptNotFound, Errors);
                 }
 
-
-                //UPDATE OR CREATES CARD IMAGE IF IT DOESN'T EXISTS.
-                uploadedFileToDelete = await CreatesOrUpdatesImage(model.Logo, card);
-
                 //UPDATES RECEIPT TYPE CARD CONFIG
                 await UpdateReceiptType(model.UpdateReceiptTypeConfigDTO, UserId);
 
@@ -1109,12 +1095,7 @@ namespace Optima.Services.Implementation
             }
             catch (Exception ex)
             {
-
-                if (!string.IsNullOrWhiteSpace(uploadedFileToDelete))
-                {
-                    await _cloudinaryServices.DeleteImage(GenerateDeleteUploadedPath(uploadedFileToDelete));
-                    _logger.Error(ex.Message, ex);
-                }
+                _logger.Error(ex.Message, ex);
 
                 Errors.Add(ResponseMessage.ErrorMessage999);
                 return new BaseResponse<bool>(ResponseMessage.ErrorMessage999, Errors);
@@ -1195,7 +1176,6 @@ namespace Optima.Services.Implementation
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
         public async Task<BaseResponse<bool>> UpdateNormalCard(UpdateNormalTypeCardDTO model, Guid UserId, Guid CardId)
         {
-            var uploadedFileToDelete = string.Empty;
 
             try
             {
@@ -1257,10 +1237,6 @@ namespace Optima.Services.Implementation
                     }
                 }
 
-
-                //UPDATE OR CREATES CARD IMAGE IF IT DOESN'T EXISTS.
-                uploadedFileToDelete = await CreatesOrUpdatesImage(model.Logo, card);
-
                 //UPDATES NORMAL CARD 
                 await UpdateNormalCard(model.UpdateNormalCardTypeConfigDTO, UserId);
 
@@ -1271,12 +1247,8 @@ namespace Optima.Services.Implementation
                 return new BaseResponse<bool>(true, ResponseMessage.CardUpdate);
             }
             catch (Exception ex)
-            {
-                if (!string.IsNullOrWhiteSpace(uploadedFileToDelete))
-                {
-                    await _cloudinaryServices.DeleteImage(GenerateDeleteUploadedPath(uploadedFileToDelete));
-                    _logger.Error(ex.Message, ex);
-                }
+            {              
+                _logger.Error(ex.Message, ex);
                
                 Errors.Add(ResponseMessage.ErrorMessage999);
                 return new BaseResponse<bool>(ResponseMessage.ErrorMessage999, Errors);
@@ -1671,6 +1643,11 @@ namespace Optima.Services.Implementation
             return null;
         }
 
+        /// <summary>
+        /// GET ORDERED ITEM OF A CARD
+        /// </summary>
+        /// <param name="id">the CardId</param>
+        /// <returns>Task&lt;BaseResponse&lt;MainCardDTO&gt;&gt;.</returns>
         public async Task<BaseResponse<MainCardDTO>> GetCard_Ordered_By_Country(Guid id)
         {
             var card = await _dbContext.Cards.Where(x => x.Id == id)
@@ -1764,6 +1741,51 @@ namespace Optima.Services.Implementation
             }
           
             return new BaseResponse<MainCardDTO>(cardDTO, ResponseMessage.SuccessMessage000);
+        }
+
+        /// <summary>
+        /// UPDATES OR CREATES A LOGO FOR A CARD
+        /// </summary>
+        /// <param name="CardId">the CardId</param>
+        /// <param name="model">the model</param>
+        /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
+        public async Task<BaseResponse<bool>> UpdateCardImage(Guid CardId, UpdateCardImageDTO model)
+        {
+            var uploadedFileToDelete = string.Empty;
+
+            try
+            {
+                //VALIDATES CARD ID.
+                var card = await FindCard(CardId);
+
+                if (card is null)
+                {
+                    Errors.Add(ResponseMessage.CardNotFound);
+                    return new BaseResponse<bool>(ResponseMessage.CardNotFound, Errors);
+                };
+
+                //UPDATE OR CREATES CARD IMAGE IF IT DOESN'T EXISTS.
+                uploadedFileToDelete = await CreatesOrUpdatesImage(model.Logo, card);
+
+                //UPDATES CARD 
+                _dbContext.Cards.Update(card);
+                await _dbContext.SaveChangesAsync();
+
+                return new BaseResponse<bool>(true, ResponseMessage.SuccessMessage000);
+            }
+            catch (Exception ex)
+            {
+
+                if (!string.IsNullOrWhiteSpace(uploadedFileToDelete))
+                {
+                    await _cloudinaryServices.DeleteImage(GenerateDeleteUploadedPath(uploadedFileToDelete));
+                    _logger.Error(ex.Message, ex);
+                }
+
+                Errors.Add(ResponseMessage.ErrorMessage999);
+                return new BaseResponse<bool>(ResponseMessage.ErrorMessage999, Errors);
+            }        
+
         }
     }
 }
