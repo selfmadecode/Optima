@@ -1,6 +1,7 @@
 ﻿using Optima.Models.DTO.CardSaleDTO;
 using Optima.Models.DTO.UserDTOs;
 using Optima.Models.Entities;
+using Optima.Models.Enums;
 using Optima.Utilities;
 using System;
 using System.Collections.Generic;
@@ -15,31 +16,40 @@ namespace Optima.Models.DTO.CardTransactionDTOs
         public string TransactionRefId { get; set; }
         public decimal TotalExpectedAmount { get; set; }
         public decimal AmountPaid { get; set; }
-        public string TransactionStatus { get; set; }        
+        public TransactionStatus Status { get; set; }        
         public DateTime CreatedOn { get; set; }
-        public UserDTO UserDTO { get; set; }
-        public UserDTO ActionByUserDTO { get; set; }
-        public List<CardSoldDTO> CardSoldDTOs { get; set; }
-        public List<CardTransactionImagesDTO> CardTransactionImagesDTOs { get; set; }
+        public CardDetailsDTO CardDetails { get; set; }
+        public CustomerDetailsDTO CustomerDetails { get; set; }
+        public ActionedByDTO ActionByUser { get; set; }
+        public List<CardSoldDTO> CardSold { get; set; }
+        public List<CardTransactionImagesDTO> CardTransactionImages { get; set; }        
+    }
 
+    public class CardDetailsDTO
+    {
+        public string Country { get; set; }
+        public string Type { get; set; } // E-CODE
+        public string CardName { get; set; }
 
+    }
 
-        public static implicit operator CardTransactionDTO(CardTransaction model)
-        {
-            return model is null ? null
-               : new CardTransactionDTO
-               {
-                   Id = model.Id,
-                   TransactionRefId = model.TransactionRef,
-                   TotalExpectedAmount = model.TotalExpectedAmount,
-                   AmountPaid = model.AmountPaid,
-                   TransactionStatus = model.TransactionStatus.GetDescription(),
-                   UserDTO = model.ApplicationUser,
-                   ActionByUserDTO = model.ActionBy,
-                   CardSoldDTOs = model.CardSold.Select(x => (CardSoldDTO)x).ToList(),
-                   CardTransactionImagesDTOs = model.TransactionUploadededFiles.Select(x => (CardTransactionImagesDTO)x).ToList(),
-                   CreatedOn = model.CreatedOn
-               };
-        }
+    public class CustomerDetailsDTO
+    {
+        public Guid UserId { get; set; }
+        public string FullName { get; set; }
+        public string PhoneNumber { get; set; }
+    }
+
+    public class ActionedByDTO
+    {
+        public Guid UserId { get; set; }
+        public string FullName { get; set; }
+    }
+
+    public class CardSoldDTO
+    {
+        public decimal Denomination { get; set; }
+        public string Code { get; set; }
+        public decimal Amount { get; set; }
     }
 }

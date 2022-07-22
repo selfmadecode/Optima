@@ -10,19 +10,23 @@ using System.Threading.Tasks;
 
 namespace Optima.Models.DTO.CardSaleDTO
 {
-    public class SellCardDTO
+    public class SellCardDTO : IValidatableObject
     {
-        public List<SellerCardTypeDTO> CardTypeDTOs { get; set; } = new List<SellerCardTypeDTO>();
-    }
 
-    public class SellerCardTypeDTO : IValidatableObject
-    {
-       
         [Required]
-        public Guid CardTypeDenominationId { get; set; }
-               
+        public Guid CardId { get; set; }
+
         [Required]
-        public List<string> CardCodes { get; set; } = new List<string>();
+        public Guid CardTypeId { get; set; }
+
+        [Required]
+        public Guid CountryId { get; set; }
+
+        public Guid? SubTypeId { get; set; }
+        // SubTypeId Can be receiptId or prefixId, validate what it should be using the cardId
+        // Get Card by Id, if card is receiptType card, then the value of subtypeid should be a receipt typeid
+
+        public List<SelectedCardDenominationDTO> SelectedCardDenominationDTO { get; set; }
         public List<IFormFile> CardImages { get; set; } = new List<IFormFile>();
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
@@ -44,10 +48,14 @@ namespace Optima.Models.DTO.CardSaleDTO
                         yield return new ValidationResult("Logo file type must be .jpg or .png or .jpeg");
                 }
             }
-           
         }
     }
-  
+
+    public class SelectedCardDenominationDTO
+    {
+        public Guid DenominationId { get; set; }
+        public string GiftCardCode { get; set; }
+    }  
 }
 
    

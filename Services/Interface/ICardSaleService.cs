@@ -22,6 +22,7 @@ namespace Optima.Services.Interface
         Task<BaseResponse<PagedList<AllTransactionDTO>>> GetPendingTransaction(BaseSearchViewModel model);
         Task<BaseResponse<PagedList<AllTransactionDTO>>> GetApproved_PartialApproved_Transaction(BaseSearchViewModel model);
         Task<BaseResponse<List<AllTransactionDTO>>> GetUserRecentTransactions(Guid UserId);
+        Task<BaseResponse<List<AllTransactionDTO>>> SeeAllTransactions(Guid UserId);
         Task<BaseResponse<PagedList<AllTransactionDTO>>> GetDeclinedTransaction(BaseSearchViewModel model);
     }
 }

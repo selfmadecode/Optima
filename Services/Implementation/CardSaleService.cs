@@ -62,21 +62,95 @@ namespace Optima.Services.Implementation
 
             try
             {
-                //VALIDATES THE CONFIGURED CARD TYPE DENOMINATION IDs THE ADMIN CREATES. THE USER SELLS THAT TO THE ADMIN.
-                var checkCardTpeDenominations = await FindCardTypeDenominations(model.CardTypeDTOs.Select(x => x.CardTypeDenominationId).ToList());
+                // GET THE CARD BY ID AND THE USER SELECTED CARDTYPEID AND COUNTRY
+                var card = _context.Cards
+                    .Include(x => x.CardType).ThenInclude(x => x.CardTypeDenomination)
+                    .FirstOrDefault(x => x.Id == model.CardId
+                                && x.IsDeleted == false
+                                && x.IsActive == true);
 
-                if (checkCardTpeDenominations.Count != model.CardTypeDTOs.Select(x => x.CardTypeDenominationId).Count())
+                if(card == null)
                 {
-                    Errors.Add(ResponseMessage.CardTypeDenominationNotFound);
-                    return new BaseResponse<bool>(ResponseMessage.CardTypeDenominationNotFound, Errors);
+                    Errors.Add(ResponseMessage.CardNotFound);
+                    return new BaseResponse<bool>(ResponseMessage.CardNotFound, Errors);
+                }
+
+                var cardType = _context.CardType
+                    .Include(x => x.CardTypeDenomination)
+                    .Include(c => c.Card)
+                    .FirstOrDefault(x => x.CountryId == model.CountryId && x.Id == model.CardId && x.CardId == card.Id);
+
+                if (cardType == null)
+                {
+                    Errors.Add(ResponseMessage.CardNotFound);
+                    return new BaseResponse<bool>(ResponseMessage.CardNotFound, Errors);
+                }
+
+                var userSelectedDenominationIds = model.SelectedCardDenominationDTO.Select(x => x.DenominationId);
+
+                IEnumerable<CardTypeDenomination> existingCardDenomination = null;
+
+                switch (card.BaseCardType)
+                {
+                    case BaseCardType.REGULAR:
+                        existingCardDenomination = cardType.CardTypeDenomination
+                    .Where(x => userSelectedDenominationIds.Contains(x.DenominationId));
+                        break;
+
+                    case BaseCardType.AMAZON:
+                        existingCardDenomination = cardType.CardTypeDenomination
+                    .Where(x => userSelectedDenominationIds.Contains(x.DenominationId) && x.ReceiptId == model.SubTypeId);
+                        break;
+
+                    case BaseCardType.SPECIAL:
+                        existingCardDenomination = cardType.CardTypeDenomination
+                    .Where(x => userSelectedDenominationIds.Contains(x.DenominationId) && x.PrefixId == model.SubTypeId);
+                        break;
+                }
+
+                if (existingCardDenomination.Count() != userSelectedDenominationIds.Distinct().Count())
+                {
+                    Errors.Add(ResponseMessage.CardTypeDenominationForCardNotFound);
+                    return new BaseResponse<bool>(ResponseMessage.CardTypeDenominationForCardNotFound, Errors);
+                }
+
+                decimal totalExpectedAmount = 0;
+
+                var cardSold = new List<CardSold>();
+
+                foreach (var item in model.SelectedCardDenominationDTO)
+                {
+                    var existingRate = existingCardDenomination.Where(x => x.DenominationId == item.DenominationId).FirstOrDefault();
+
+                    totalExpectedAmount += existingRate.Rate;
+
+                    cardSold.Add(new CardSold
+                    {
+                        Code = item.GiftCardCode,
+                        CreatedOn = DateTime.Now,
+                        Rate = existingRate.Rate,
+                        CardTypeDenominationId = item.DenominationId,
+                        CreatedBy = UserId
+                    });
+                }
+
+                var transactionImages = await UploadTransactionImages(model.CardImages, UserId);
+
+                var transaction = new CardTransaction
+                {
+                    TotalExpectedAmount = totalExpectedAmount,
+                    ApplicationUserId = UserId,
+                    CardTypeDenominationId = existingCardDenomination.FirstOrDefault().Id,
+                    CreatedOn = DateTime.Now,
+                    TransactionStatus = TransactionStatus.Pending,
+                    TransactionRef ="",
+                    CardSold = cardSold,
+                    TransactionUploadededFiles = transactionImages
                 };
 
-                //CREATE CARD FOR SALE
-                var (cardTransaction, filesLogoUrl) = await CreateCardForSales(model, UserId);
-                //SET THE FLES TO DELETE INCASE AN EXCEPTION OCCUR WHILE CREATING THE CARD SALES.
-                filesToDelete = filesLogoUrl;
-             
-                await _context.CardTransactions.AddRangeAsync(cardTransaction);
+                _context.CardTransactions.Add(transaction);
+                await _context.SaveChangesAsync();
+
 
                 _logger.Info("About to Save Card Transaction, Card Sold and Card Transaction Uploaded Files... at ExecutionPoint:CreateCardSales");
                 await _context.SaveChangesAsync();
@@ -120,6 +194,9 @@ namespace Optima.Services.Implementation
         /// <returns>
         /// System.Value.Tuple&lt;(CardTransaction, List&lt;CardSold)&gt;.
         /// </returns>
+        /// 
+
+        /*
         private async Task<(List<CardTransaction>, List<string>)> CreateCardForSales(SellCardDTO model, Guid UserId)
         {
             decimal amount = 0;
@@ -154,7 +231,6 @@ namespace Optima.Services.Implementation
                 };
 
                 //UPLOAD FILES TO CLOUDINARY FOR A PARTICULAR CARD SALE
-                var transactionImages = await UploadTransactionImages(sellCardDto.CardImages, UserId);
                 filesToDelete.AddRange(transactionImages.Select(x => x.LogoUrl));
 
                 //CREATES THE CARD SOLD 
@@ -185,6 +261,9 @@ namespace Optima.Services.Implementation
 
             return (cardTransaction, filesToDelete);
         }
+
+        */
+
 
         /// <summary>
         /// UPLOAD TRANSACTION IMAGES
@@ -221,16 +300,58 @@ namespace Optima.Services.Implementation
         public async Task<BaseResponse<CardTransactionDTO>> GetCardSale(GetTransactionByIdDTO model)
         {
             var query = await _context.CardTransactions
-                .Include(x => x.CardSold).ThenInclude(x => x.CardCodes)
-                .Include(x => x.CardSold).ThenInclude(x => x.CardTypeDenomination).ThenInclude(x => x.Denomination)
-                .Include(x => x.CardSold).ThenInclude(x => x.CardTypeDenomination).ThenInclude(x => x.Prefix)
-                .Include(x => x.CardSold).ThenInclude(x => x.CardTypeDenomination).ThenInclude(x => x.Receipt)
+                .Include(x => x.CardTypeDenomination).ThenInclude(x => x.CardType.Card) // TO GET THE NAME
+                //.Include(x => x.CardTypeDenomination).ThenInclude(x => x.Prefix)
+                //.Include(x => x.CardTypeDenomination).ThenInclude(x => x.Receipt)
+                .Include(x => x.CardTypeDenomination).ThenInclude(x => x.Denomination) // ??
+                .Include(x => x.CardSold)
                 .Include(x => x.TransactionUploadededFiles)
                 .Include(x => x.ApplicationUser)
                 .Include(x => x.ActionBy)
                 .FirstOrDefaultAsync(x => x.Id == model.Id);
 
-            var data = (CardTransactionDTO)query;
+            string type = "";
+
+            var data = new CardTransactionDTO
+            {
+                AmountPaid = query.AmountPaid,
+                TotalExpectedAmount = query.TotalExpectedAmount,
+                Status = query.TransactionStatus,
+                Id = query.Id,
+                TransactionRefId = query.TransactionRef,
+                CreatedOn = query.CreatedOn,
+                CardDetails = new CardDetailsDTO
+                {
+                    CardName = query.CardTypeDenomination.CardType.Card.Name,
+                    Country = query.CardTypeDenomination.CardType.Country.Name, // CHECK FOR NULL
+                    Type = type
+                },
+                ActionByUser = new ActionedByDTO
+                {
+                    FullName = query.ActionBy.FullName,
+                    UserId = query.ActionBy.Id
+                },
+                CardTransactionImages = query.TransactionUploadededFiles.Select(x => new CardTransactionImagesDTO
+                {
+                    Id = x.Id,
+                    CreatedOn = x.CreatedOn,
+                    LogoUrl = x.LogoUrl
+                }).ToList(),
+                CustomerDetails = new CustomerDetailsDTO
+                {
+                    FullName = query.ApplicationUser.FullName,
+                    PhoneNumber = query.ApplicationUser.PhoneNumber,
+                    UserId = query.ApplicationUser.Id
+                },
+                CardSold  = query.CardSold.Select(x => new CardSoldDTO
+                {
+                    Amount = x.Rate,
+                    Code = x.Code,
+                    Denomination = x.CardTypeDenomination.Denomination.Amount
+                }).ToList()
+                
+                
+            };
 
             return new BaseResponse<CardTransactionDTO>(data, ResponseMessage.SuccessMessage000);
         }
@@ -243,10 +364,10 @@ namespace Optima.Services.Implementation
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
         public async Task<BaseResponse<PagedList<CardTransactionDTO>>> GetUserCardTransactions(BaseSearchViewModel model, Guid UserId)
         {
-
+            /*
             var query = _context.CardTransactions
                 .Where(x => x.ApplicationUserId == UserId)
-                .Include(x => x.CardSold).ThenInclude(x => x.CardCodes)
+                .Include(x => x.CardSold)
                 .Include(x => x.CardSold).ThenInclude(x => x.CardTypeDenomination).ThenInclude(x => x.Denomination)
                 .Include(x => x.CardSold).ThenInclude(x => x.CardTypeDenomination).ThenInclude(x => x.Prefix)
                 .Include(x => x.CardSold).ThenInclude(x => x.CardTypeDenomination).ThenInclude(x => x.Receipt)
@@ -267,6 +388,8 @@ namespace Optima.Services.Implementation
             var data = new PagedList<CardTransactionDTO>(cardTransactionsDto, model.PageIndex, model.PageSize, cardTransactions.TotalItemCount);
             return new BaseResponse<PagedList<CardTransactionDTO>> 
             { Data = data, TotalCount = data.TotalItemCount, ResponseMessage = $"FOUND {data.Count} CARD TRANSACTION(s)." };
+            */
+            return new BaseResponse<PagedList<CardTransactionDTO>>();
         }
 
         /// <summary>
@@ -277,6 +400,7 @@ namespace Optima.Services.Implementation
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
         public async Task<BaseResponse<bool>> UpdateCardSales(Guid transactionId, UpdateSellCardDTO model, Guid UserId)
         {
+            /*
             //VALIDATES THE CARD TRANSACTION ID TO BE UPDATED
             var cardTransaction = await FindCardTransaction(transactionId);
                 
@@ -308,6 +432,7 @@ namespace Optima.Services.Implementation
             //UPDATES THE CARD SALES. THIS UPDATES THE CARD CODES.
             await CardSaleUpdate(model, cardCodes, UserId);
 
+            */
             return new BaseResponse<bool>(true, ResponseMessage.CardCodeUpdate);
         }
 
@@ -489,7 +614,7 @@ namespace Optima.Services.Implementation
         private async Task<CardTransaction> FindCardTransaction(Guid Id) =>
             await _context.CardTransactions
             .Where(x => x.Id == Id)
-            .Include(x => x.CardSold).ThenInclude(x => x.CardCodes)
+            .Include(x => x.CardSold)
             .Include(x => x.ActionBy)
             .FirstOrDefaultAsync();
 
@@ -745,13 +870,19 @@ namespace Optima.Services.Implementation
 
         public async Task<BaseResponse<List<AllTransactionDTO>>> GetUserRecentTransactions(Guid UserId)
         {
+            var query = SeeAllTransactions(UserId).Result.Data.Take(20).ToList();
+
+            return new BaseResponse<List<AllTransactionDTO>>(query, "");
+        }
+        public async Task<BaseResponse<List<AllTransactionDTO>>> SeeAllTransactions(Guid UserId)
+        {
             var query = await _context.CardTransactions
                 .Include(x => x.ApplicationUser)
                 .Include(x => x.CardSold)
                     .ThenInclude(x => x.CardTypeDenomination)
                         .ThenInclude(x => x.CardType)
                             .ThenInclude(x => x.Card).Where(x => x.ApplicationUserId == UserId)
-                            .Take(10).OrderBy(x => x.CreatedOn)
+                            .OrderBy(x => x.CreatedOn)
                             .Select(x => new AllTransactionDTO
                             {
                                 CardName = x.CardSold.Select(x => x.CardTypeDenomination.CardType.Card.Name).FirstOrDefault(),

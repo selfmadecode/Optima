@@ -196,6 +196,19 @@ namespace Optima.Controllers
             {
                 return HandleError(ex);
             }
-        }        
+        }
+        [HttpGet]
+        [ProducesResponseType(typeof(BaseResponse<List<AllTransactionDTO>>), 200)]
+        public async Task<IActionResult> SeeAll()
+        {
+            try
+            {
+                return ReturnResponse(await _cardSaleService.SeeAllTransactions(UserId));
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex);
+            }
+        }
     }
 }
