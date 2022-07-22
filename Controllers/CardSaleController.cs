@@ -7,6 +7,7 @@ using Optima.Services.Interface;
 using Optima.Utilities.Helpers;
 using Optima.Utilities.Pagination;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Optima.Controllers
@@ -31,7 +32,6 @@ namespace Optima.Controllers
         /// <returns></returns>
         [HttpPost]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
-        //[Authorize(Policy = "CanAdd")]
         public async Task<IActionResult> Create([FromForm] SellCardDTO model)
         {
             try
@@ -42,7 +42,6 @@ namespace Optima.Controllers
             {
                 return HandleError(ex);
             }
-
         }
 
         /// <summary>
@@ -63,7 +62,6 @@ namespace Optima.Controllers
             {
                 return HandleError(ex);
             }
-
         }
 
         /// <summary>
@@ -85,7 +83,6 @@ namespace Optima.Controllers
             {
                 return HandleError(ex);
             }
-
         }
 
         /// <summary>
@@ -108,7 +105,6 @@ namespace Optima.Controllers
             {
                 return HandleError(ex);
             }
-
         }
 
         /// <summary>
@@ -129,8 +125,78 @@ namespace Optima.Controllers
             {
                 return HandleError(ex);
             }
-
         }
 
+        /// <summary>
+        /// GETS TRANSACTION BY STATUS
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        [HttpGet]
+        [Authorize(Roles = RoleHelper.SUPERADMIN)]
+        [ProducesResponseType(typeof(BaseResponse<PagedList<AllTransactionDTO>>), 200)]
+        public async Task<IActionResult> Pending([FromQuery] BaseSearchViewModel model)
+        {
+            try
+            {
+                return ReturnResponse(await _cardSaleService.GetPendingTransaction(model));
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex);
+            }
+        }
+
+        /// <summary>
+        /// GETS TRANSACTION BY STATUS
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        [HttpGet]
+        [Authorize(Roles = RoleHelper.SUPERADMIN)]
+        [ProducesResponseType(typeof(BaseResponse<PagedList<AllTransactionDTO>>), 200)]
+        public async Task<IActionResult> Approved([FromQuery] BaseSearchViewModel model)
+        {
+            try
+            {
+                return ReturnResponse(await _cardSaleService.GetApproved_PartialApproved_Transaction(model));
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex);
+            }
+        }
+
+        [HttpGet]
+        [Authorize(Roles = RoleHelper.SUPERADMIN)]
+        [ProducesResponseType(typeof(BaseResponse<PagedList<AllTransactionDTO>>), 200)]
+        public async Task<IActionResult> Declined([FromQuery] BaseSearchViewModel model)
+        {
+            try
+            {
+                return ReturnResponse(await _cardSaleService.GetDeclinedTransaction(model));
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex);
+            }
+        }
+
+        //GET LOGGED-IN USER RECENT TRANSACTION
+        [HttpGet]
+        [ProducesResponseType(typeof(BaseResponse<List<AllTransactionDTO>>), 200)]
+        public async Task<IActionResult> Recent()
+        {
+            try
+            {
+                return ReturnResponse(await _cardSaleService.GetUserRecentTransactions(UserId));
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex);
+            }
+        }
     }
 }

@@ -445,12 +445,22 @@ namespace Optima.Services.Implementation
         {
             if (!string.IsNullOrEmpty(model.Keyword) && !string.IsNullOrEmpty(model.Filter))
             {
-
-                switch (model.Filter)
+                var key = model.Filter.ToLower();
+                switch (key)
                 {
-                    case "TransactionStatus":
+                    case "transactionstatus":
                         {
                             query = query.Where(x => x.TransactionStatus == model.Keyword.Parse<TransactionStatus>());
+                            break;
+                        }
+                    case "transactionid":
+                        {
+                            query = query.Where(x => x.TransactionRef.Contains(model.Keyword));
+                            break;
+                        }
+                    case "customername":
+                        {
+                            query = query.Where(x => x.ApplicationUser.FullName.Contains(model.Keyword));
                             break;
                         }
                     default:
@@ -679,6 +689,86 @@ namespace Optima.Services.Implementation
 
             return GenerateCreditDebitTransactionRef(lastCreditDebit, transactionType);
         }
-        
+
+        public async Task<BaseResponse<PagedList<AllTransactionDTO>>> GetPendingTransaction(BaseSearchViewModel model)
+        {
+            var status = new List<TransactionStatus>();
+            status.Add(TransactionStatus.Pending);
+
+            return await GetTransactionByStatus(model, status);
+        }
+        public async Task<BaseResponse<PagedList<AllTransactionDTO>>> GetDeclinedTransaction(BaseSearchViewModel model)
+        {
+            var status = new List<TransactionStatus>();
+            status.Add(TransactionStatus.Declined);
+
+            return await GetTransactionByStatus(model, status);
+        }
+
+        public async Task<BaseResponse<PagedList<AllTransactionDTO>>> GetApproved_PartialApproved_Transaction(BaseSearchViewModel model)
+        {
+            var status = new List<TransactionStatus>();
+            status.Add(TransactionStatus.Approved);
+            status.Add(TransactionStatus.PartialApproval);
+
+            return await GetTransactionByStatus(model, status);
+        }
+
+        public async Task<BaseResponse<PagedList<AllTransactionDTO>>> GetTransactionByStatus(BaseSearchViewModel model, List<TransactionStatus> status)
+        {
+            var query = _context.CardTransactions
+                .Include(x => x.ApplicationUser)
+                .Include(x => x.CardSold)
+                    .ThenInclude(x => x.CardTypeDenomination)
+                        .ThenInclude(x => x.CardType)
+                            .ThenInclude(x => x.Card).Where(x => status.Contains(x.TransactionStatus))
+                            .AsQueryable();
+
+            var cardTransactions = await EntityFilter(model, query).OrderByDescending(x => x.CreatedOn).ToPagedListAsync(model.PageIndex, model.PageSize);
+
+            var filteredData = BuildTransactionModel(cardTransactions);
+
+            var data = new PagedList<AllTransactionDTO>(filteredData, model.PageIndex, model.PageSize, cardTransactions.TotalItemCount);
+            return new BaseResponse<PagedList<AllTransactionDTO>>
+            { Data = data, TotalCount = data.TotalItemCount, ResponseMessage = $"FOUND {data.Count} CARD TRANSACTION(s)." };
+        }
+
+        private IQueryable<AllTransactionDTO> BuildTransactionModel(IPagedList<CardTransaction> model)
+        {
+            return model.Select(x => new AllTransactionDTO
+            {
+                CardName = x.CardSold.Select(x => x.CardTypeDenomination.CardType.Card.Name).FirstOrDefault(),
+                CreatedOn = x.CreatedOn,
+                Id = x.Id,
+                Status = x.TransactionStatus,
+                TotalAmount = x.TotalExpectedAmount,
+                TransactionRefId = x.TransactionRef,
+                UserName = x.ApplicationUser.FullName
+            }).AsQueryable();
+        }
+
+        public async Task<BaseResponse<List<AllTransactionDTO>>> GetUserRecentTransactions(Guid UserId)
+        {
+            var query = await _context.CardTransactions
+                .Include(x => x.ApplicationUser)
+                .Include(x => x.CardSold)
+                    .ThenInclude(x => x.CardTypeDenomination)
+                        .ThenInclude(x => x.CardType)
+                            .ThenInclude(x => x.Card).Where(x => x.ApplicationUserId == UserId)
+                            .Take(10).OrderBy(x => x.CreatedOn)
+                            .Select(x => new AllTransactionDTO
+                            {
+                                CardName = x.CardSold.Select(x => x.CardTypeDenomination.CardType.Card.Name).FirstOrDefault(),
+                                CreatedOn = x.CreatedOn,
+                                Id = x.Id,
+                                Status = x.TransactionStatus,
+                                TotalAmount = x.TotalExpectedAmount,
+                                TransactionRefId = x.TransactionRef,
+                                UserName = x.ApplicationUser.FullName
+                            }).ToListAsync();
+
+
+            return new BaseResponse<List<AllTransactionDTO>>(query, "");
+        }
     }
 }
