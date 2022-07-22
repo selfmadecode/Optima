@@ -13,6 +13,6 @@ namespace Optima.Models.DTO.DashboardDTOs
         public int PendingTransaction { get; set; }
         public int TotalUserCount { get; set; }
         public List<UserDTO> AdminUserDTOs { get; set; }
-        public List<CardTransactionDTO> CardTransactionDTOs { get; set; } 
+        public List<AllTransactionDTO> CardTransactionDTOs { get; set; } 
     }
 }
