@@ -75,7 +75,6 @@ namespace Optima.Controllers
         /// <returns></returns>
         [HttpPut("{transactionId}")]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
-        //[Authorize(Policy = "CanAdd")]
         public async Task<IActionResult> UpdateCardCodes(Guid transactionId, [FromBody] UpdateSellCardDTO model)   
         {
             try
@@ -98,7 +97,7 @@ namespace Optima.Controllers
         /// <returns></returns>
         [HttpPut("{transactionId}")]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
-        //[Authorize(Policy = "CanAdd")]
+        [Authorize(Roles = RoleHelper.SUPERADMIN)]
         public async Task<IActionResult> Action(Guid transactionId, [FromBody] UpdateCardTransactionStatusDTO model) 
         {
             try
@@ -120,7 +119,6 @@ namespace Optima.Controllers
         /// <returns></returns>
         [HttpGet("{userId}")]
         [ProducesResponseType(typeof(BaseResponse<PagedList<CardTransactionDTO>>), 200)]
-        //[Authorize(Policy = "CanAdd")]
         public async Task<IActionResult> CardSaleTransaction([FromQuery] BaseSearchViewModel model, Guid userId)    
         {
             try
