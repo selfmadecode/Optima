@@ -129,7 +129,7 @@ namespace Optima.Services.Implementation
                         Code = item.GiftCardCode,
                         CreatedOn = DateTime.Now,
                         Rate = existingRate.Rate,
-                        CardTypeDenominationId = item.DenominationId,
+                        DenominationId = item.DenominationId,
                         CreatedBy = UserId
                     });
                 }
@@ -302,7 +302,7 @@ namespace Optima.Services.Implementation
                 //.Include(x => x.CardTypeDenomination).ThenInclude(x => x.Prefix)
                 //.Include(x => x.CardTypeDenomination).ThenInclude(x => x.Receipt)
                 .Include(x => x.CardTypeDenomination).ThenInclude(x => x.Denomination) // ??
-                .Include(x => x.CardSold)
+                .Include(x => x.CardSold).ThenInclude(x => x.Denomination) //??
                 .Include(x => x.TransactionUploadededFiles)
                 .Include(x => x.ApplicationUser)
                 .Include(x => x.ActionBy)
@@ -345,7 +345,7 @@ namespace Optima.Services.Implementation
                 {
                     Amount = x.Rate,
                     Code = x.Code,
-                    Denomination = x.CardTypeDenomination.Denomination.Amount
+                    Denomination = x.Denomination.Amount
                 }).ToList()
                 
                 
@@ -366,9 +366,10 @@ namespace Optima.Services.Implementation
             var query = _context.CardTransactions
                 .Where(x => x.ApplicationUserId == UserId)
                 .Include(x => x.CardSold)
-                .Include(x => x.CardSold).ThenInclude(x => x.CardTypeDenomination).ThenInclude(x => x.Denomination)
-                .Include(x => x.CardSold).ThenInclude(x => x.CardTypeDenomination).ThenInclude(x => x.Prefix)
-                .Include(x => x.CardSold).ThenInclude(x => x.CardTypeDenomination).ThenInclude(x => x.Receipt)
+                .Include(x => x.CardSold).ThenInclude(x => x.Denomination)
+                //.Include(x => x.CardSold).ThenInclude(x => x.CardTypeDenomination).ThenInclude(x => x.Denomination)
+                //.Include(x => x.CardSold).ThenInclude(x => x.CardTypeDenomination).ThenInclude(x => x.Prefix)
+                //.Include(x => x.CardSold).ThenInclude(x => x.CardTypeDenomination).ThenInclude(x => x.Receipt)
                 .Include(x => x.TransactionUploadededFiles)
                 .Include(x => x.ApplicationUser)
                 .AsNoTracking()
@@ -879,9 +880,10 @@ namespace Optima.Services.Implementation
                 .Include(x => x.ApplicationUser)
                 .Include(x => x.CardTypeDenomination.CardType.Card)
                 .Include(x => x.CardSold)
-                    .ThenInclude(x => x.CardTypeDenomination)
-                        .ThenInclude(x => x.CardType)
-                            .ThenInclude(x => x.Card).Where(x => status.Contains(x.TransactionStatus))
+                    .ThenInclude(x => x.Denomination)
+                        //.ThenInclude(x => x.CardType)
+                            //.ThenInclude(x => x.Card)
+                            .Where(x => status.Contains(x.TransactionStatus))
                             .AsQueryable();
 
             var cardTransactions = await EntityFilter(model, query).OrderByDescending(x => x.CreatedOn).ToPagedListAsync(model.PageIndex, model.PageSize);
@@ -920,9 +922,10 @@ namespace Optima.Services.Implementation
                 .Include(x => x.ApplicationUser)
                 .Include(x => x.CardTypeDenomination.CardType.Card)
                 .Include(x => x.CardSold)
-                    .ThenInclude(x => x.CardTypeDenomination)
-                        .ThenInclude(x => x.CardType)
-                            .ThenInclude(x => x.Card).Where(x => x.ApplicationUserId == UserId)
+                    .ThenInclude(x => x.Denomination)
+                        //.ThenInclude(x => x.CardType)
+                            //.ThenInclude(x => x.Card)
+                            .Where(x => x.ApplicationUserId == UserId)
                             .OrderBy(x => x.CreatedOn)
                             .Select(x => new AllTransactionDTO
                             {
