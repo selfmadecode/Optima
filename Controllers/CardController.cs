@@ -349,7 +349,6 @@ namespace Optima.Controllers
         /// <param name="model"></param>
         /// <returns></returns>
         [HttpPut]
-        [AllowAnonymous]
         [Route("Update-ReceiptType/{cardId}")]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
         public async Task<IActionResult> UpdateReceiptCard(Guid cardId, [FromBody] UpdateReceiptTypeCardDTO model)
