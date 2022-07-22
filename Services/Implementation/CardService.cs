@@ -1136,7 +1136,7 @@ namespace Optima.Services.Implementation
                     if (!(acardTypeToBeUpdated is null))
                     {
                         //UPDATE CARD TYPE DENOMINATION
-                        acardTypeToBeUpdated.PrefixId = receiptTypeCardConfigDTO.ReceiptTypeId;
+                        acardTypeToBeUpdated.ReceiptId = receiptTypeCardConfigDTO.ReceiptTypeId;
                         acardTypeToBeUpdated.Rate = updateCardRateDenominationDTO.Rate;
                         acardTypeToBeUpdated.ModifiedBy = UserId;
                         acardTypeToBeUpdated.ModifiedOn = DateTime.UtcNow;
