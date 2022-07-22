@@ -45,18 +45,17 @@ namespace Optima.Controllers
         }
 
         /// <summary>
-        /// GET ALL USER CARD SALES, THE RESPONSE BODY CAN ALSO BE FILTERED.
+        /// GET A CARD SALE
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
         [HttpGet]
-        [ProducesResponseType(typeof(BaseResponse<PagedList<CardTransactionDTO>>), 200)]
-        //[Authorize(Policy = "CanAdd")]
-        public async Task<IActionResult> CardSales([FromQuery] BaseSearchViewModel model)
+        [ProducesResponseType(typeof(CardTransactionDTO), 200)]
+        public async Task<IActionResult> Get([FromBody] GetTransactionByIdDTO model)
         {
             try
             {
-                return ReturnResponse(await _cardSaleService.GetAllCardSales(model));
+                return ReturnResponse(await _cardSaleService.GetCardSale(model));
             }
             catch (Exception ex)
             {
@@ -197,6 +196,6 @@ namespace Optima.Controllers
             {
                 return HandleError(ex);
             }
-        }
+        }        
     }
 }

@@ -14,7 +14,7 @@ namespace Optima.Services.Interface
     public interface ICardSaleService
     {
         Task<BaseResponse<bool>> CreateCardSales(SellCardDTO model, Guid UserId);
-        Task<BaseResponse<PagedList<CardTransactionDTO>>> GetAllCardSales(BaseSearchViewModel model);
+        Task<BaseResponse<CardTransactionDTO>> GetCardSale(GetTransactionByIdDTO model);
         Task<BaseResponse<bool>> UpdateCardSales(Guid transactionId, UpdateSellCardDTO model, Guid UserId);
         Task<BaseResponse<bool>> UpdateCardTransactionStatus(Guid transactionId, UpdateCardTransactionStatusDTO model, Guid UserId);
         Task<BaseResponse<PagedList<CardTransactionDTO>>> GetUserCardTransactions(BaseSearchViewModel model, Guid UserId);

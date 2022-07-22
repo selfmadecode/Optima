@@ -218,9 +218,9 @@ namespace Optima.Services.Implementation
         /// </summary>
         /// <param name="model">The model.</param>
         /// <returns>Task&lt;BaseResponse&lt;PagedList&lt;GetAllCardSales&gt;&gt;&gt;.</returns>
-        public async Task<BaseResponse<PagedList<CardTransactionDTO>>> GetAllCardSales(BaseSearchViewModel model)
+        public async Task<BaseResponse<CardTransactionDTO>> GetCardSale(GetTransactionByIdDTO model)
         {
-            var query = _context.CardTransactions
+            var query = await _context.CardTransactions
                 .Include(x => x.CardSold).ThenInclude(x => x.CardCodes)
                 .Include(x => x.CardSold).ThenInclude(x => x.CardTypeDenomination).ThenInclude(x => x.Denomination)
                 .Include(x => x.CardSold).ThenInclude(x => x.CardTypeDenomination).ThenInclude(x => x.Prefix)
@@ -228,15 +228,11 @@ namespace Optima.Services.Implementation
                 .Include(x => x.TransactionUploadededFiles)
                 .Include(x => x.ApplicationUser)
                 .Include(x => x.ActionBy)
-                .AsNoTracking()
-                .AsQueryable();
+                .FirstOrDefaultAsync(x => x.Id == model.Id);
 
-            var cardTransactions = await EntityFilter(model, query).OrderByDescending(x => x.CreatedOn).ToPagedListAsync(model.PageIndex, model.PageSize);
-            var cardTransactionsDto = cardTransactions.Select(x => (CardTransactionDTO)x).ToList();
+            var data = (CardTransactionDTO)query;
 
-            var data = new PagedList<CardTransactionDTO>(cardTransactionsDto, model.PageIndex, model.PageSize, cardTransactions.TotalItemCount);
-            return new BaseResponse<PagedList<CardTransactionDTO>> 
-            { Data = data, TotalCount = data.TotalItemCount, ResponseMessage = $"FOUND {data.Count} CARDTRANSACTION(s)." };
+            return new BaseResponse<CardTransactionDTO>(data, ResponseMessage.SuccessMessage000);
         }
 
         /// <summary>
