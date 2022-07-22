@@ -11,8 +11,8 @@ using System.Threading.Tasks;
 
 namespace Optima.Controllers
 {
-    [Authorize]
     [Route("api/[controller]")]
+    [Authorize(Roles = RoleHelper.SUPERADMIN)]
     [ApiController]
     public class FaqController : BaseController
     {
@@ -23,7 +23,6 @@ namespace Optima.Controllers
             _faqService = faqService;
         }
 
-        [Authorize(Roles = RoleHelper.SUPERADMIN)]
         [HttpPost]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
         public async Task<IActionResult> Create([FromBody] CreateFaqDTO model)
@@ -40,6 +39,7 @@ namespace Optima.Controllers
         }
 
         [HttpGet("{Id}")]
+        [AllowAnonymous]
         [ProducesResponseType(typeof(BaseResponse<FaqDTO>), 200)]
         public async Task<IActionResult> Get(Guid id)
         {
@@ -55,6 +55,7 @@ namespace Optima.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         [ProducesResponseType(typeof(BaseResponse<List<FaqDTO>>), 200)]
         public async Task<IActionResult> Get()
         {
@@ -69,7 +70,6 @@ namespace Optima.Controllers
 
         }
 
-        [Authorize(Roles = RoleHelper.SUPERADMIN)]
         [HttpPut("{id}")]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
         public async Task<IActionResult> Update(Guid id, [FromBody] UpdateFaqDTO model)
