@@ -33,14 +33,16 @@ namespace Optima.Services.Implementation
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
         public async Task<BaseResponse<bool>> Create(CreateFaqDTO model, Guid UserId)
         {
-            var newFaq = new Faq
-            {
-                Question = model.Question,
-                Answer = model.Answer,
-                CreatedBy = UserId,
-            };
+            var faqs = new List<Faq>();
 
-            await _context.Faqs.AddAsync(newFaq);
+            model.Faqs.ForEach(x => faqs.Add(new Faq
+            {
+                Answer = x.Answer,
+                CreatedBy = UserId,
+                Question = x.Question
+            }));
+
+            await _context.Faqs.AddRangeAsync(faqs);
             await _context.SaveChangesAsync();
 
             _logger.Info("Faq Created Successfully ...At ExecutionPint: Create");
