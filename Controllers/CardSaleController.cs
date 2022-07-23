@@ -49,13 +49,13 @@ namespace Optima.Controllers
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        [HttpGet]
+        [HttpGet("{id}")]
         [ProducesResponseType(typeof(CardTransactionDTO), 200)]
-        public async Task<IActionResult> Get([FromBody] GetTransactionByIdDTO model)
+        public async Task<IActionResult> Get([FromQuery] Guid id)
         {
             try
             {
-                return ReturnResponse(await _cardSaleService.GetCardSale(model));
+                return ReturnResponse(await _cardSaleService.GetCardSale(id));
             }
             catch (Exception ex)
             {
@@ -197,6 +197,7 @@ namespace Optima.Controllers
                 return HandleError(ex);
             }
         }
+
         [HttpGet]
         [ProducesResponseType(typeof(BaseResponse<List<AllTransactionDTO>>), 200)]
         public async Task<IActionResult> SeeAll()
