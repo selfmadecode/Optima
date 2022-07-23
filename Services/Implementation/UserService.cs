@@ -226,7 +226,16 @@ namespace Optima.Services.Implementation
 
             data.UserDTO = users;
             data.BankAccountDTOs = GetUserBankAccount(UserId).Result.Select(x => (BankAccountDTO)x).ToList();
-            data.CardTransactionDTOs = GetUserCardTransaction(UserId).Result.Select(x => (CardTransactionDTO)x).ToList();
+            data.CardTransactionDTOs = GetUserCardTransaction(UserId).Result
+                .Select(x => new AllTransactionDTO {
+                    CardName = x.CardTypeDenomination.CardType.Card.Name,
+                    CreatedOn = x.CreatedOn,
+                    Id = x.Id,
+                    Status = x.TransactionStatus,
+                    TotalAmount = x.TotalExpectedAmount,
+                    TransactionRefId = x.TransactionRef,
+                    UserName = x.ApplicationUser.FullName
+                }).ToList();
 
             return new BaseResponse<UserDetailDTO>(data, ResponseMessage.SuccessMessage000);
         }

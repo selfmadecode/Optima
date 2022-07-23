@@ -13,7 +13,7 @@ namespace Optima.Models.DTO.UserDTOs
     {
         public UserDTO UserDTO { get; set; }
         public List<BankAccountDTO> BankAccountDTOs { get; set; }
-        public List<CardTransactionDTO> CardTransactionDTOs { get; set; }      
+        public List<AllTransactionDTO> CardTransactionDTOs { get; set; }      
 
     }
 }

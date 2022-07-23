@@ -7,12 +7,16 @@ namespace Optima.Models.Entities
 {
     public class CardSold : BaseEntity
     {
-        public Guid CardTypeDenominationId { get; set; }
-        public CardTypeDenomination CardTypeDenomination { get; set; }
-        public Decimal Amount { get; set; }
-        public Guid TransactionId { get; set; }
-        public CardTransaction Transaction { get; set; }
-        public List<CardCodes> CardCodes { get; set; } = new List<CardCodes>();
+        public Guid DenominationId { get; set; }
+        public Denomination Denomination { get; set; }
 
+        public Decimal Rate { get; set; }
+
+        public string Code { get; set; }
+
+        public CardTransaction CardTransaction { get; set; }
+        public Guid? CardTransactionId { get; set; }
+
+        //public List<CardCodes> CardCodes { get; set; } = new List<CardCodes>();
     }
 }

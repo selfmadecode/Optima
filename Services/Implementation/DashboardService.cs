@@ -37,7 +37,16 @@ namespace Optima.Services.Implementation
             var pendingTransactionCount = await GetAllCardTransaction().Where(x => x.TransactionStatus == TransactionStatus.Pending).CountAsync();
             var usersCount = await AllUsers().CountAsync();
             var usersDTO = await AllUsers().Where(x => x.UserType == UserTypes.ADMIN).Select(x => (UserDTO)x).Take(10).ToListAsync();
-            var cardTransactionDTOs = await GetAllCardTransaction().Select(x => (CardTransactionDTO)x).Take(10).ToListAsync();
+            var cardTransactionDTOs = await GetAllCardTransaction().Take(15)
+                .Select(x => new AllTransactionDTO { 
+                    CardName = x.CardTypeDenomination.CardType.Card.Name,
+                    CreatedOn = x.CreatedOn,
+                    Id = x.Id,
+                    Status = x.TransactionStatus,
+                    TotalAmount = x.TotalExpectedAmount,
+                    TransactionRefId = x.TransactionRef,
+                    UserName = x.ApplicationUser.FullName
+                }).ToListAsync();
 
             var data = new DashboardDTO
             {
@@ -45,7 +54,7 @@ namespace Optima.Services.Implementation
                 PendingTransaction = pendingTransactionCount,
                 TotalUserCount = usersCount,
                 AdminUserDTOs = usersDTO,
-                CardTransactionDTOs = cardTransactionDTOs,
+                //CardTransactionDTOs = cardTransactionDTOs,
             };
 
             return new BaseResponse<DashboardDTO> { Data = data, ResponseMessage = ResponseMessage.SuccessMessage000 };                    

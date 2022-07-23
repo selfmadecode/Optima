@@ -15,6 +15,7 @@ namespace Optima.Models.Entities
         }
         public string Name { get; set; }
         public string LogoUrl { get; set; }
+        //[NotMapped]
         public CardStatus CardStatus { get; set; }
         public BaseCardType BaseCardType { get; set; }
         public List<CardType> CardType { get; set; }
