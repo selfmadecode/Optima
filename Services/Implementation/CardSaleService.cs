@@ -548,6 +548,7 @@ namespace Optima.Services.Implementation
                 case TransactionStatus.Declined:
                     {
                         cardTransaction.TransactionStatus = TransactionStatus.Declined;
+                        cardTransaction.ActionComment = model.Comment;
                         _context.CardTransactions.Update(cardTransaction);
                         //SEND PUSH NOTIFICATION
                         var data = SendPushNotification(new List<Guid> { cardTransaction.ApplicationUserId }, TransactionStatus.Declined.GetDescription());
@@ -678,6 +679,7 @@ namespace Optima.Services.Implementation
             //UPDATES THE USER CARD TRANSACTION
             cardTransaction.TransactionStatus = model.TransactionStatus;
             cardTransaction.ActionById = UserId;
+            cardTransaction.ActionComment = model.Comment;
             cardTransaction.ActionedByDateTime = DateTime.UtcNow;
             cardTransaction.AmountPaid = model.Amount;
 
