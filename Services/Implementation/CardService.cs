@@ -152,6 +152,11 @@ namespace Optima.Services.Implementation
 
             try
             {
+                if (!model.CountryIds.Any())
+                {
+                    Errors.Add(ResponseMessage.CountryNotSelected);
+                    return new BaseResponse<CreatedCardDTO>(ResponseMessage.CountryNotSelected, Errors);
+                }
                 //VALIDATES COUNTRY IDs
                 var countryValidation = ValidateCountry(model.CountryIds);
 

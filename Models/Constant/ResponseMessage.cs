@@ -32,6 +32,7 @@ namespace Optima.Models.Constant
         public const string BankAccountUpdated = "BANK ACCOUNT UPDATED SUCCESSFULLY";
 
         public const string CountryNotFound = "COUNTRY NOT FOUND";
+        public const string CountryNotSelected = "COUNTRY NOT SELECTED FOR THIS CARD";
         public const string CountryCreated = "COUNTRY CREATED SUCCESSFULLY";
         public const string CountryNotDistinct = "SAME COUNTRY SELECTED MORE THAN ONCE OR COUNTRY NOT FOUND";
         public const string CountryAlreadyExist = "COUNTRY ALREADY EXIST";

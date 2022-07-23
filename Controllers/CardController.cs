@@ -153,13 +153,13 @@ namespace Optima.Controllers
         /// <param name="model"></param>
         /// <returns></returns>
         [HttpPost]
-        [Route("Configure-Visa/{CardId}")]
+        [Route("Configure-Visa/{cardId}")]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)] 
-        public async Task<IActionResult> Visa(Guid CardId, [FromBody] ConfigureVisaCardDTO model)
+        public async Task<IActionResult> Visa(Guid cardId, [FromBody] ConfigureVisaCardDTO model)
         {
             try
             {
-                return ReturnResponse(await _cardService.ConfigureVisaCard(model, UserId, CardId));
+                return ReturnResponse(await _cardService.ConfigureVisaCard(model, UserId, cardId));
             }
             catch (Exception ex)
             {
@@ -175,13 +175,13 @@ namespace Optima.Controllers
         /// <param name="model"></param>
         /// <returns></returns>
         [HttpPost]
-        [Route("Configure-ReceiptType/{CardId}")]
+        [Route("Configure-ReceiptType/{cardId}")]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)] 
-        public async Task<IActionResult> ReceiptType(Guid CardId, [FromBody] ConfigureReceiptTypeCardDTO model)
+        public async Task<IActionResult> ReceiptType(Guid cardId, [FromBody] ConfigureReceiptTypeCardDTO model)
         {
             try
             {
-                return ReturnResponse(await _cardService.ConfigureReceiptTypeCard(model, UserId, CardId));
+                return ReturnResponse(await _cardService.ConfigureReceiptTypeCard(model, UserId, cardId));
             }
             catch (Exception ex)
             {
@@ -198,13 +198,13 @@ namespace Optima.Controllers
         /// <param name="model"></param>
         /// <returns></returns>
         [HttpPost]
-        [Route("Configure-Normal/{CardId}")]
+        [Route("Configure-Normal/{cardId}")]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)] 
-        public async Task<IActionResult> Normal(Guid CardId, [FromBody] ConfigureNormalCardDTO model)
+        public async Task<IActionResult> Normal(Guid cardId, [FromBody] ConfigureNormalCardDTO model)
         {
             try
             {
-                return ReturnResponse(await _cardService.ConfigureNormalCard(model, UserId, CardId));
+                return ReturnResponse(await _cardService.ConfigureNormalCard(model, UserId, cardId));
             }
             catch (Exception ex)
             {
