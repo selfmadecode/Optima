@@ -322,8 +322,6 @@ namespace Optima.Services.Implementation
             var cardTypes = await _dbContext.CardTypes.Where(x => allCardTypes.Contains(x.Id)).ToListAsync();
             cardTypes.ForEach(x => x.CardStatus = CardStatus.Approved);
 
-            _dbContext.SaveChanges();
-
             _logger.Info("About to Save CardType Denomination For NormalCard Config... at ExecutionPoint:ConfigureNormalCard");
             await _dbContext.SaveChangesAsync();
             _logger.Info("Successfully Saved CardType Denomination For NormalCard Config... at ExecutionPoint:ConfigureNormalCard");
@@ -523,8 +521,6 @@ namespace Optima.Services.Implementation
             var cardTypes = await _dbContext.CardTypes.Where(x => allCardTypes.Contains(x.Id)).ToListAsync();
             cardTypes.ForEach(x => x.CardStatus = CardStatus.Approved);
 
-            _dbContext.SaveChanges();
-
             _logger.Info("About to Save CardType Denomination For Create Receipt ype Card Config... at ExecutionPoint:ConfigureReceiptTypeCard");
             await _dbContext.SaveChangesAsync();
             _logger.Info("Successfully Saved CardType Denomination For Create Receipt Type Card Config... at ExecutionPoint:ConfigureReceiptTypeCard");
@@ -657,7 +653,6 @@ namespace Optima.Services.Implementation
 
             var cardTypes = await _dbContext.CardTypes.Where(x => allCardTypes.Contains(x.Id)).ToListAsync();
             cardTypes.ForEach(x => x.CardStatus = CardStatus.Approved);
-            _dbContext.SaveChanges();
             
             _logger.Info("About to Save CardType Denomination For Create Visa Card Type Config... at ExecutionPoint:ConfigureVisaCard");
             await _dbContext.SaveChangesAsync();

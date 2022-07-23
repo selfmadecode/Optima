@@ -42,7 +42,7 @@ namespace Optima.Models.DTO.CardTransactionDTOs
 
     public class ActionedByDTO
     {
-        public Guid UserId { get; set; }
+        public Guid? UserId { get; set; }
         public string FullName { get; set; }
     }
 
