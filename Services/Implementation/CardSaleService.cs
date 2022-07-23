@@ -66,19 +66,19 @@ namespace Optima.Services.Implementation
                 var card = _context.Cards
                     .Include(x => x.CardType).ThenInclude(x => x.CardTypeDenomination)
                     .FirstOrDefault(x => x.Id == model.CardId
-                                && x.IsDeleted == false
-                                && x.IsActive == true);
+                                && x.CardStatus == CardStatus.Approved);
+                               
 
                 if(card == null)
                 {
-                    Errors.Add(ResponseMessage.CardNotFound);
-                    return new BaseResponse<bool>(ResponseMessage.CardNotFound, Errors);
+                    Errors.Add(ResponseMessage.CardNotFoundOrApproved);
+                    return new BaseResponse<bool>(ResponseMessage.CardNotFoundOrApproved, Errors);
                 }
 
                 var cardType = _context.CardType
                     .Include(x => x.CardTypeDenomination)
                     .Include(c => c.Card)
-                    .FirstOrDefault(x => x.CountryId == model.CountryId && x.Id == model.CardId && x.CardId == card.Id);
+                    .FirstOrDefault(x => x.CountryId == model.CountryId && x.Id == model.CardTypeId && x.CardId == card.Id);
 
                 if (cardType == null)
                 {
@@ -135,6 +135,7 @@ namespace Optima.Services.Implementation
                 }
 
                 var transactionImages = await UploadTransactionImages(model.CardImages, UserId);
+                filesToDelete = transactionImages.Select(x => x.LogoUrl).ToList();
 
                 var transaction = new CardTransaction
                 {
@@ -149,8 +150,6 @@ namespace Optima.Services.Implementation
                 };
 
                 _context.CardTransactions.Add(transaction);
-                await _context.SaveChangesAsync();
-
 
                 _logger.Info("About to Save Card Transaction, Card Sold and Card Transaction Uploaded Files... at ExecutionPoint:CreateCardSales");
                 await _context.SaveChangesAsync();
@@ -497,7 +496,7 @@ namespace Optima.Services.Implementation
                     aCardCodeSold.ModifiedBy = UserId;
                     aCardCodeSold.ModifiedOn = DateTime.UtcNow;
 
-                    _context.CardCodes.Update(aCardCodeSold);
+                    //_context.CardCodes.Update(aCardCodeSold);
 
                 }
             }

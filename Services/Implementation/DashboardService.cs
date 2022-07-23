@@ -54,7 +54,7 @@ namespace Optima.Services.Implementation
                 PendingTransaction = pendingTransactionCount,
                 TotalUserCount = usersCount,
                 AdminUserDTOs = usersDTO,
-                CardTransactionDTOs = cardTransactionDTOs,
+                //CardTransactionDTOs = cardTransactionDTOs,
             };
 
             return new BaseResponse<DashboardDTO> { Data = data, ResponseMessage = ResponseMessage.SuccessMessage000 };                    

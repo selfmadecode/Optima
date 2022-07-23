@@ -23,7 +23,7 @@ namespace Optima.Context
         public DbSet<Notification> Notifications { get; set; } 
         public DbSet<RefreshToken> RefreshTokens { get; set; } 
         public DbSet<Country> Countries { get; set; }
-        public DbSet<CardCodes> CardCodes { get; set; }
+        //public DbSet<CardCodes> CardCodes { get; set; }
         public DbSet<CardSold> CardSolds { get; set; }
         public DbSet<CardTransaction> CardTransactions { get; set; }
         public DbSet<Denomination> Denominations { get; set; }

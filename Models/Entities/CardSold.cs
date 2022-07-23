@@ -15,7 +15,7 @@ namespace Optima.Models.Entities
         public string Code { get; set; }
 
         public CardTransaction CardTransaction { get; set; }
-        public Guid CardTransactionId { get; set; }
+        public Guid? CardTransactionId { get; set; }
 
         //public List<CardCodes> CardCodes { get; set; } = new List<CardCodes>();
     }
