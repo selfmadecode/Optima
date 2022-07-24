@@ -14,6 +14,7 @@ namespace Optima.Models.DTO.BankAccountDTOs
         public string BankName { get; set; }
         public string AccountNumber { get; set; }
         public DateTime CreatedOn { get; set; }
+        public bool IsPrimary { get; set; }
 
 
         public static implicit operator BankAccountDTO(BankAccount model)
@@ -25,7 +26,8 @@ namespace Optima.Models.DTO.BankAccountDTOs
                    AccountName = model.AccountName,
                    AccountNumber = model.AccountNumber,
                    BankName = model.BankName,
-                   CreatedOn = model.CreatedOn
+                   CreatedOn = model.CreatedOn,
+                   IsPrimary = model.IsPrimary
                };
         } 
     }   

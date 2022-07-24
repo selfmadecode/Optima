@@ -40,6 +40,19 @@ namespace Optima.Services.Implementation
                 return new BaseResponse<bool>(ResponseMessage.MaxAccountError, Errors);
             }
 
+            // if the user selects incoming account as primary
+            if (model.IsPrimary)
+            {
+                // if there is a primary account already existing for the user
+                var primaryAccountExist = geBanksForUser.FirstOrDefault(x => x.IsPrimary);
+
+                if(primaryAccountExist != null)
+                {
+                    primaryAccountExist.IsPrimary = false;
+                }
+            }
+
+
             var checkBankInfo = await _context.BankAccounts
                 .Where(x => x.UserId == UserId 
                      && x.AccountNumber.Replace(" ", "") == model.AccountNumber.Replace(" ", "")
@@ -77,6 +90,7 @@ namespace Optima.Services.Implementation
                 AccountNumber = model.AccountNumber,
                 UserId = UserId,
                 IsActive = true,
+                IsPrimary = model.IsPrimary,
                 CreatedBy = UserId
             };
         }

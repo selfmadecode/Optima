@@ -26,6 +26,7 @@ namespace Optima.Models.Constant
         public const string AcceptedTermsAndCondition = "TERMS ACCEPTED SUCCESSFULLY";
 
         public const string MaxAccountError = "YOU CAN ONLY HAVE A MAXIMUMOF TWO ACCOUNTS";
+        public const string PrimaryAccountExist = "PRIMARY ACCOUNT ALREADY EXIST";
         public const string BankAccountCreated = "BANK ACCOUNT CREATED";
         public const string BankAccountNotFound = "BANK ACCOUNT NOT FOUND";
         public const string BankAccountDeleted = "BANK ACCOUNT DELETED SUCCESSFULLY";

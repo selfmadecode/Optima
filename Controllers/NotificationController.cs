@@ -69,7 +69,7 @@ namespace Optima.Controllers
             }
         }
 
-        [HttpGet("{id}")]
+        [HttpPost("{id}")]
         [ProducesResponseType(typeof(BaseResponse<Guid>), 200)]
         public async Task<IActionResult> Read(Guid id)
         {
