@@ -295,7 +295,7 @@ namespace Optima.Services.Implementation
         /// </summary>
         /// <param name="model">The model.</param>
         /// <returns>Task&lt;BaseResponse&lt;PagedList&lt;GetAllCardSales&gt;&gt;&gt;.</returns>
-        public async Task<BaseResponse<CardTransactionDTO>> GetCardSale(GetTransactionByIdDTO model)
+        public async Task<BaseResponse<CardTransactionDTO>> GetCardSale(Guid id)
         {
             var query = await _context.CardTransactions
                 .Include(x => x.CardTypeDenomination).ThenInclude(x => x.CardType.Card)
@@ -307,7 +307,7 @@ namespace Optima.Services.Implementation
                 .Include(x => x.TransactionUploadededFiles)
                 .Include(x => x.ApplicationUser)
                 .Include(x => x.ActionBy)
-                .FirstOrDefaultAsync(x => x.Id == model.Id);
+                .FirstOrDefaultAsync(x => x.Id == id);
 
 
             if (query is null)

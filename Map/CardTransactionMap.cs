@@ -12,7 +12,7 @@ namespace Optima.Map
     {
         public void Configure(EntityTypeBuilder<CardTransaction> builder)
         {
-            builder.HasOne(x => x.CardTypeDenomination).WithOne().OnDelete(DeleteBehavior.NoAction);
+            //builder.HasOne(x => x.CardTypeDenomination).WithOne().OnDelete(DeleteBehavior.NoAction);
         }
     }
 }

@@ -152,6 +152,11 @@ namespace Optima.Services.Implementation
 
             try
             {
+                if (!model.CountryIds.Any())
+                {
+                    Errors.Add(ResponseMessage.CountryNotSelected);
+                    return new BaseResponse<CreatedCardDTO>(ResponseMessage.CountryNotSelected, Errors);
+                }
                 //VALIDATES COUNTRY IDs
                 var countryValidation = ValidateCountry(model.CountryIds);
 
@@ -234,7 +239,16 @@ namespace Optima.Services.Implementation
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
         public async Task<BaseResponse<bool>> ConfigureNormalCard(ConfigureNormalCardDTO model, Guid UserId, Guid CardId)
         {
-            var response = new BaseResponse<bool>();
+
+            if (!model.NormalCardConfigDTO.Any())
+            {
+                Errors.Add(ResponseMessage.EmptyPayloadForCardConfiguration);
+                return new BaseResponse<bool>(ResponseMessage.EmptyPayloadForCardConfiguration, Errors);
+            }else if (!model.NormalCardConfigDTO.SelectMany(x => x.CardRates).Any())
+            {
+                Errors.Add(ResponseMessage.EmptyPayloadForCardConfiguration);
+                return new BaseResponse<bool>(ResponseMessage.EmptyPayloadForCardConfiguration, Errors);
+            }
 
             //VALIDATES THE CARD ID.
             var card = await FindCard(CardId);
@@ -318,7 +332,6 @@ namespace Optima.Services.Implementation
             var card = _dbContext.Cards.FirstOrDefault(x => x.Id == CardId);
             card.CardStatus = CardStatus.Approved;
 
-
             var cardTypes = await _dbContext.CardTypes.Where(x => allCardTypes.Contains(x.Id)).ToListAsync();
             cardTypes.ForEach(x => x.CardStatus = CardStatus.Approved);
 
@@ -336,6 +349,17 @@ namespace Optima.Services.Implementation
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
         public async Task<BaseResponse<bool>> ConfigureReceiptTypeCard(ConfigureReceiptTypeCardDTO model, Guid UserId, Guid CardId)
         {
+
+            if (!model.ReceiptTypeConfig.Any())
+            {
+                Errors.Add(ResponseMessage.EmptyPayloadForCardConfiguration);
+                return new BaseResponse<bool>(ResponseMessage.EmptyPayloadForCardConfiguration, Errors);
+            }else if (!model.ReceiptTypeConfig.SelectMany(x => x.CardRates).Any())
+            {
+                Errors.Add(ResponseMessage.EmptyPayloadForCardConfiguration);
+                return new BaseResponse<bool>(ResponseMessage.EmptyPayloadForCardConfiguration, Errors);
+            }
+
             //VALIDATES THE CARD ID.
             var card = await FindCard(CardId);
 
@@ -484,8 +508,9 @@ namespace Optima.Services.Implementation
         /// <summary>
         /// CONFIGURE CREATE RECEIPT CARD TYPE
         /// </summary>
-        /// <param name="ReceiptTypeCardConfigDTO">The model.</param>
+        /// <param name="model">The model.</param>
         /// <param name="UserId">The UserId.</param>
+        /// <param name="CardId">The CardId.</param>
         /// <returns>System.Threading.Tasks.Task</returns>
         private async Task CreateReceiptTypeDenomination(ConfigureReceiptTypeCardDTO model, Guid UserId, Guid CardId)
         {
@@ -535,6 +560,17 @@ namespace Optima.Services.Implementation
         /// <returns>Task&lt;BaseResponse&lt;bool&gt;&gt;.</returns>
         public async Task<BaseResponse<bool>> ConfigureVisaCard(ConfigureVisaCardDTO model, Guid UserId, Guid CardId)
         {
+
+            if (!model.VisaCardConfigDTO.Any())
+            {
+                Errors.Add(ResponseMessage.EmptyPayloadForCardConfiguration);
+                return new BaseResponse<bool>(ResponseMessage.EmptyPayloadForCardConfiguration, Errors);
+            }else if (!model.VisaCardConfigDTO.SelectMany(x => x.CardRates).Any())
+            {
+                Errors.Add(ResponseMessage.EmptyPayloadForCardConfiguration);
+                return new BaseResponse<bool>(ResponseMessage.EmptyPayloadForCardConfiguration, Errors);
+            }
+
             //VALIDATES CARD ID
             var card = await FindCard(CardId);
 
@@ -860,6 +896,17 @@ namespace Optima.Services.Implementation
             {
                 var response = new BaseResponse<bool>();
 
+                if (!model.UpdateVisaTypeConfigDTO.Any())
+                {
+                    Errors.Add(ResponseMessage.EmptyPayloadForCardConfiguration);
+                    return new BaseResponse<bool>(ResponseMessage.EmptyPayloadForCardConfiguration, Errors);
+                }
+                else if (!model.UpdateVisaTypeConfigDTO.SelectMany(x => x.UpdateCardRateDenominationConfigDTO).Any())
+                {
+                    Errors.Add(ResponseMessage.EmptyPayloadForCardConfiguration);
+                    return new BaseResponse<bool>(ResponseMessage.EmptyPayloadForCardConfiguration, Errors);
+                }
+              
                 //VALIDATES CARD ID. 
                 var card = await FindCard(CardId);
 
@@ -1017,6 +1064,17 @@ namespace Optima.Services.Implementation
             {
                 var response = new BaseResponse<bool>();
 
+                if (!model.UpdateReceiptTypeConfigDTO.Any())
+                {
+                    Errors.Add(ResponseMessage.EmptyPayloadForCardConfiguration);
+                    return new BaseResponse<bool>(ResponseMessage.EmptyPayloadForCardConfiguration, Errors);
+                }
+                else if (!model.UpdateReceiptTypeConfigDTO.SelectMany(x => x.UpdateCardRateDenominationConfigDTO).Any())
+                {
+                    Errors.Add(ResponseMessage.EmptyPayloadForCardConfiguration);
+                    return new BaseResponse<bool>(ResponseMessage.EmptyPayloadForCardConfiguration, Errors);
+                }
+
                 //VALIDATES CARD ID.
                 var card = await FindCard(CardId);
 
@@ -1131,7 +1189,7 @@ namespace Optima.Services.Implementation
                     if (!(acardTypeToBeUpdated is null))
                     {
                         //UPDATE CARD TYPE DENOMINATION
-                        acardTypeToBeUpdated.PrefixId = receiptTypeCardConfigDTO.ReceiptTypeId;
+                        acardTypeToBeUpdated.ReceiptId = receiptTypeCardConfigDTO.ReceiptTypeId;
                         acardTypeToBeUpdated.Rate = updateCardRateDenominationDTO.Rate;
                         acardTypeToBeUpdated.ModifiedBy = UserId;
                         acardTypeToBeUpdated.ModifiedOn = DateTime.UtcNow;
@@ -1175,6 +1233,17 @@ namespace Optima.Services.Implementation
             try
             {
                 var response = new BaseResponse<bool>();
+
+                if (!model.UpdateNormalCardTypeConfigDTO.Any())
+                {
+                    Errors.Add(ResponseMessage.EmptyPayloadForCardConfiguration);
+                    return new BaseResponse<bool>(ResponseMessage.EmptyPayloadForCardConfiguration, Errors);
+                }
+                else if (!model.UpdateNormalCardTypeConfigDTO.SelectMany(x => x.UpdateCardRateDenominationConfigDTO).Any())
+                {
+                    Errors.Add(ResponseMessage.EmptyPayloadForCardConfiguration);
+                    return new BaseResponse<bool>(ResponseMessage.EmptyPayloadForCardConfiguration, Errors);
+                }
 
                 //VALIDATES CARD ID.
                 var card = await FindCard(CardId);
