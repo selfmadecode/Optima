@@ -14,5 +14,7 @@ namespace Optima.Models.DTO.BankAccountDTOs
         public string BankName { get; set; }
         [Required]
         public string AccountNumber { get; set; }
+
+        public bool IsPrimary { get; set; }
     }
 }

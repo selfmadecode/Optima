@@ -10,6 +10,7 @@ namespace Optima.Models.Entities
         public string BankName { get; set; }
         public string AccountName { get; set; }
         public string AccountNumber { get; set; }
+        public bool IsPrimary { get; set; }
         public virtual ApplicationUser User { get; set; }
         public Guid UserId { get; set; }
 
