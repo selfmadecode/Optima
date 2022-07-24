@@ -51,7 +51,7 @@ namespace Optima.Controllers
         /// <returns></returns>
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(CardTransactionDTO), 200)]
-        public async Task<IActionResult> Get([FromQuery] Guid id)
+        public async Task<IActionResult> Get(Guid id)
         {
             try
             {
