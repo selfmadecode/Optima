@@ -90,7 +90,7 @@ namespace Optima.Models.Constant
 
         public const string UserUpdate = "SUCCESSFULLY UPDATED YOUR INFORMATION";
 
-
+        public const string EmptyPayloadForCardConfiguration = "EMPTY PAYLOAD FOR CARD CONFIGURATION";
 
         public const string VisaPrefixExist = "VISA PREFIX ALREADY EXIST";
         public const string VisaPrefixCreation = "VISA PREFIX CREATED SUCCESSFULLY";
