@@ -637,6 +637,8 @@ namespace Optima.Services.Implementation
                 PhoneNumber = user.PhoneNumber,
                 UserId = user.Id,
                 Roles = roles,
+                DateCreated = user.CreationTime,
+                Status = user.EmailConfirmed,
                 Permissions = claims.Select(x => x.Value).ToList()
             };
 
@@ -689,6 +691,24 @@ namespace Optima.Services.Implementation
 
 
             return randomNum + randomspecialChar + randomsmall + randomcapital;
-        }        
+        }
+
+        public async Task<BaseResponse<List<AdminDetailsDTO>>> GetAllAdmins()
+        {
+            var data = await _context.Users
+                .Where(x => x.UserType == UserTypes.ADMIN)
+                .Select(x => new AdminDetailsDTO
+                {
+                    EmailAddress = x.Email,
+                    Name = x.FullName,
+                    DateCreated = x.CreationTime,
+                    PhoneNumber = x.PhoneNumber,
+                    Status = x.EmailConfirmed,
+                    UserId = x.Id
+                })
+                .ToListAsync();
+
+            return new BaseResponse<List<AdminDetailsDTO>> (data, ResponseMessage.SuccessMessage000);
+        }
     }
 }

@@ -22,6 +22,9 @@ namespace Optima.Models.DTO.AuthDTO
         public string EmailAddress { get; set; }
         public string Name { get; set; }
         public string PhoneNumber { get; set; }
+        public bool Status { get; set; }
+
+        public DateTime DateCreated { get; set; }
 
         public IList<string> Permissions { get; set; }
         public IList<string> Roles { get; set; }
