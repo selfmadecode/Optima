@@ -20,4 +20,10 @@ namespace Optima.Models.DTO.BankAccountDTOs
         [Required]
         public string AccountNumber { get; set; }
     }
+
+    public class SetBankAsPrimaryDTO
+    {
+        [Required]
+        public Guid BankId { get; set; }
+    }
 }

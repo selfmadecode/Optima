@@ -103,7 +103,21 @@ namespace Optima.Controllers
             {
                 return HandleError(ex);
             }
+        }
 
+        [HttpPost]
+        [Route("Set-As-Primary")]
+        [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
+        public async Task<IActionResult> Set(SetBankAsPrimaryDTO model)
+        {
+            try
+            {
+                return ReturnResponse(await _bankAccountService.SetBankAsPrimary(model, UserId));
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex);
+            }
         }
     }
 }
