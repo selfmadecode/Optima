@@ -144,7 +144,7 @@ namespace Optima.Services.Implementation
                     CardTypeDenominationId = existingCardDenomination.FirstOrDefault().Id,
                     CreatedOn = DateTime.Now,
                     TransactionStatus = TransactionStatus.Pending,
-                    TransactionRef ="", // Generate custom transactionRef
+                    TransactionRef ="tranref-334", // Generate custom transactionRef
                     CardSold = cardSold,
                     TransactionUploadededFiles = transactionImages
                 };
@@ -549,10 +549,13 @@ namespace Optima.Services.Implementation
                     {
                         cardTransaction.TransactionStatus = TransactionStatus.Declined;
                         cardTransaction.ActionComment = model.Comment;
+                        cardTransaction.ActionById = UserId;
                         _context.CardTransactions.Update(cardTransaction);
                         //SEND PUSH NOTIFICATION
+
                         var data = SendPushNotification(new List<Guid> { cardTransaction.ApplicationUserId }, TransactionStatus.Declined.GetDescription());
                         await _pushNotificationService.SendPushNotification(data);
+
                         //SAVE NOTIFICATION TO DB
                         await SaveNotificationForUser(new List<Guid> { cardTransaction.ApplicationUserId }, TransactionStatus.Declined.GetDescription());
                         break;
@@ -562,13 +565,20 @@ namespace Optima.Services.Implementation
                     {
                         var cardTransactonUpdate = UpdateUserTransaction(model, cardTransaction, UserId);
                         _context.CardTransactions.Update(cardTransactonUpdate);
-                        var creditDebit = await CreateCreditDebit(model, cardTransaction, UserId);
-                        await _context.CreditDebit.AddAsync(creditDebit);
-                        //SEND PUSH NOTIFICATION
-                        var data = SendPushNotification(new List<Guid> { cardTransaction.ApplicationUserId }, TransactionStatus.PartialApproval.GetDescription());
-                        await _pushNotificationService.SendPushNotification(data);
-                        //SAVE NOTIFICATION TO DB
-                        await SaveNotificationForUser(new List<Guid> { cardTransaction.ApplicationUserId }, TransactionStatus.PartialApproval.GetDescription());
+
+                        var (status, creditDebit) = await CreateCreditDebit(model, cardTransaction, UserId);
+
+                        if (status)
+                        {
+                            await _context.CreditDebit.AddAsync(creditDebit);
+                            //SEND PUSH NOTIFICATION
+                            var data = SendPushNotification(new List<Guid> { cardTransaction.ApplicationUserId }, TransactionStatus.PartialApproval.GetDescription());
+                            await _pushNotificationService.SendPushNotification(data);
+
+                            //SAVE NOTIFICATION TO DB
+                            await SaveNotificationForUser(new List<Guid> { cardTransaction.ApplicationUserId }, TransactionStatus.PartialApproval.GetDescription());
+                        }
+
                         break;
                     }
                   
@@ -576,13 +586,20 @@ namespace Optima.Services.Implementation
                     {
                         var cardTransactonUpdate = UpdateUserTransaction(model, cardTransaction, UserId);
                         _context.CardTransactions.Update(cardTransactonUpdate);
-                        var creditDebit = await CreateCreditDebit(model, cardTransaction, UserId);
-                        await _context.CreditDebit.AddAsync(creditDebit);
-                        //SEND PUSH NOTIFICATION
-                        var data = SendPushNotification(new List<Guid> { cardTransaction.ApplicationUserId }, TransactionStatus.Approved.GetDescription());
-                        await _pushNotificationService.SendPushNotification(data);
-                        //SAVE NOTIFICATION TO DB
-                        await SaveNotificationForUser(new List<Guid> { cardTransaction.ApplicationUserId }, TransactionStatus.Approved.GetDescription());
+
+                        var (status, creditDebit) = await CreateCreditDebit(model, cardTransaction, UserId);
+                        if (status)
+                        {
+                            await _context.CreditDebit.AddAsync(creditDebit);
+
+                            //SEND PUSH NOTIFICATION
+                            var data = SendPushNotification(new List<Guid> { cardTransaction.ApplicationUserId }, TransactionStatus.Approved.GetDescription());
+                            await _pushNotificationService.SendPushNotification(data);
+
+                            //SAVE NOTIFICATION TO DB
+                            await SaveNotificationForUser(new List<Guid> { cardTransaction.ApplicationUserId }, TransactionStatus.Approved.GetDescription());
+                        }
+
                         break;
                     }
                 default:
@@ -682,6 +699,7 @@ namespace Optima.Services.Implementation
             cardTransaction.ActionComment = model.Comment;
             cardTransaction.ActionedByDateTime = DateTime.UtcNow;
             cardTransaction.AmountPaid = model.Amount;
+            cardTransaction.TransactionRef = "TransacyinRef";
 
             return cardTransaction;
         }
@@ -713,7 +731,7 @@ namespace Optima.Services.Implementation
         /// <param name="cardTransaction">the cardTransaction</param>
         /// <param name="UserId">the UserId</param>
         /// <returns>Task&lt;CardTransaction&gt;</returns>
-        private async Task<CreditDebit> CreateCreditDebit(UpdateCardTransactionStatusDTO model, CardTransaction cardTransaction, Guid UserId)
+        private async Task<(bool, CreditDebit)> CreateCreditDebit(UpdateCardTransactionStatusDTO model, CardTransaction cardTransaction, Guid UserId)
         {
             //GET THE USER WALLET
             var userWallet = await _context.WalletBalance.Where(x => x.UserId == cardTransaction.ApplicationUserId).FirstOrDefaultAsync();
@@ -733,11 +751,13 @@ namespace Optima.Services.Implementation
                 creditDebit.TransactionType = TransactionType.Credit;
                 creditDebit.WalletBalanceId = userWallet.Id;
                 creditDebit.ActionedByUserId = UserId;
-                creditDebit.TransactionReference = GenerateCreditDebitTransactionRef(TransactionType.Credit).Result;
+                creditDebit.TransactionReference = "tranRef-01";
+                //creditDebit.TransactionReference = await GenerateCreditDebitTransactionRef(TransactionType.Credit);
 
+                return (true, creditDebit);
             }
 
-            return creditDebit;
+            return (false, creditDebit);
 
         }
 

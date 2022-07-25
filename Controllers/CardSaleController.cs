@@ -93,7 +93,8 @@ namespace Optima.Controllers
         /// <returns></returns>
         [HttpPut("{transactionId}")]
         [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
-        [Authorize(Roles = RoleHelper.SUPERADMIN)]
+        //[Authorize(Roles = RoleHelper.SUPERADMIN)]
+        [AllowAnonymous]
         public async Task<IActionResult> Action(Guid transactionId, [FromBody] UpdateCardTransactionStatusDTO model) 
         {
             try
