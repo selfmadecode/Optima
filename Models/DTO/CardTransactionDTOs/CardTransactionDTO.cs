@@ -44,6 +44,8 @@ namespace Optima.Models.DTO.CardTransactionDTOs
     {
         public Guid? UserId { get; set; }
         public string FullName { get; set; }
+        public string Comment { get; set; }
+        public DateTime? DateActioned { get; set; }
     }
 
     public class CardSoldDTO

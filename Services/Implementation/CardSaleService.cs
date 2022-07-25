@@ -333,7 +333,9 @@ namespace Optima.Services.Implementation
                 ActionByUser = new ActionedByDTO
                 {
                     FullName = query.ActionBy?.FullName,
-                    UserId = query.ActionBy?.Id
+                    UserId = query.ActionBy?.Id,
+                    Comment = query.ActionComment,
+                    DateActioned = query.ActionedByDateTime
                 },
                 CardTransactionImages = query.TransactionUploadededFiles.Select(x => new CardTransactionImagesDTO
                 {
