@@ -33,10 +33,20 @@ namespace Optima.Services.Implementation
         /// <returns>Task&lt;BaseResponse&lt;DashboardDTO&gt;&gt;.</returns>
         public async Task<BaseResponse<DashboardDTO>> Dashboard()
         {
+            // SUM ALL USERS WALLET
             var walletBalance = GetAllWallet().Result.Select(x => x.Balance).Sum();
-            var pendingTransactionCount = await GetAllCardTransaction().Where(x => x.TransactionStatus == TransactionStatus.Pending).CountAsync();
+
+            // GET ALL PENDING CARD SALE
+            var pendingTransactionCount = await GetAllCardTransaction()
+                .Where(x => x.TransactionStatus == TransactionStatus.Pending).CountAsync();
+
+            // RETURN USERS COUNT
             var usersCount = await AllUsers().CountAsync();
+
+            // RETURN 10 ADMINS
             var usersDTO = await AllUsers().Where(x => x.UserType == UserTypes.ADMIN).Select(x => (UserDTO)x).Take(10).ToListAsync();
+
+            // RETURNS LAST 15 PENDING TRANSACTION
             var cardTransactionDTOs = await GetAllCardTransaction().Take(15)
                 .Select(x => new AllTransactionDTO { 
                     CardName = x.CardTypeDenomination.CardType.Card.Name,
@@ -54,7 +64,7 @@ namespace Optima.Services.Implementation
                 PendingTransaction = pendingTransactionCount,
                 TotalUserCount = usersCount,
                 AdminUserDTOs = usersDTO,
-                //CardTransactionDTOs = cardTransactionDTOs,
+                CardTransactionDTOs = cardTransactionDTOs,
             };
 
             return new BaseResponse<DashboardDTO> { Data = data, ResponseMessage = ResponseMessage.SuccessMessage000 };                    
@@ -74,7 +84,7 @@ namespace Optima.Services.Implementation
         /// <param name=""></param>
         /// <returns>Task&lt;List&lt;CardTransaction&gt;&gt;.</returns>
         private IQueryable<CardTransaction> GetAllCardTransaction() =>
-            _context.CardTransactions
+            _context.CardTransactions.Where(x => x.TransactionStatus == TransactionStatus.Pending)
             .OrderByDescending(x => x.CreatedOn)
             .AsQueryable();
 
