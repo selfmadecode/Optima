@@ -19,6 +19,8 @@ namespace Optima.Models.DTO.UserDTOs
         public string UserType { get; set; }
         public DateTime CreatedOn { get; set; }
         public DateTime LastLoginDate { get; set; }
+        public string BankName { get; set; }
+        public string  AccountNumber { get; set; }
 
 
         public static implicit operator UserDTO(ApplicationUser model)
