@@ -13,6 +13,7 @@ namespace Optima.Services.Interface
         Task<BaseResponse<BankAccountDTO>> GetBankAccount(Guid id, Guid UserId);
         Task<BaseResponse<bool>> UpdateBankAccount(UpdateBankAccountDTO model, Guid UserId);
         Task<BaseResponse<bool>> DeleteBankAccount(Guid id, Guid UserId);
+        Task<BaseResponse<bool>> SetBankAsPrimary(SetBankAsPrimaryDTO model, Guid UserId);
         Task<BaseResponse<List<BankAccountDTO>>> GetUserBankAccounts(Guid UserId); 
     }
 }

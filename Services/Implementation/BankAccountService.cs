@@ -40,6 +40,7 @@ namespace Optima.Services.Implementation
                 return new BaseResponse<bool>(ResponseMessage.MaxAccountError, Errors);
             }
 
+            /*
             // if the user selects incoming account as primary
             if (model.IsPrimary)
             {
@@ -51,7 +52,7 @@ namespace Optima.Services.Implementation
                     primaryAccountExist.IsPrimary = false;
                 }
             }
-
+            */
 
             var checkBankInfo = await _context.BankAccounts
                 .Where(x => x.UserId == UserId 
@@ -90,7 +91,7 @@ namespace Optima.Services.Implementation
                 AccountNumber = model.AccountNumber,
                 UserId = UserId,
                 IsActive = true,
-                IsPrimary = model.IsPrimary,
+                IsPrimary = false,
                 CreatedBy = UserId
             };
         }
@@ -197,5 +198,33 @@ namespace Optima.Services.Implementation
         /// <returns>IQueryable&lt;TimeSheet&gt;.</returns>
         private async Task<ApplicationUser> GetUserById(Guid id) =>
             await _context.Users.FirstOrDefaultAsync(x => x.Id == id);
+
+        public async Task<BaseResponse<bool>> SetBankAsPrimary(SetBankAsPrimaryDTO model, Guid UserId)
+        {
+            var userBanks = await _context.BankAccounts.Where(x => x.UserId == UserId).ToListAsync();
+
+            if(userBanks == null)
+            {
+                Errors.Add(ResponseMessage.BankAccountNotFound);
+                return new BaseResponse<bool>(ResponseMessage.BankAccountNotFound, Errors);
+            }
+            
+            var bankToSetAsPrimary = userBanks.FirstOrDefault(x => x.Id == model.BankId);
+
+            if (bankToSetAsPrimary == null)
+            {
+                Errors.Add(ResponseMessage.BankAccountNotFound);
+                return new BaseResponse<bool>(ResponseMessage.BankAccountNotFound, Errors);
+            }
+
+            userBanks.ForEach(x => x.IsPrimary = false);
+            bankToSetAsPrimary.IsPrimary = true;
+
+            _context.BankAccounts.UpdateRange(userBanks);
+            await _context.SaveChangesAsync();
+
+            _logger.Info($"Successfully updated account: {bankToSetAsPrimary.AccountNumber} to primary for {UserId}");
+            return new BaseResponse<bool>(true, ResponseMessage.BankAccountUpdated);
+        }
     }
 }
