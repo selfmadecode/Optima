@@ -169,5 +169,52 @@ namespace Optima.Services.Implementation
 
             return new BaseResponse<DashboardFilterDTO> { Data = dashboarFilterDTO, ResponseMessage = ResponseMessage.SuccessMessage000 };
         }
+
+        public async Task<BaseResponse<DashboardGraphDTO>> Dashboard(int year)
+        {
+            var cardSales = await _context.CardTransactions.Where(x => x.CreatedOn.Year == year).ToListAsync();
+
+            //First Implementation --> Returns a List of <List<DashboardGraphDTO>>
+            /* var groupedCardSales = cardSales.GroupBy(x => x.CreatedOn.Month).OrderBy(x => x.Key);
+             var data = groupedCardSales.Select(x => new DashboardGraphDTO
+             {
+                 Month = GetFullName(x.Key),
+                 CardSalesCount = x.Count(),
+             }).ToList();*/
+
+            var data2 = new DashboardGraphDTO
+            {
+                January = cardSales.Where(x => x.CreatedOn.Month == 1).Count(),
+                February = cardSales.Where(x => x.CreatedOn.Month == 2).Count(),
+                March = cardSales.Where(x => x.CreatedOn.Month == 3).Count(),
+                April = cardSales.Where(x => x.CreatedOn.Month == 4).Count(),
+                May = cardSales.Where(x => x.CreatedOn.Month == 5).Count(),
+                June = cardSales.Where(x => x.CreatedOn.Month == 6).Count(),
+                July = cardSales.Where(x => x.CreatedOn.Month == 7).Count(),
+                August = cardSales.Where(x => x.CreatedOn.Month == 8).Count(),
+                September = cardSales.Where(x => x.CreatedOn.Month == 9).Count(),
+                October = cardSales.Where(x => x.CreatedOn.Month == 10).Count(),
+                November = cardSales.Where(x => x.CreatedOn.Month == 10).Count(),
+                December = cardSales.Where(x => x.CreatedOn.Month == 12).Count(),
+            };
+
+        
+           
+
+            return new BaseResponse<DashboardGraphDTO>(data2, ResponseMessage.SuccessMessage000);
+                     
+        }
+
+        /// <summary>
+        /// Gets the full name.
+        /// </summary>
+        /// <param name="month">The month.</param>
+        /// <returns>System.String.</returns>
+        private string GetFullName(int month)
+        {
+            DateTime date = new DateTime(DateTime.Now.Year, month, 1);
+
+            return date.ToString("MMMM");
+        }
     }
 }
