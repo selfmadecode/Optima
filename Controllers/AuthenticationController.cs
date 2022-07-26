@@ -219,11 +219,13 @@ namespace Optima.Controllers
 
         [HttpGet]
         [Authorize(Roles = RoleHelper.SUPERADMIN)]
+        [ProducesResponseType(typeof(BaseResponse<List<AdminDetailsDTO>>), 200)]
+
         public async Task<IActionResult> Admins()
         {
             try
             {
-                return ReturnResponse(await _authService.GetAdminDetailsAndPermmissionsAsync(UserId));
+                return ReturnResponse(await _authService.GetAllAdmins());
             }
             catch (Exception ex)
             {
