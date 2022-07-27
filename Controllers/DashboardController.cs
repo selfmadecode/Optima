@@ -51,5 +51,20 @@ namespace Optima.Controllers
             }
 
         }
+
+        [HttpGet]
+        [ProducesResponseType(typeof(BaseResponse<bool>), 200)]
+        public async Task<IActionResult> Graph([FromQuery] int year)
+        {
+            try
+            {
+                return ReturnResponse(await _dashboardService.Dashboard(year));
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex);
+            }
+
+        }
     }
 }

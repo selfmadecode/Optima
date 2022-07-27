@@ -108,7 +108,10 @@ namespace Optima.Services.Implementation
                 return new BaseResponse<UserDTO>(ResponseMessage.ErrorMessage000, Errors);
             }
 
-            var userDTO = user;
+            var bankAccount = await _context.BankAccounts.FirstOrDefaultAsync(x => x.UserId == UserId && x.IsPrimary);
+            UserDTO userDTO = user;
+            userDTO.BankName = bankAccount?.BankName;
+            userDTO.AccountNumber = bankAccount?.AccountNumber;
 
             return new BaseResponse<UserDTO>(userDTO, ResponseMessage.SuccessMessage000);
         }

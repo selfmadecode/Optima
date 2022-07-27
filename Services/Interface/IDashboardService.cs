@@ -12,5 +12,6 @@ namespace Optima.Services.Interface
     {
         Task<BaseResponse<DashboardDTO>> Dashboard();
         Task<BaseResponse<DashboardFilterDTO>> Dashboard(DateRangeQueryType range);
+        Task<BaseResponse<DashboardGraphDTO>> Dashboard(int year);
     }
 }
