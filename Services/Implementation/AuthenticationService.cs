@@ -617,13 +617,13 @@ namespace Optima.Services.Implementation
             return new BaseResponse<UpdateClaimDTO>(model, ResponseMessage.UpdateAdminClaim);
         }
 
-        public async Task<BaseResponse<AdminDetailsDTO>> GetAdminDetailsAndPermmissionsAsync(string email)
+        public async Task<BaseResponse<AdminDetailsDTO>> GetAdminDetailsAndPermmissions(Guid adminId)
         {
-            var user = await _userManager.FindByEmailAsync(email);
+            var user = await _userManager.FindByIdAsync(adminId.ToString());
 
             if (user == null)
             {
-                Errors.Add(ResponseMessage.ErrorMessage504);
+                Errors.Add(ResponseMessage.ErrorMessage000);
                 return new BaseResponse<AdminDetailsDTO>(ResponseMessage.ErrorMessage000, Errors);
             };
 
@@ -649,7 +649,7 @@ namespace Optima.Services.Implementation
         {
             var user = await _userManager.FindByIdAsync(UserId.ToString());
 
-            return await GetAdminDetailsAndPermmissionsAsync(user.Email);
+            return await GetAdminDetailsAndPermmissionsAsync(user.Id);
         }
 
         private async Task AssignPermissionAsync(Guid UserId, IList<string> Permmissions)

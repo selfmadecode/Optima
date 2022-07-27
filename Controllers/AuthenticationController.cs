@@ -188,14 +188,14 @@ namespace Optima.Controllers
             }
         }
 
-        [HttpGet]
-        [Authorize]
-        //[Authorize(Roles = RoleHelper.SUPERADMIN)]
-        public async Task<IActionResult> AdminDetails(string EmailAddress)
+        [HttpGet("{userId:Guid}")]
+        //[Authorize]
+        [Authorize(Roles = RoleHelper.SUPERADMIN)]
+        public async Task<IActionResult> AdminDetails(Guid userId)
         {
             try
             {
-                return ReturnResponse(await _authService.GetAdminDetailsAndPermmissionsAsync(EmailAddress));
+                return ReturnResponse(await _authService.GetAdminDetailsAndPermmissions(userId));
             }
             catch (Exception ex)
             {
