@@ -121,6 +121,8 @@ namespace Optima.Services.Implementation
             switch (range)
             {
                 case DateRangeQueryType.UNKNOWN:
+                    var unknownResponse = cardTransaction.Where(x => x.ActionedByDateTime.Value.Date == DateTime.UtcNow.Date).AsQueryable();
+                    dashboarFilterDTO.Revenue = await unknownResponse.SumAsync(x => x.AmountPaid);
                     break;
                 case DateRangeQueryType.Today:
                     {
@@ -164,6 +166,8 @@ namespace Optima.Services.Implementation
                     }
                     break;
                 default:
+                    var defaultResponse = cardTransaction.Where(x => x.ActionedByDateTime.Value.Date == DateTime.UtcNow.Date).AsQueryable();
+                    dashboarFilterDTO.Revenue = await defaultResponse.SumAsync(x => x.AmountPaid);
                     break;
             }
 
@@ -196,13 +200,9 @@ namespace Optima.Services.Implementation
                 October = cardSales.Where(x => x.CreatedOn.Month == 10).Count(),
                 November = cardSales.Where(x => x.CreatedOn.Month == 10).Count(),
                 December = cardSales.Where(x => x.CreatedOn.Month == 12).Count(),
-            };
-
-        
+            };      
            
-
-            return new BaseResponse<DashboardGraphDTO>(data2, ResponseMessage.SuccessMessage000);
-                     
+            return new BaseResponse<DashboardGraphDTO>(data2, ResponseMessage.SuccessMessage000);                     
         }
 
         /// <summary>
