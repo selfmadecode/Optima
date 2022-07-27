@@ -665,7 +665,7 @@ namespace Optima.Services.Implementation
         {
             var user = await _userManager.FindByIdAsync(UserId.ToString());
 
-            return await GetAdminDetailsAndPermmissionsAsync(user.Id);
+            return await GetAdminDetailsAndPermmissions(user.Id);
         }
 
         private async Task AssignPermissionAsync(Guid UserId, IList<string> Permmissions)
