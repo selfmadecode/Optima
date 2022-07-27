@@ -638,7 +638,8 @@ namespace Optima.Services.Implementation
                 UserId = user.Id,
                 Roles = roles,
                 DateCreated = user.CreationTime,
-                Status = user.EmailConfirmed,
+                Verified = user.EmailConfirmed,
+                Active = user.IsAccountLocked,
                 Permissions = claims.Select(x => x.Value).ToList()
             };
 
@@ -703,7 +704,8 @@ namespace Optima.Services.Implementation
                     Name = x.FullName,
                     DateCreated = x.CreationTime,
                     PhoneNumber = x.PhoneNumber,
-                    Status = x.EmailConfirmed,
+                    Verified = x.EmailConfirmed,
+                    Active = x.IsAccountLocked,
                     UserId = x.Id
                 })
                 .ToListAsync();

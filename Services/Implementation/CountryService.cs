@@ -227,15 +227,14 @@ namespace Optima.Services.Implementation
                 }
               
 
-                country.Name = string.IsNullOrWhiteSpace(model.Name) ? country.Name : model.Name;
+                //country.Name = string.IsNullOrWhiteSpace(model.Name) ? country.Name : model.Name;
                 country.ModifiedBy = UserId;
                 country.ModifiedOn = DateTime.UtcNow;
                 _context.Countries.Update(country);
 
-
                 await _context.SaveChangesAsync();                             
 
-                return new BaseResponse<bool>("Country Updated Successfully");
+                return new BaseResponse<bool>(true, "Country Updated Successfully");
             }
             catch (Exception ex)
             {
