@@ -317,6 +317,8 @@ namespace Optima.Services.Implementation
             if (claimsPrincipal == null)
             {
                 Errors.Add(ResponseMessage.RefreshTokenFailure);
+                _logger.Info("Could not get claim principal from token...");
+
                 return new BaseResponse<JwtResponseDTO>(ResponseMessage.RefreshTokenFailure, Errors);
             }
 
@@ -325,21 +327,27 @@ namespace Optima.Services.Implementation
             var user = await GetUserById(id);
             if (user == null)
             {
+                _logger.Info($"Could not find user with id: {id} gotten from token");
+
                 Errors.Add(ResponseMessage.ErrorMessage000);
                 return new BaseResponse<JwtResponseDTO>(ResponseMessage.ErrorMessage000, Errors);
             }
 
             var OldToken = await GetRefreshToken(user.Id, RefreshToken);
             if (OldToken == null)
-            {                
+            {        
+                _logger.Info($"Could not find old token with userId: {user.Id} and refreshtoken {RefreshToken}");
+
                 Errors.Add(ResponseMessage.ErrorMessage500);
                 return new BaseResponse<JwtResponseDTO>(ResponseMessage.ErrorMessage500, Errors);
             }
 
             var userRoles = await _userManager.GetRolesAsync(user);
+            _logger.Info($"Getting user roles for {user.Email}");
 
             var (token, expiration) = CreateJwtTokenAsync(user, userRoles);
-           
+            _logger.Info($"Created new jwt token");
+
             var refreshToken = BuildRefreshToken();
             await RemoveRefreshToken(OldToken);
 
@@ -351,7 +359,9 @@ namespace Optima.Services.Implementation
                 ExpiresAt = DateTime.Now.AddMinutes(Convert.ToInt32(_configuration.GetSection("JWT:RefreshTokenExpiration").Value))
             });
 
+
             await SaveChanges();
+            _logger.Info($"saved new token");
 
             var data = new JwtResponseDTO()
             {
@@ -366,6 +376,8 @@ namespace Optima.Services.Implementation
 
         private async Task<RefreshToken> GetRefreshToken(Guid UserId, string refreshToken)
         {
+            _logger.Info($"Retrieveing refreshtoken for {UserId}");
+
             return await _context.RefreshTokens
                 .Where(f => f.UserId == UserId && f.Token == refreshToken && f.ExpiresAt >= DateTime.Now)
                 .FirstOrDefaultAsync();
@@ -378,8 +390,12 @@ namespace Optima.Services.Implementation
         }
         private async Task RemoveRefreshToken(RefreshToken model)
         {
+            _logger.Info($"Removing old token");
+
             _context.RefreshTokens.Remove(model);
-            //await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync();
+            _logger.Info($"Removed old token");
+
         }
         private async Task SaveChanges()
         {
