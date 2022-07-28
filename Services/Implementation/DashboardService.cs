@@ -117,6 +117,11 @@ namespace Optima.Services.Implementation
             .OrderByDescending(x => x.CreatedOn)
             .AsQueryable();
 
+        private IQueryable<CardTransaction> GetAllCardTransaction() =>
+            _context.CardTransactions
+            .OrderByDescending(x => x.CreatedOn);
+  
+
         /// <summary>
         /// ALL USERS
         /// </summary>
@@ -134,7 +139,6 @@ namespace Optima.Services.Implementation
         public async Task<BaseResponse<DashboardFilterDTO>> Dashboard(DateRangeQueryType range)
         {
             var data = new BaseResponse<DashboardFilterDTO>();
-            var dashboarFilterDTO = new DashboardFilterDTO();
 
             List<TransactionStatus> status = new List<TransactionStatus>
             {
@@ -151,60 +155,15 @@ namespace Optima.Services.Implementation
 
             var date = DateRangeExtensions.SetDateRange(dateRange);
 
-            switch (range)
-            {
-                case DateRangeQueryType.UNKNOWN:
-                    var unknownResponse = cardTransaction.Where(x => x.ActionedByDateTime.Value.Date == DateTime.UtcNow.Date).AsQueryable();
-                    dashboarFilterDTO.Revenue = await unknownResponse.SumAsync(x => x.AmountPaid);
-                    break;
-                case DateRangeQueryType.Today:
-                    {
-                        var response = cardTransaction.Where(x => x.ActionedByDateTime.Value.Date == DateTime.UtcNow.Date).AsQueryable();
-                        dashboarFilterDTO.Revenue = await response.SumAsync(x => x.AmountPaid);
-                    }
-                    break;
-                case DateRangeQueryType.Week:
-                    {
-                        var response = cardTransaction.Where(x => x.ActionedByDateTime.Value.Date >= date.FromDate.Value.Date && x.ActionedByDateTime.Value.Date <= DateTime.UtcNow.Date)
-                            .AsQueryable();
-                        dashboarFilterDTO.Revenue = await response.SumAsync(x => x.AmountPaid);
-                    }
-                    break;
-                case DateRangeQueryType.Month:
-                    {
-                        var response = cardTransaction.Where(x => x.ActionedByDateTime.Value.Date >= date.FromDate.Value.Date && x.ActionedByDateTime.Value.Date <= DateTime.UtcNow.Date)
-                            .AsQueryable();
-                        dashboarFilterDTO.Revenue = await response.SumAsync(x => x.AmountPaid);
-                    }
-                    break;
-                case DateRangeQueryType.Quarter:
-                    {
-                        var response = cardTransaction.Where(x => x.ActionedByDateTime.Value.Date >= date.FromDate.Value.Date && x.ActionedByDateTime.Value.Date <= DateTime.UtcNow.Date)
-                            .AsQueryable();
-                        dashboarFilterDTO.Revenue = await response.SumAsync(x => x.AmountPaid);
-                    }
-                    break;
-                case DateRangeQueryType.BiAnnual:
-                    {
-                        var response = cardTransaction.Where(x => x.ActionedByDateTime.Value.Date >= date.FromDate.Value.Date && x.ActionedByDateTime.Value.Date <= DateTime.UtcNow.Date)
-                            .AsQueryable();
-                        dashboarFilterDTO.Revenue = await response.SumAsync(x => x.AmountPaid);
-                    }
-                    break;
-                case DateRangeQueryType.Annual:
-                    {
-                        var response = cardTransaction.Where(x => x.ActionedByDateTime.Value.Date >= date.FromDate.Value.Date && x.ActionedByDateTime.Value.Date <= DateTime.UtcNow.Date)
-                            .AsQueryable();
-                        dashboarFilterDTO.Revenue = await response.SumAsync(x => x.AmountPaid);
-                    }
-                    break;
-                default:
-                    var defaultResponse = cardTransaction.Where(x => x.ActionedByDateTime.Value.Date == DateTime.UtcNow.Date).AsQueryable();
-                    dashboarFilterDTO.Revenue = await defaultResponse.SumAsync(x => x.AmountPaid);
-                    break;
-            }
+            var (revenue, percentage) = await CalculateRevenueAndPercentage(cardTransaction, range, date);
 
-            return new BaseResponse<DashboardFilterDTO> { Data = dashboarFilterDTO, ResponseMessage = ResponseMessage.SuccessMessage000 };
+            var dashboardFilterDTO = new DashboardFilterDTO
+            {
+                Revenue = revenue,
+                Percentage = percentage,
+            };
+
+            return new BaseResponse<DashboardFilterDTO> { Data = dashboardFilterDTO, ResponseMessage = ResponseMessage.SuccessMessage000 };
         }
 
         public async Task<BaseResponse<DashboardGraphDTO>> Dashboard(int year)
@@ -248,6 +207,128 @@ namespace Optima.Services.Implementation
             DateTime date = new DateTime(DateTime.Now.Year, month, 1);
 
             return date.ToString("MMMM");
+        }
+
+        /// <summary>
+        /// CALCULATES THE PERCENTAGE
+        /// </summary>
+        /// <param name="currentAmout"></param>
+        /// <param name="previousAmount"></param>
+        /// <returns></returns>
+        private decimal CalculatePercentage(decimal currentAmount, decimal previousAmount)
+        {
+            if (previousAmount != 0)
+            {
+                var percentage = (currentAmount / previousAmount) * 100;
+                return Math.Round(percentage);
+            }
+
+            return 0;
+           
+        }
+
+        /// <summary>
+        /// CALCULATES THE REVENUE AND PERCENTAGE
+        /// </summary>
+        /// <param name="cardTransactions"></param>
+        /// <param name="dateRangeQueryType"></param>
+        /// <param name="date"></param>
+        /// <returns>System.Tuple&lt;(decimal, decimal)&gt;</returns>
+        private async Task<(decimal, decimal)> CalculateRevenueAndPercentage(IQueryable<CardTransaction> cardTransactions, DateRangeQueryType dateRangeQueryType, TimeBoundSearchVm date)
+        {
+            decimal currentRevenue = 0, previousRevenue = 0, percentage = 0;
+
+            switch (dateRangeQueryType)
+            {
+                case DateRangeQueryType.UNKNOWN:
+                    {
+                       
+                    }
+                    break;
+                case DateRangeQueryType.Today:
+                    {
+                        currentRevenue = await cardTransactions
+                          .Where(x => x.ActionedByDateTime.Value.Date == DateTime.UtcNow.Date)
+                          .SumAsync(x => x.AmountPaid);
+
+                        previousRevenue = await cardTransactions
+                          .Where(x => x.ActionedByDateTime.Value.Date == DateTime.UtcNow.Date.AddDays(-1))
+                          .SumAsync(x => x.AmountPaid);
+
+                        percentage = CalculatePercentage(currentRevenue, previousRevenue);
+                    }
+                    break;
+                case DateRangeQueryType.Week:
+                    {
+                        currentRevenue = await cardTransactions
+                            .Where(x => x.ActionedByDateTime.Value.Date > date.FromDate.Value.Date && x.ActionedByDateTime.Value.Date <= DateTime.UtcNow.Date)
+                            .SumAsync(x => x.AmountPaid);
+
+                        previousRevenue = await cardTransactions
+                          .Where(x => x.ActionedByDateTime.Value.Date <= date.FromDate.Value)
+                          .SumAsync(x => x.AmountPaid);
+
+                        percentage = CalculatePercentage(currentRevenue, previousRevenue);
+                    }
+                    break;
+                case DateRangeQueryType.Month:
+                    {
+                        currentRevenue = await cardTransactions
+                         .Where(x => x.ActionedByDateTime.Value.Date > date.FromDate.Value.Date && x.ActionedByDateTime.Value.Date <= DateTime.UtcNow.Date)
+                         .SumAsync(x => x.AmountPaid);
+
+                        previousRevenue = await cardTransactions
+                          .Where(x => x.ActionedByDateTime.Value.Date <= date.FromDate.Value)
+                          .SumAsync(x => x.AmountPaid);
+
+                        percentage = CalculatePercentage(currentRevenue, previousRevenue);
+                    }
+                    break;
+                case DateRangeQueryType.Quarter:
+                    {
+                        currentRevenue = await cardTransactions
+                        .Where(x => x.ActionedByDateTime.Value.Date > date.FromDate.Value.Date && x.ActionedByDateTime.Value.Date <= DateTime.UtcNow.Date)
+                         .SumAsync(x => x.AmountPaid);
+
+                        previousRevenue = await cardTransactions
+                          .Where(x => x.ActionedByDateTime.Value.Date <= date.FromDate.Value)
+                          .SumAsync(x => x.AmountPaid);
+
+                        percentage = CalculatePercentage(currentRevenue, previousRevenue);
+                    }
+                    break;
+                case DateRangeQueryType.BiAnnual:
+                    {
+                        currentRevenue = await cardTransactions
+                        .Where(x => x.ActionedByDateTime.Value.Date > date.FromDate.Value.Date && x.ActionedByDateTime.Value.Date <= DateTime.UtcNow.Date)
+                         .SumAsync(x => x.AmountPaid);
+
+                        previousRevenue = await cardTransactions
+                          .Where(x => x.ActionedByDateTime.Value.Date <= date.FromDate.Value)
+                          .SumAsync(x => x.AmountPaid);
+
+                        percentage = CalculatePercentage(currentRevenue, previousRevenue);
+                    }
+                    break;
+                case DateRangeQueryType.Annual:
+                    {
+                        currentRevenue = await cardTransactions
+                         .Where(x => x.ActionedByDateTime.Value.Date > date.FromDate.Value.Date && x.ActionedByDateTime.Value.Date <= DateTime.UtcNow.Date)
+                         .SumAsync(x => x.AmountPaid);
+
+                        previousRevenue = await cardTransactions
+                          .Where(x => x.ActionedByDateTime.Value.Date <= date.FromDate.Value)
+                          .SumAsync(x => x.AmountPaid);
+
+                        percentage = CalculatePercentage(currentRevenue, previousRevenue);
+                    }
+                    break;
+                default:
+                    break;                 
+            }
+
+            return (currentRevenue, percentage);
+
         }
     }
 }
