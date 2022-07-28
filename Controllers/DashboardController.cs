@@ -39,7 +39,7 @@ namespace Optima.Controllers
         }
 
         [HttpGet]
-        [ProducesResponseType(typeof(BaseResponse<BaseResponse<DashboardFilterDTO>>), 200)]
+        [ProducesResponseType(typeof(BaseResponse<DashboardFilterDTO>), 200)]
         public async Task<IActionResult> Performance([FromBody] PerformanceDTO model)
         {
             try
@@ -54,7 +54,7 @@ namespace Optima.Controllers
         }
 
         [HttpGet]
-        [ProducesResponseType(typeof(BaseResponse<BaseResponse<DashboardGraphDTO>>), 200)]
+        [ProducesResponseType(typeof(BaseResponse<DashboardGraphDTO>), 200)]
         public async Task<IActionResult> Graph([FromQuery] int year)
         {
             try
