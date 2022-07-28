@@ -35,12 +35,15 @@ namespace Optima.Services.Implementation
         {
             // SUM ALL USERS WALLET
             
-            var walletBalance = GetAllWallet().Result.Select(x => x.Balance).Sum();
+            var walletBalance = await GetAllWallet();
 
             // GET ALL PENDING CARD SALE
-            var pendingTransactionCount = await GetAllCardTransaction()
-                .Where(x => x.TransactionStatus == TransactionStatus.Pending).CountAsync();
-
+            List<TransactionStatus> status = new List<TransactionStatus>
+            {
+                TransactionStatus.Pending
+            };
+            var pendingTransactionCount = await GetAllCardTransaction(status).CountAsync();
+                        
             // RETURN USERS COUNT
             var usersCount = await AllUsers().Where(x => x.UserType == UserTypes.USER)
                 .CountAsync();
@@ -101,14 +104,19 @@ namespace Optima.Services.Implementation
         /// </summary>
         /// <param name=""></param>
         /// <returns>Task&lt;List&lt;WalletBalance&gt;&gt;.</returns>
-        private async Task<List<WalletBalance>> GetAllWallet() =>
-             await _context.WalletBalance.ToListAsync();
+        private async Task<decimal> GetAllWallet() =>
+             await _context.WalletBalance.Select(x => x.Balance).SumAsync();
 
         /// <summary>
         /// GET ALL CARD TRANSACTION
         /// </summary>
         /// <param name=""></param>
         /// <returns>Task&lt;List&lt;CardTransaction&gt;&gt;.</returns>
+        private IQueryable<CardTransaction> GetAllCardTransaction(List<TransactionStatus> status) =>
+            _context.CardTransactions.Where(x => status.Contains(x.TransactionStatus))
+            .OrderByDescending(x => x.CreatedOn)
+            .AsQueryable();
+
         private IQueryable<CardTransaction> GetAllCardTransaction() =>
             _context.CardTransactions
             .OrderByDescending(x => x.CreatedOn);
@@ -131,10 +139,16 @@ namespace Optima.Services.Implementation
         public async Task<BaseResponse<DashboardFilterDTO>> Dashboard(DateRangeQueryType range)
         {
             var data = new BaseResponse<DashboardFilterDTO>();
+            var dashboarFilterDTO = new DashboardFilterDTO();
 
-            var cardTransaction = GetAllCardTransaction()
-                .Where(x => x.TransactionStatus == TransactionStatus.Approved || x.TransactionStatus == TransactionStatus.PartialApproval);
-               
+            List<TransactionStatus> status = new List<TransactionStatus>
+            {
+                TransactionStatus.Approved,
+                TransactionStatus.PartialApproval
+            };
+
+            var cardTransaction = GetAllCardTransaction(status);
+
             var dateRange = new TimeBoundSearchVm
             {
                 TimeRange = range
