@@ -8,6 +8,6 @@ namespace Optima.Models.DTO.DashboardDTOs
     public class DashboardFilterDTO
     {
         public decimal Revenue { get; set; }
-        public int Percentage { get; set; }
+        public decimal Percentage { get; set; }
     }
 }
