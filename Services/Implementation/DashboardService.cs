@@ -45,20 +45,16 @@ namespace Optima.Services.Implementation
             var usersCount = await AllUsers().Where(x => x.UserType == UserTypes.USER)
                 .CountAsync();
 
-            // RETURN 10 ADMINS
+            // RETURN 8 ADMINS
             var usersDTO = await AllUsers().Where(x => x.UserType == UserTypes.ADMIN).Select(x => (UserDTO)x).Take(8).ToListAsync();
 
-            // RETURNS LAST 15 PENDING TRANSACTION
-            var cardTransactionDTOs = await GetAllCardTransaction().Take(15)
-                .Select(x => new AllTransactionDTO { 
-                    CardName = x.CardTypeDenomination.CardType.Card.Name,
-                    CreatedOn = x.CreatedOn,
-                    Id = x.Id,
-                    Status = x.TransactionStatus,
-                    TotalAmount = x.TotalExpectedAmount,
-                    TransactionRefId = x.TransactionRef,
-                    UserName = x.ApplicationUser.FullName
-                }).ToListAsync();
+            List<RecentActivitiesDTO> recentActivities = new List<RecentActivitiesDTO>();
+
+            var recentCardTransactions = GetRecentCardSale();
+            var withdrawals = GetRecentWithdrawals();
+
+            recentActivities.AddRange(withdrawals);
+            recentActivities.AddRange(recentCardTransactions);
 
             var data = new DashboardDTO
             {
@@ -66,10 +62,38 @@ namespace Optima.Services.Implementation
                 PendingTransaction = pendingTransactionCount,
                 TotalUserCount = usersCount,
                 AdminUserDTOs = usersDTO,
-                CardTransactionDTOs = cardTransactionDTOs,
+                RecentActivities = recentActivities.OrderBy(x => x.CreatedOn).Take(6).ToList(),
             };
 
             return new BaseResponse<DashboardDTO> { Data = data, ResponseMessage = ResponseMessage.SuccessMessage000 };                    
+        }
+
+        private IQueryable<RecentActivitiesDTO> GetRecentCardSale()
+        {
+            return _context.CardTransactions
+                .OrderByDescending(x => x.CreatedOn)
+                .Select(x => new RecentActivitiesDTO
+                {
+                    Id = x.Id,
+                    Amount = x.TotalExpectedAmount,
+                    TransactionType = "Card Sale",
+                    CreatedOn = x.CreatedOn,
+                    Status = x.TransactionStatus
+                }).Take(6);
+        }
+
+        private IQueryable<RecentActivitiesDTO> GetRecentWithdrawals()
+        {
+            return _context.CreditDebit.Where(x => x.TransactionType == TransactionType.Debit)
+                .OrderByDescending(x => x.CreatedOn)
+                .Select(x => new RecentActivitiesDTO
+                {
+                    Id = x.Id,
+                    Amount = x.Amount,
+                    TransactionType = "Withdrawal",
+                    CreatedOn = x.CreatedOn,
+                    Status = x.TransactionStatus
+                }).Take(6);
         }
 
         /// <summary>

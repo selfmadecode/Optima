@@ -14,9 +14,17 @@ namespace Optima.Models.DTO.DashboardDTOs
         public int PendingTransaction { get; set; }
         public int TotalUserCount { get; set; }
         public List<UserDTO> AdminUserDTOs { get; set; }
-        public List<AllTransactionDTO> CardTransactionDTOs { get; set; } 
+        public List<RecentActivitiesDTO> RecentActivities { get; set; } 
     }
 
+    public class RecentActivitiesDTO
+    {
+        public Guid Id { get; set; }
+        public string TransactionType { get; set; }
+        public decimal Amount { get; set; }
+        public DateTime CreatedOn { get; set; }
+        public TransactionStatus Status { get; set; }
+    }
     public class DashboardGraphDTO
     {
 

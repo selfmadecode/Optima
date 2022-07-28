@@ -9,12 +9,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using static Optima.Utilities.Helpers.PermisionProvider;
 
 namespace Optima.Controllers
 {
-    [Authorize]
     [Route("api/[controller]/[action]")]
     [ApiController]
+    [Authorize(Policy = nameof(Permission.DASHBOARD))]
     public class DashboardController : BaseController
     {
         private readonly IDashboardService _dashboardService;
@@ -40,11 +41,11 @@ namespace Optima.Controllers
 
         [HttpGet]
         [ProducesResponseType(typeof(BaseResponse<DashboardFilterDTO>), 200)]
-        public async Task<IActionResult> Performance([FromBody] PerformanceDTO model)
+        public async Task<IActionResult> Performance([FromQuery] DateRangeQueryType range)
         {
             try
             {
-                return ReturnResponse(await _dashboardService.Dashboard(model.Range));
+                return ReturnResponse(await _dashboardService.Dashboard(range));
             }
             catch (Exception ex)
             {
