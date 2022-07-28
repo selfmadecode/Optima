@@ -139,7 +139,6 @@ namespace Optima.Services.Implementation
         public async Task<BaseResponse<DashboardFilterDTO>> Dashboard(DateRangeQueryType range)
         {
             var data = new BaseResponse<DashboardFilterDTO>();
-            var dashboarFilterDTO = new DashboardFilterDTO();
 
             List<TransactionStatus> status = new List<TransactionStatus>
             {
@@ -156,15 +155,15 @@ namespace Optima.Services.Implementation
 
             var date = DateRangeExtensions.SetDateRange(dateRange);
 
-            var (revenue, percentage) = await CalculateRevenueAndPercentage(cardTransaction, range, dateRange);
+            var (revenue, percentage) = await CalculateRevenueAndPercentage(cardTransaction, range, date);
 
-            var dashboarFilterDTO = new DashboardFilterDTO
+            var dashboardFilterDTO = new DashboardFilterDTO
             {
                 Revenue = revenue,
                 Percentage = percentage,
             };
 
-            return new BaseResponse<DashboardFilterDTO> { Data = dashboarFilterDTO, ResponseMessage = ResponseMessage.SuccessMessage000 };
+            return new BaseResponse<DashboardFilterDTO> { Data = dashboardFilterDTO, ResponseMessage = ResponseMessage.SuccessMessage000 };
         }
 
         public async Task<BaseResponse<DashboardGraphDTO>> Dashboard(int year)
