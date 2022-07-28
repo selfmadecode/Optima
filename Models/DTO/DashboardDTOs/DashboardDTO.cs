@@ -1,5 +1,6 @@
 ﻿using Optima.Models.DTO.CardTransactionDTOs;
 using Optima.Models.DTO.UserDTOs;
+using Optima.Models.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +10,7 @@ namespace Optima.Models.DTO.DashboardDTOs
 {
     public class DashboardDTO
     {
-        public decimal Spendings { get; set; }
+        public decimal AvailableToPayOut { get; set; }
         public int PendingTransaction { get; set; }
         public int TotalUserCount { get; set; }
         public List<UserDTO> AdminUserDTOs { get; set; }
@@ -38,5 +39,11 @@ namespace Optima.Models.DTO.DashboardDTOs
         public int November { get; set; }
         public int December { get; set; }
 
+    }
+
+    public class PerformanceDTO
+    {
+        public DateRangeQueryType Range { get; set; }
+         
     }
 }

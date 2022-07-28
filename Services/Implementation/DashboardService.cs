@@ -34,6 +34,7 @@ namespace Optima.Services.Implementation
         public async Task<BaseResponse<DashboardDTO>> Dashboard()
         {
             // SUM ALL USERS WALLET
+            
             var walletBalance = GetAllWallet().Result.Select(x => x.Balance).Sum();
 
             // GET ALL PENDING CARD SALE
@@ -41,10 +42,11 @@ namespace Optima.Services.Implementation
                 .Where(x => x.TransactionStatus == TransactionStatus.Pending).CountAsync();
 
             // RETURN USERS COUNT
-            var usersCount = await AllUsers().CountAsync();
+            var usersCount = await AllUsers().Where(x => x.UserType == UserTypes.USER)
+                .CountAsync();
 
             // RETURN 10 ADMINS
-            var usersDTO = await AllUsers().Where(x => x.UserType == UserTypes.ADMIN).Select(x => (UserDTO)x).Take(10).ToListAsync();
+            var usersDTO = await AllUsers().Where(x => x.UserType == UserTypes.ADMIN).Select(x => (UserDTO)x).Take(8).ToListAsync();
 
             // RETURNS LAST 15 PENDING TRANSACTION
             var cardTransactionDTOs = await GetAllCardTransaction().Take(15)
@@ -60,7 +62,7 @@ namespace Optima.Services.Implementation
 
             var data = new DashboardDTO
             {
-                Spendings = walletBalance,
+                AvailableToPayOut = walletBalance,
                 PendingTransaction = pendingTransactionCount,
                 TotalUserCount = usersCount,
                 AdminUserDTOs = usersDTO,
