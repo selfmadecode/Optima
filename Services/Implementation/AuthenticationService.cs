@@ -478,7 +478,7 @@ namespace Optima.Services.Implementation
 
         public async Task<BaseResponse<ChangePasswordDTO>> ChangePassword(ChangePasswordDTO model)
         {
-            var user = await _userManager.FindByEmailAsync(model.EmailAddress);
+            var user = await _userManager.FindByIdAsync(model.UserId.ToString());
             if (user == null)
             {
                 Errors.Add(ResponseMessage.ErrorMessage504);
@@ -565,7 +565,7 @@ namespace Optima.Services.Implementation
             var user = new ApplicationUser
             {
                 UserType = UserTypes.ADMIN,
-                FullName = $"{model.FirstName} {model.LastName}",
+                FullName = model.FullName,
                 NormalizedUserName  = model.EmailAddress.ToLower(),
                 UserName = model.EmailAddress.ToLower(),
                 EmailConfirmed = false,
