@@ -966,6 +966,7 @@ namespace Optima.Services.Implementation
                                 //CardName = x.CardSold.Select(x => x.CardTypeDenomination.CardType.Card.Name).FirstOrDefault(),
                                 Id = x.Id,
                                 CardName = x.CardTypeDenomination.CardType.Card.Name,
+                                CardImageUrl = x.CardTypeDenomination.CardType.Card.LogoUrl,
                                 CreatedOn = x.CreatedOn,                               
                                 Status = x.TransactionStatus,
                                 TotalAmount = x.TotalExpectedAmount,

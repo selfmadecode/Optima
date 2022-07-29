@@ -10,6 +10,7 @@ namespace Optima.Models.DTO.CardTransactionDTOs
     {
         public Guid Id { get; set; }
         public string TransactionRefId { get; set; }
+        public string CardImageUrl { get; set; }
         public DateTime CreatedOn { get; set; }
         public string UserName { get; set; }
         public string CardName { get; set; }
