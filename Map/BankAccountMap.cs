@@ -32,6 +32,8 @@ namespace Optima.Map
                 AccountName = "Williams Mary",
                 AccountNumber = "8989898887",
                 UserId = Defaults.SysUserId,
+                IsActive = true,
+                IsPrimary = true,
                 Id = Guid.Parse("e7d58c75-18bc-4868-b54d-0a1fdf8fe94d"),
             };
 
@@ -40,6 +42,8 @@ namespace Optima.Map
                 BankName = "UNITY BANK",
                 AccountName = "Williams Mary",
                 AccountNumber = "7645458887",
+                IsActive = true,
+                IsPrimary = true,
                 UserId = Defaults.SysUserId,
                 Id = Guid.Parse("99ae0c45-d682-4542-9ba7-1281e471916b"),
             };

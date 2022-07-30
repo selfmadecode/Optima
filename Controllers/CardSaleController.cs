@@ -50,7 +50,7 @@ namespace Optima.Controllers
         /// <param name="model"></param>
         /// <returns></returns>
         [HttpGet("{id}")]
-        [ProducesResponseType(typeof(CardTransactionDTO), 200)]
+        [ProducesResponseType(typeof(BaseResponse<CardTransactionDTO>), 200)]
         public async Task<IActionResult> Get(Guid id)
         {
             try
