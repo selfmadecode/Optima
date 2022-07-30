@@ -48,8 +48,7 @@ namespace Optima.Models.DTO.AuthDTO
     public class ChangePasswordDTO
     {
         [Required]
-        [EmailAddress]
-        public string EmailAddress { get; set; }
+        public Guid UserId { get; set; }
 
         [DataType(DataType.Password)]
         public string OldPassword { get; set; }
@@ -82,10 +81,10 @@ namespace Optima.Models.DTO.AuthDTO
         public string EmailAddress { get; set; }
 
         [Required]
-        public string FirstName { get; set; }
+        public string FullName { get; set; }
 
-        [Required]
-        public string LastName { get; set; }
+        //[Required]
+        //public string LastName { get; set; }
 
         public string PhoneNumber { get; set; }
 

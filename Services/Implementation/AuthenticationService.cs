@@ -401,7 +401,7 @@ namespace Optima.Services.Implementation
         {
             await _context.SaveChangesAsync();
         }
-        public async Task<BaseResponse<JwtResponseDTO>> Login(LoginDTO model, DateTime CurrentDateTime)
+        public async Task<BaseResponse<JwtResponseDTO>> Login(LoginDTO model, DateTime CurrentDateTime, bool isAdminLogin = false)
         {
             var user = await GetUser(model.EmailAddress);
             if (user == null)
@@ -409,6 +409,20 @@ namespace Optima.Services.Implementation
                 Errors.Add(ResponseMessage.ErrorMessage507);
                 return new BaseResponse<JwtResponseDTO>(ResponseMessage.ErrorMessage507, Errors);
             };
+
+            // A user is trying to login from admin
+            if(isAdminLogin == true && user.UserType == UserTypes.USER)
+            {
+                Errors.Add(ResponseMessage.ErrorMessage510);
+                return new BaseResponse<JwtResponseDTO>(ResponseMessage.ErrorMessage510, Errors);
+            }
+
+            // An admin trying to login from mobile
+            if(isAdminLogin == false && user.UserType != UserTypes.USER)
+            {
+                Errors.Add(ResponseMessage.ErrorMessage510);
+                return new BaseResponse<JwtResponseDTO>(ResponseMessage.ErrorMessage510, Errors);
+            }
 
             if (user.IsAccountLocked == true)
             {
@@ -438,7 +452,15 @@ namespace Optima.Services.Implementation
                 // TODO: GET USER PERMISSIONS
                 _logger.Info($"Getting user roles: ...{user.Email}");
 
-                var userRoles = await _userManager.GetRolesAsync(user);
+
+                IList<Claim> claims = new List<Claim>();
+                IList<string> userRoles = new List<string>();
+
+                if (isAdminLogin)
+                {
+                    claims = await _userManager.GetClaimsAsync(user);
+                    userRoles = await _userManager.GetRolesAsync(user);
+                }
 
                 var (token, expiration) = CreateJwtTokenAsync(user, userRoles);
 
@@ -455,8 +477,7 @@ namespace Optima.Services.Implementation
                     ExpiresAt = expiration
                 });
 
-                await SaveChanges();
-                var claims = await _userManager.GetClaimsAsync(user);
+                await SaveChanges();                
 
                 var data = new JwtResponseDTO()
                 {
@@ -478,7 +499,7 @@ namespace Optima.Services.Implementation
 
         public async Task<BaseResponse<ChangePasswordDTO>> ChangePassword(ChangePasswordDTO model)
         {
-            var user = await _userManager.FindByEmailAsync(model.EmailAddress);
+            var user = await _userManager.FindByIdAsync(model.UserId.ToString());
             if (user == null)
             {
                 Errors.Add(ResponseMessage.ErrorMessage504);
@@ -565,7 +586,7 @@ namespace Optima.Services.Implementation
             var user = new ApplicationUser
             {
                 UserType = UserTypes.ADMIN,
-                FullName = $"{model.FirstName} {model.LastName}",
+                FullName = model.FullName,
                 NormalizedUserName  = model.EmailAddress.ToLower(),
                 UserName = model.EmailAddress.ToLower(),
                 EmailConfirmed = false,

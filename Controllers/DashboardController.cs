@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Optima.Models.DTO.AuthDTO;
 using Optima.Models.DTO.DashboardDTOs;
 using Optima.Models.Enums;
 using Optima.Services.Interface;
@@ -19,9 +20,27 @@ namespace Optima.Controllers
     public class DashboardController : BaseController
     {
         private readonly IDashboardService _dashboardService;
-        public DashboardController(IDashboardService dashboardService)
+        private readonly IAuthenticationService _authService;
+
+        public DashboardController(IDashboardService dashboardService, IAuthenticationService authService)
         {
             _dashboardService = dashboardService;
+            _authService = authService;
+        }
+
+
+        [HttpPost]
+        [AllowAnonymous]
+        public async Task<IActionResult> Login([FromBody] LoginDTO model)
+        {
+            try
+            {
+                return ReturnResponse(await _authService.Login(model, CurrentDateTime, true));
+            }
+            catch (Exception ex)
+            {
+                return HandleError(ex);
+            }
         }
 
         [HttpGet]

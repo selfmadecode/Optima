@@ -76,6 +76,7 @@ namespace Optima.Models.Constant
         public const string ErrorMessage507 = "INCORRECT USERNAME OR PASSWORD";
         public const string ErrorMessage508 = "ACCOUNT IS NOT LOCKED";
         public const string ErrorMessage509 = "USER HAS NOT ACCEPTED TERMS AND CONDITION";
+        public const string ErrorMessage510 = "ACCESS DENIED";
 
 
         public const string ErrorMessage600 = "USER ACCOUNT NOT FOUND";

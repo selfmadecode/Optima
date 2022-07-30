@@ -11,7 +11,7 @@ namespace Optima.Services.Interface
 {
     public interface IAuthenticationService
     {
-        Task<BaseResponse<JwtResponseDTO>> Login(LoginDTO model, DateTime CurrentDateTime);
+        Task<BaseResponse<JwtResponseDTO>> Login(LoginDTO model, DateTime CurrentDateTime, bool isAdminLogin = false);
         Task<BaseResponse<JwtResponseDTO>> RefreshToken(string AccessToken, string RefreshToken);
         (string, DateTime) CreateJwtTokenAsync(ApplicationUser user, IList<string> userRoles);
         Task<BaseResponse<bool>> UpdateUserLastLogin(string emailAddress, DateTime CurrentDate);
